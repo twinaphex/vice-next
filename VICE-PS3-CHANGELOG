@@ -1,0 +1,154 @@
+
+Vice 2.2.7
+PS3 port by TimRex
+
+
+ChangeLog
+---------
+
+Build 1.0.3 (18-12-2010):
+-----------------------
+   - Configuration / Settings can now be saved
+
+   - Menu based configuration now suports some of the more common VICE settings
+    
+   - Added mouse support
+
+   - Physical keyboard support improved (though still a few bugs). Added positional/symbolic key layout modes
+
+   - Added ZIP and GZIP support
+
+   - Added HUD options for framerate/speed display
+
+   - Added HUD options for Disk/Tape activity
+
+   - Added multiple disk drive support
+     Disk images can be inserted using TRIANGLE + L1/L2/R1/R2 for drives 8, 9, 10, 11 respectively.
+
+   - ReSID-FP support has been added, providing significantly better audio emulation.
+     Turn up the speakers on this, it's a world of difference.
+
+   - Support for various SID models have been added as part of ReSID-FP
+
+   - Maximum resampling under ReSID-FP is now default, using the original 6581R4 model SID.
+ 
+     Performance notes:
+
+      - Before ReSID-FP optimisation
+        
+           Interpolation     100% CPU   (warp mode - 530%)  
+           Resampling (20)   100% CPU   (warp mode - 341%)
+           Resampling (50)   100% CPU   (warp mode - 312%)
+           Resampling (70)   100% CPU   (warp mode - 258%)
+           Resampling (90)   100% CPU   (warp mode - 195%)
+
+      - After ReSID-FP optimisation (AltiVec)
+
+           Interpolation     100% CPU   (warp mode - 521%)  
+           Resampling (20)   100% CPU   (warp mode - 381%)
+           Resampling (50)   100% CPU   (warp mode - 367%)
+           Resampling (70)   100% CPU   (warp mode - 338%)
+           Resampling (90)   100% CPU   (warp mode - 286%)
+
+
+   - Undecided if display filters should be disabled upon frameskip detection.
+     Even at the highest ReSID settings the Bloom filter still achieves 20 fps.  While not quite 50fps, it's
+     not *entirely* noticeable.  If you experience slowdown using any filters, try reducing the resolution to 720p
+     or use a lower quality SID setting.
+
+   - Fixed a bug when using compatibility mode. Occasionally TDE was not enabled correctly.
+
+
+Build 1.0.2 (08-12-2010):
+-----------------------
+   - ReSID emulation optimised to use AltiVec instruction set, yielding significant performance boost
+     against higher quality audio emulation in resampling mode.  We now achieve 100% C64 CPU clock at 
+     the highest quality.
+      
+        Resampling (20)   100% CPU   (warp mode - 313%)
+        Resampling (50)   100% CPU   (warp mode - 296%)
+        Resampling (70)   100% CPU   (warp mode - 286%)
+        Resampling (90)   100% CPU   (warp mode - 216%)
+
+     Even DualSid (SidStereo) mode at 90% Resampling yields 100% CPU  (warp mode - 114%).
+
+   - Default ReSID quality now set to maximum  (Resampling at 90% Band Pass)
+
+   - Resampling quality automatically decreases by 10% if any underrun occurs.
+     This generally kicks in when the Bloom or CRT filters are active.
+
+   - Fixed minor redraw bug that caused the screen buffer to flip back to settings screen after a blit timeout
+   - Added PIC1.PNG
+
+   - Support to insert a disk image without rebooting (TRIANGLE)
+
+   - Added compatibility SlowLoad mode (SQUARE)	
+     This will disable FastLoad and enable True Drive Emulation (TDE) for those titles that require it
+     for improved compatibility
+
+   - Mapped RUN/STOP key to L3
+
+   - Mapped right control-stick to cursor keys (up/down/left/right)
+   
+   - Fixed F1/F3/F5/F7 key mapping
+
+   - Finally... Disabling audio emulation altogether during warp mode has increased CPU throughput to 1749%
+     That ought to help any long load times.
+
+   - Optimised audio buffer sizes
+
+   - Added C128 support (VDC 80 column display is emulated, but not viewable)
+
+
+Build 1.0.1 (04-12-2010):
+-----------------------
+
+  - On-Screen Keyboard fixed.
+
+  - Initial support for ReSID emulation.
+      - Currently defaults to FastSID
+        Edit the vicerc file to enable Interpolation or Resampling methods.
+
+          SidResidSampling=0	// FastSID        (default)
+
+          SidResidSampling=1	// Interpolation  (better quality, slower)
+
+          SidResidSampling=1	// Resampling     (best quality, slowest)
+          SidResidPassband=90   // Sets the frequency band percentage to apply resampling.
+
+  Performance Notes:
+    ReSID emulation is currently unoptimised for the CELL processor.
+    As such, performance at the BASIC prompt (when no sound is playing) yields the following real C64 CPU speeds.
+
+        FastSID           100% CPU   (warp mode - 1143%)
+
+        Interpolation     100% CPU   (warp mode - 352%)
+
+        Resampling (20)   100% CPU   (warp mode - 196%)
+        Resampling (50)   100% CPU   (warp mode - 195%)
+        Resampling (70)   100% CPU   (warp mode - 117%)
+        Resampling (90)    33% CPU
+
+
+
+
+Build 1.0.0 (20-11-2010):
+-----------------------
+
+  - Initial Release, based on Vice 2.2.7
+
+  * Full-speed emulation
+  * Audio enabled (FastSID)
+  * Fullscreen support, 16:9, 4:3
+  * Video filters, with preview
+  * Autoload
+  * Warp Mode (Achieves ~ 350-700% actual speed)
+  * On-Screen Keyboard (partial support).
+  * Keyboard Support (partially implemented).
+  * Supports all known (uncompressed) formats (.d64 .d71 .d80 .d81 .d82 .g64 .g41 .x64 .t64 .tap .prg .p00)
+
+
+
+Thanks go out to Squarepusher, Shinhalsafar, Cm0nkey, Airmaker for their hard work on the Snes9x PS3 port,
+and their cellFramework library.  This work also incorporates their menu system and config UI.
+Also to the original VICE team for creating a solid and well maintained codebase to work with.

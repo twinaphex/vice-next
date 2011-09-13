@@ -1,0 +1,133 @@
+
+-----------------------
+Vice 2.2.7
+     PS3 port by TimRex
+          Build 1.0.3
+-----------------------
+
+
+
+Current Release
+Build 1.0.3
+---------------
+
+The original Vice project can be found here :
+
+		http://vice-emu.sourceforge.net/
+
+
+Up to date source code for the PS3 port can be found at :
+
+		http://code.google.com/p/vice-ps3/
+
+
+
+
+Menu Controls:
+---------------
+
+         CROSS         - Launches the emulator with the selected title.
+                         FastLoad enabled.
+
+         SQUARE        - Launches the emulator with the selected title under compatibility mode
+                         FastLoad disabled.
+                         True Drive Emulation (TDE) enabled.
+
+         TRIANGLE + L1 - Attach disk image to Drive 8
+         TRIANGLE + L2 - Attach disk image to Drive 9
+         TRIANGLE + R1 - Attach disk image to Drive 10
+         TRIANGLE + R2 - Attach disk image to Drive 11
+
+         CIRCLE        - Back to previous
+         SELECT        - Settings / Configuration
+         START         - Return to emulator
+
+
+Vice Controls:
+---------------
+
+         CROSS         - Fire
+         D-PAD         - Joystick
+
+         SELECT        - Swap joysticks
+         START         - Menu/Configuration
+
+         TRIANGLE      - Mapped to keyboard for 'Y'
+         CIRCLE        - Mapped to keyboard for 'N'  -  Doubly mapped to 'UP'  (See note 1)
+         SQUARE        - Mapped to keyboard for <space>
+
+         L1            - Mapped to keyboard for 'F1'
+         L2            - Mapped to keyboard for 'F3'
+         R1            - Mapped to keyboard for 'F5'
+         R2            - Mapped to keyboard for 'F7'
+
+         L3            - Run/Stop
+         R3            - On-Screen-Keyboard (partially supported)
+
+         L1 + R1       - Take Screenshot
+	 L2 + R2       - Warp Mode
+	 L3 + R3       - Hard Reset
+
+         R-Stick       - Cursor Keys (up/down/left/right)
+         L-Stick       - Replicates D-pad controls
+
+
+    *1  The CIRCLE button has been doubly mapped to the joystick 'UP' direction. This is useful for platform style
+        games where the UP direction indicates a JUMP action.  Clearly a difference in design aesthetics between joysticks 
+        and control pads, this might be more desirable.
+
+
+Keyboard Controls:
+---------------
+	RUN/STOP	Esc
+	CTRL		Tab
+
+
+Performance Notes:
+------------
+
+Under normal conditions at 1080p, there are no performance issues whatsoever. In fact, under warp mode vice can
+achieve 1800% normal CPU speed of an original Commodore 64 (when idle at the BASIC prompt).
+
+Performance will decrease significantly when using the Bloom or CRT filters.
+This can be marginally compensated for by reducing the audio quality 
+(eg: Instead of ReSID-FP, try ReSID or FastSID emulation).
+
+A far better solution is to lower the resolution to 1600x1080, or at worst 1280x1080. 
+Even the hardest demo wont have any problem running at these resolutions.
+
+
+
+Known Issues
+------------
+
+- bzip2 compressed formats are currently NOT supported
+- Keyboard support may not be correct for non-english / non QWERTY keyboard layouts
+- Keyboard support has some remaining bugs regarding shift-keys
+
+
+To Do
+------------
+
+
+Possible additions:
+------------
+
+- Remap Keys
+- Original joystick support (eg: Competition Pro / Speedlink Pro USB)
+
+
+
+What's next?
+------------
+
+
+
+------------
+
+Thanks go out to Squarepusher, Shinhalsafar, Cm0nkey, Airmaker for their hard work on the Snes9x PS3 port
+and their cellFramework library.
+
+Also to the original VICE team for creating an extremely solid and well maintained codebase to work with.
+
+------------

@@ -1,0 +1,340 @@
+/******************************************************************************* 
+ *  -- video.cpp    Graphics handling interface for Vice, based on the cellframework graphics library
+ *
+ *     VICE PS3 -   Commodore 64 emulator for the Playstation 3
+ *                  ported from the original VICE distribution
+ *                  located at http://sourceforge.net/projects/vice-emu/
+ *
+ *
+ *  Copyright (C) 2010
+ *      Author:      TimRex
+ *      Based on existing drivers for MSDOS and SDL environments
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ ********************************************************************************/
+
+ 
+#include "vice.h"
+
+#include <string>
+#include <sys/sys_time.h>
+
+#include "cmdline.h"
+#include "log.h"
+#include "palette.h"
+#include "ui.h"
+#include "ps3debug.h"
+#include "emu-ps3.hpp"
+
+#include "common.h"
+
+extern "C" {
+#include "lib.h"
+#include "util.h"
+#include "machine.h"
+#include "raster.h"
+#include "video.h"
+#include "videoarch.h"
+
+BYTE *screenbuffer = NULL;
+BYTE *overlaybuffer = NULL;
+
+video_canvas_t *last_canvas;
+
+#define MAX_CANVAS_NUM 2
+video_canvas_t *active_canvas = NULL;
+static video_canvas_t *canvaslist[MAX_CANVAS_NUM];
+
+/* forward declaration */
+static void canvas_change_palette(video_canvas_t *c);
+
+/* ------------------------------------------------------------------------- */
+
+static int draw_disable=0;
+
+int is_sysutil_drawing(void)
+{
+	return draw_disable;
+}
+
+void sysutil_drawing(int status)
+{
+	draw_disable=status;
+}
+
+static int last_redraw = 0;
+void set_last_redraw()
+{
+	last_redraw = sys_time_get_system_time();
+}
+
+unsigned long get_last_redraw(void)
+{
+	return last_redraw;
+}
+
+
+int video_arch_resources_init(void)
+{
+	return 0;
+}
+
+void video_arch_resources_shutdown(void)
+{
+	return;
+}
+
+/* ------------------------------------------------------------------------- */
+
+/* Video-specific command-line options.  */
+
+int video_init_cmdline_options(void)
+{
+    return 0;
+}
+
+/* ------------------------------------------------------------------------- */
+
+int video_init(void)
+{
+	last_canvas = NULL;
+	active_canvas = NULL;
+	for (int i = 0; i < MAX_CANVAS_NUM; i++)
+	{
+		canvaslist[i] = NULL;
+	}
+	return 0;
+}
+
+void video_shutdown(void)
+{    
+	active_canvas = NULL;
+	for (int i = 0; i < MAX_CANVAS_NUM; i++)
+	{
+		canvaslist[i] = NULL;
+	}
+	return;
+}
+
+void video_arch_canvas_init(struct video_canvas_s *canvas)
+{
+	canvas->video_draw_buffer_callback = NULL;
+	active_canvas = canvas;
+
+	debug_printf_quick ("canvas init width wants to be : %d\ncanvas init height wants to be : %d\n", canvas->width, canvas->height);
+}
+
+void video_canvas_resize(video_canvas_t *canvas, unsigned int width, unsigned int height)
+{
+	debug_printf_quick ("canvas width resize wants to be : %d\ncanvas height resize wants to be : %d\n", width, height);
+
+	if ( (screenbuffer != NULL) && (canvas->width == width) && (canvas->height == height) ) {
+		debug_printf_quick ("no realloc necessary\n");
+	}
+	else
+	{
+		screenbuffer = (unsigned char *) lib_realloc(screenbuffer, width * height * canvas->depth / 8);
+		overlaybuffer = (unsigned char *) lib_realloc(overlaybuffer, width * height * canvas->depth / 8);
+	}
+
+	canvas->width = width;
+	canvas->height = height;
+	canvas->bytes_per_line = canvas->width * canvas->depth / 8;
+
+	video_canvas_set_palette(canvas, canvas->palette);
+
+	Graphics->PSGLReInit (width, height, canvas->depth);
+}
+
+
+/* Note: `mapped' is ignored.  */
+video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width, unsigned int *height, int mapped)
+{
+	int next_canvas = 0;
+	static int vicii_setup = 0;
+
+	canvas->videoconfig->rendermode = VIDEO_RENDER_RGB_1X1;
+
+	debug_printf_quick ("canvas width wants to be : %d\ncanvas height wants to be : %d\ncanvas depth wants to be : %d\n", canvas->width, canvas->height, canvas->depth);
+
+	canvas->depth = 16;
+
+	debug_printf_quick ("canvas set to %d x %d\n", canvas->width, canvas->height);
+
+	canvas->bytes_per_line = canvas->width * (canvas->depth / 8);
+
+	screenbuffer = (unsigned char *) lib_malloc(canvas->width * canvas->height * (canvas->depth / 8));
+	overlaybuffer = (unsigned char *) lib_malloc(canvas->width * canvas->height * (canvas->depth / 8));
+	video_canvas_set_palette(canvas, canvas->palette);
+
+
+	while (canvaslist[next_canvas] != NULL && next_canvas < MAX_CANVAS_NUM - 1) {
+		next_canvas++;
+	}
+	canvaslist[next_canvas] = canvas;
+
+	// TODO This hack ensures the C128 always uses the VICII canvas and never the VDC canvas
+
+	//if (strncmp(machine_name, "C128", 4) == 0) {
+	if (machine_class == VICE_MACHINE_C128) {
+		debug_printf_quick ("forcing C128 canvas as canvas[1]\n");
+		active_canvas=canvaslist[1];
+	}
+	else
+		active_canvas=canvaslist[0];
+
+	return canvas;
+}
+
+
+void video_canvas_destroy(video_canvas_t *canvas)
+{
+	int i;
+
+	if (canvas == NULL) {
+		return;
+	}
+
+	// TODO free screenbuffer / overlaybuffer
+	//canvas_free_bitmaps(canvas);
+
+	for (i = 0; i < MAX_CANVAS_NUM; i++) {
+		if (canvaslist[i] == canvas) {
+			canvaslist[i] = NULL;
+		}
+	}
+}
+
+static void canvas_change_palette(video_canvas_t *c)
+{
+}
+
+
+/* ------------------------------------------------------------------------- */
+
+
+//inline void video_canvas_refresh(video_canvas_t *canvas,
+void video_canvas_refresh(video_canvas_t *canvas,
+		unsigned int xs, unsigned int ys,
+		unsigned int xi, unsigned int yi,
+		unsigned int w, unsigned int h)
+{
+	// TODO This version will NOT draw the VDC
+	if (active_canvas != canvas) {
+		return;
+	}
+
+	/* this is a hack for F7 change between VICII and VDC */
+	if (active_canvas != canvas) {
+		active_canvas = canvas;
+		//canvas_update_colors(canvas);
+		//clear(screen);
+	}
+
+	if (last_canvas != canvas) {
+		last_canvas = canvas;
+	}
+
+	video_canvas_render(canvas,
+			(BYTE *)screenbuffer,
+			w, h,
+			xs, ys,
+			xi, yi,
+			canvas->bytes_per_line, canvas->depth);
+
+	// TODO : Set up some drawing functions to overlay onto the canvas
+	//        force a redraw if we have to.
+
+	//memset (overlaybuffer, 0, canvas->width * canvas->height * canvas->depth / 8);
+
+	set_last_redraw();
+	Graphics->Draw (canvas->width, canvas->height, (std::uint16_t *)screenbuffer, (std::uint16_t *)overlaybuffer);
+	Graphics->Swap();
+}
+
+void fullscreen_capability(cap_fullscreen_t *cap_fullscreen)
+{
+}
+
+struct GLpalette_s {
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+} colors[256];
+
+static int makecol_RGB555A1(int r, int g, int b)
+{
+	int c = (b << 16) | (g << 8) | r;
+	return c;
+}
+
+static int makecol_RGB555BE(int r, int g, int b)
+{
+	int c = ((r & 0xf8) << 7) | ((g & 0xf8) << 2) | ((b & 0xf8) >> 3);
+	return c;
+}
+
+static int makecol_RGB24(int r, int g, int b)
+{
+	int c = (b << 16) | (g << 8) | r;
+	return c;
+}
+
+static int makecol_BGR24(int r, int g, int b)
+{
+	int c = (r << 16) | (g << 8) | b;
+	return c;
+}
+
+
+
+int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *palette)
+{
+	unsigned int i, col;
+	//canvas->palette = palette;
+	canvas_change_palette(canvas);
+
+
+	canvas->palette = palette;
+
+	for (i = 0; i < palette->num_entries; i++) {
+		video_render_setphysicalcolor(canvas->videoconfig, i, makecol_RGB555BE(palette->entries[i].red, palette->entries[i].green, palette->entries[i].blue), canvas->depth);
+	}
+
+
+	return 0;
+}
+
+void force_redraw (void)
+{
+	if (active_canvas->parent_raster != NULL)
+		raster_force_repaint(active_canvas->parent_raster);
+}
+
+int shader_active (void)
+{
+	if (strcmp (DEFAULT_SHADER_FILE, Graphics->GetCurrentShader()) == 0)
+		return 0;
+	else
+		return 1;
+}
+
+void disable_active_shader (void)
+{
+	// Actually, we just set the default shader.
+	Graphics->LoadFragmentShader(DEFAULT_SHADER_FILE);
+}
+
+}

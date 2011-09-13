@@ -1,0 +1,70 @@
+include common.mk
+
+#Python binary - only useful for PSL1ght scripts
+PYTHONBIN		= /usr/bin/python
+
+# Geohot CFW defines
+MKSELF_GEOHOT		= make_self_npdrm
+MKPKG_PSLIGHT		= old-buildtools/PS3Py/pkg.py
+PKG_FINALIZE		= package_finalize
+
+MK_TARGET 	= 	drive/iec/libiec.mk vic20/libvic20.mk vic20/cart/libvic20cart.mk drive/iecieee/libiecieee.mk drive/iec/c64exp/libiecc64.mk drive/ieee/libieee.mk drive/libdrive.mk iecbus/libiecbus.mk parallel/libparallel.mk vdrive/libvdrive.mk sid/libsid.mk monitor/libmonitor.mk sounddrv/libsounddrv.mk gfxoutputdrv/libgfxoutputdrv.mk printerdrv/libprinterdrv.mk rs232drv/librs232drv.mk diskimage/libdiskimage.mk fsdevice/libfsdevice.mk imagecontents/libimagecontents.mk fileio/libfileio.mk serial/libserial.mk tape/libtape.mk core/libcore.mk rtc/librtc.mk vicii/libvicii.mk raster/libraster.mk video/libvideo.mk arch/ps3/libarch.mk lib/lpng/libpng.mk lib/zlib/libzlib.mk resid/libresid.mk resid-fp/libresid-fp.mk arch/ps3/unzip/libunzip.mk
+
+PPU_LOADLIBS	+=	libvic20.ppu.a libvic20cart.ppu.a libiec.ppu.a libiecieee.ppu.a libiecc64.ppu.a libieee.ppu.a libdrive.ppu.a libiecbus.ppu.a libparallel.ppu.a libvdrive.ppu.a libsid.ppu.a libmonitor.ppu.a libsounddrv.ppu.a libgfxoutputdrv.ppu.a libprinterdrv.ppu.a librs232drv.ppu.a libdiskimage.ppu.a libfsdevice.ppu.a libimagecontents.ppu.a libfileio.ppu.a libserial.ppu.a libtape.ppu.a libcore.ppu.a librtc.ppu.a libvicii.ppu.a libraster.ppu.a libvideo.ppu.a libarch.ppu.a libpng.ppu.a libzlib.ppu.a libresid.ppu.a libresid-fp.ppu.a libunzip.ppu.a
+
+
+PPU_SRCS	+= 	alarm.c attach.c autostart.c autostart-prg.c charset.c clkguard.c clipboard.c cmdline.c cbmdos.c cbmimage.c color.c crc32.c datasette.c debug.c dma.c emuid.c event.c findpath.c fliplist.c gcr.c info.c init.c initcmdline.c interrupt.c ioutil.c joystick.c kbdbuf.c keyboard.c lib.c log.c machine-bus.c machine.c main.c network.c palette.c ram.c rawfile.c resources.c romset.c screenshot.c snapshot.c sound.c sysfile.c translate.c traps.c util.c vsync.c zfile.c zipcode.c midi.c mouse.c lightpen.c
+
+#only for C64
+#maincpu.c
+
+
+
+PPU_SRCS	+=	$(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
+$(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
+
+PPU_LDLIBDIR += -L.
+PPU_LDLIBDIR += -L$(CELL_SDK)/target/ppu/lib/hash
+PPU_LDLIBDIR += -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt 
+
+PPU_LDLIBS	+= 	-ldbgfont -lPSGL -lgcm_cmd -lgcm_sys_stub -lresc_stub -lc -lm -lio_stub -lfs_stub -lsysutil_stub -lsysmodule_stub -laudio_stub -lpthread -lnet_stub -lnetctl_stub -lPSGLcgc -lcgc -lmd5 -lusbd_stub
+
+PPU_TARGET	=	viceVIC20.ppu.elf
+
+VPSHADER_SRCS	=	arch/ps3/vpshader.cg
+FPSHADER_SRCS	=	arch/ps3/fpshader.cg
+
+VPSHADER_PPU_OBJS = $(patsubst %.cg, $(OBJS_DIR)/%.ppu.o, $(VPSHADER_SRCS))
+FPSHADER_PPU_OBJS = $(patsubst %.cg, $(OBJS_DIR)/%.ppu.o, $(FPSHADER_SRCS))
+
+include $(CELL_MK_DIR)/sdk.target.mk
+
+
+PPU_OBJS += $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
+
+$(VPSHADER_PPU_OBJS): $(OBJS_DIR)/%.ppu.o : %.vpo
+	@mkdir -p $(dir $(@))
+	$(PPU_OBJCOPY)  -I binary -O elf64-powerpc-celloslv2 -B powerpc $< $@
+
+$(FPSHADER_PPU_OBJS): $(OBJS_DIR)/%.ppu.o : %.fpo
+	@mkdir -p $(dir $(@))
+	$(PPU_OBJCOPY)  -I binary -O elf64-powerpc-celloslv2 -B powerpc $< $@
+
+
+.PHONY: pkg
+pkg: $(PPU_TARGET) 
+	$(STRIP) $(PPU_TARGET)
+	$(MAKE_FSELF_NPDRM) $(PPU_TARGET) pkg.VIC20/USRDIR/EBOOT.BIN
+	$(MAKE_PACKAGE_NPDRM) pkg.VIC20/package.conf pkg.VIC20
+
+#use this to create a PKG for use with Geohot CFW 3.55
+.PHONY: pkg-signed-cfw
+pkg-signed-cfw:
+	$(MKSELF_GEOHOT) $(PPU_TARGET) pkg.VIC20/USRDIR/EBOOT.BIN VICE90002
+	$(PYTHONBIN) $(MKPKG_PSLIGHT) --contentid IV0002-VICE90002_00-VIC2000000000001 pkg.VIC20/ vice-vic20-ps3-cfw3.55.pkg
+	$(PKG_FINALIZE) vice-vic20-ps3-cfw3.55.pkg
+
+common_flags.mk:	
+	echo "PPU_CFLAGS += -DEMU_VIC20" > ./common_flags.mk && echo "PPU_CXXFLAGS += -DEMU_VIC20" >> ./common_flags.mk
+
+

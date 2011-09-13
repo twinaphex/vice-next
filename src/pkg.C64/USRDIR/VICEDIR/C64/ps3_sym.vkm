@@ -1,0 +1,165 @@
+# VICE keyboard mapping file
+#
+# A Keyboard map is read in as patch to the current map.
+#
+# File format:
+# - comment lines start with '#'
+# - keyword lines start with '!keyword'
+# - normal line has 'keysym/scancode row column shiftflag'
+#
+# Keywords and their lines are:
+# '!CLEAR'               clear whole table
+# '!INCLUDE filename'    read file as mapping file
+# '!LSHIFT row col'      left shift keyboard row/column
+# '!RSHIFT row col'      right shift keyboard row/column
+# '!VSHIFT shiftkey'     virtual shift key (RSHIFT or LSHIFT)
+# '!UNDEF keysym'        remove keysym from table
+#
+# Shiftflag can have the values:
+# 0      key is not shifted for this keysym/scancode
+# 1      key is shifted for this keysym/scancode
+# 2      left shift
+# 4      right shift
+# 8      key can be shifted or not with this keysym/scancode
+# 16     deshift key for this keysym/scancode
+# 32     another definition for this keysym/scancode follows
+#
+# Negative row values:
+# 'keysym -1 n' joystick #1, direction n
+# 'keysym -2 n' joystick #2, direction n
+# 'keysym -3 0' first RESTORE key
+# 'keysym -3 1' second RESTORE key
+# 'keysym -4 0' 40/80 column key
+# 'keysym -4 1' CAPS (ASCII/DIN) key
+#
+
+!CLEAR
+!LSHIFT 1 7
+!RSHIFT 6 4
+!VSHIFT RSHIFT
+
+8 0 0 8                /*    Backspace -> Del          */
+10 0 1 16              /*       Return -> Return       */
+
+32 7 4 0               /*        Space -> Space        */
+33 7 0 1               /*            ! -> !            */
+34 7 3 1               /*            " -> "            */
+35 1 0 1               /*            # -> #            */
+36 1 3 1               /*            $ -> $            */
+37 2 0 1               /*            % -> %            */
+38 2 3 1               /*            & -> &            */
+39 3 0 1               /*            ' -> '            */
+40 3 3 1               /*            ( -> (            */
+41 4 0 1               /*            ) -> )            */
+42 6 1 0               /*            * -> *            */
+43 5 0 16              /*        Plus  -> Plus         */
+44 5 7 16              /*            , -> ,            */
+45 5 3 16              /*        Minus -> Minus        */
+46 5 4 16              /*            . -> .            */
+47 6 7 16              /*            / -> /            */
+48 4 3 16              /*            0 -> 0            */
+49 7 0 16              /*            1 -> 1            */
+50 7 3 16              /*            2 -> 2            */
+51 1 0 16              /*            3 -> 3            */
+52 1 3 16              /*            4 -> 4            */
+53 2 0 16              /*            5 -> 5            */
+54 2 3 16              /*            6 -> 6            */
+55 3 0 16              /*            7 -> 7            */
+56 3 3 16              /*            8 -> 8            */
+57 4 0 16              /*            9 -> 9            */
+58 5 5 16              /*            : -> :            */
+59 6 2 16              /*            ; -> ;            */
+60 5 7 1               /*            < -> <            */
+61 6 5 1               /*        Equal -> Equal        */
+62 5 4 1               /*            > -> >            */
+63 6 7 1               /*            ? -> ?            */
+64 5 6 16              /*            @ -> @            */
+65 1 2 1               /*            A -> A            */
+66 3 4 1               /*            B -> B            */
+67 2 4 1               /*            C -> C            */
+68 2 2 1               /*            D -> D            */
+69 1 6 1               /*            E -> E            */
+70 2 5 1               /*            F -> F            */
+71 3 2 1               /*            G -> G            */
+72 3 5 1               /*            H -> H            */
+73 4 1 1               /*            I -> I            */
+74 4 2 1               /*            J -> J            */
+75 4 5 1               /*            K -> K            */
+76 5 2 1               /*            L -> L            */
+77 4 4 1               /*            M -> M            */
+78 4 7 1               /*            N -> N            */
+79 4 6 1               /*            O -> O            */
+80 5 1 1               /*            P -> P            */
+81 7 6 1               /*            Q -> Q            */
+82 2 1 1               /*            R -> R            */
+83 1 5 1               /*            S -> S            */
+84 2 6 1               /*            T -> T            */
+85 3 6 1               /*            U -> U            */
+86 3 7 1               /*            V -> V            */
+87 1 1 1               /*            W -> W            */
+88 2 7 1               /*            X -> X            */
+89 3 1 1               /*            Y -> Y            */
+90 1 4 1               /*            Z -> Z            */
+91 5 5 1               /*            [ -> [            */
+93 6 2 1               /*            ] -> ]            */
+#94 2 3 1               /*            ^ -> ?            */
+95 5 3 16              /*        Minus -> Minus        */
+97 1 2 16              /*            A -> A            */
+98 3 4 16              /*            B -> B            */
+99 2 4 16              /*            C -> C            */
+100 2 2 16             /*            D -> D            */
+101 1 6 16             /*            E -> E            */
+102 2 5 16             /*            F -> F            */
+103 3 2 16             /*            G -> G            */
+104 3 5 16             /*            H -> H            */
+105 4 1 16             /*            I -> I            */
+106 4 2 16             /*            J -> J            */
+107 4 5 16             /*            K -> K            */
+108 5 2 16             /*            L -> L            */
+109 4 4 16             /*            M -> M            */
+110 4 7 16             /*            N -> N            */
+111 4 6 16             /*            O -> O            */
+112 5 1 16             /*            P -> P            */
+113 7 6 16             /*            Q -> Q            */
+114 2 1 16             /*            R -> R            */
+115 1 5 16             /*            S -> S            */
+116 2 6 16             /*            T -> T            */
+117 3 6 16             /*            U -> U            */
+118 3 7 16             /*            V -> V            */
+119 1 1 16             /*            W -> W            */
+120 2 7 16             /*            X -> X            */
+121 3 1 16             /*            Y -> Y            */
+122 1 4 16             /*            Z -> Z            */
+
+
+300 7 2 0              /*    Left Ctrl -> Ctrl         */
+301 1 7 2              /*   Left Shift -> Left Shift   */
+303 7 5 0              /*     Left Win -> CBM          */
+305 6 4 4              /*  Right Shift -> Right Shift  */ 
+
+# Upper Case
+
+9 7 7 16                /*          TAB -> Run          */
+32809 7 7 8           /*          ESC -> Stop         */
+32826 0 4 0            /*           F1 -> F1           */
+32827 0 4 1            /*           F2 -> F2           */
+32828 0 5 0            /*           F3 -> F3           */
+32829 0 5 1            /*           F4 -> F4           */
+32830 0 6 0            /*           F5 -> F5           */
+32831 0 6 1            /*           F6 -> F6           */
+32832 0 3 0            /*           F7 -> F7           */
+32833 0 3 1            /*           F8 -> F8           */
+32841 6 0 0            /*          Ins -> Pound        */
+32842 6 3 8            /*         Home -> CLR/HOME     */
+32844 6 6 0            /*          Del -> Up Arrow     */
+32847 0 2 16            /*        Right -> CRSR RIGHT   */
+32848 0 2 1            /*         Left -> CRSR LEFT    */
+32849 0 7 16            /*         Down -> CRSR DOWN    */
+32850 0 7 1            /*           Up -> CRSR UP      */
+
+# Restore key mappings
+92 -3 0			/*            \                */
+0 -3 1
+
+
+!INCLUDE ps3_joy.vkm

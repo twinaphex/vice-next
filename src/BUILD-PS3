@@ -1,0 +1,35 @@
+
+In order to build for the PS3
+
+First, edit common.mk to suit your build environment / Cell SDK version
+
+
+
+rm common_flags.mk
+make -f Makefile.C64 clean
+make -f Makefile.C64
+make -f Makefile.C64 pkg
+
+
+
+rm common_flags.mk
+make -f Makefile.C128 clean
+make -f Makefile.C128
+make -f Makefile.C128 pkg
+
+
+
+rm common_flags.mk
+make -f Makefile.VIC20 clean
+make -f Makefile.VIC20
+make -f Makefile.VIC204 pkg
+
+
+
+rm common_flags.mk
+make -f Makefile.PLUS4 clean
+make -f Makefile.PLUS4
+make -f Makefile.PLUS4 pkg
+
+
+

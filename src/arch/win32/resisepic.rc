@@ -1,0 +1,158 @@
+// ISEPIC specific resources.
+//
+
+#include "config.h"
+#include "res.h"
+#include "rescommon.h"
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+// template of dialog for all languages
+
+IDD_ISEPIC_SETTINGS_DIALOG DIALOG DISCARDABLE 0, 0, 180, 110
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    AUTOCHECKBOX    "", IDC_ISEPIC_ENABLE,
+                    7, 7, 99, 10, BS_AUTOCHECKBOX | WS_TABSTOP
+    AUTOCHECKBOX    "", IDC_ISEPIC_SWITCH,
+                    7, 24, 99, 10, BS_AUTOCHECKBOX | WS_TABSTOP
+
+    DEFPUSHBUTTON   "", IDOK,
+                    30, 90, 50, 14, WS_TABSTOP
+    PUSHBUTTON      "", IDCANCEL,
+                    90, 90, 50, 14, WS_TABSTOP
+END
+
+// -----------------------------------------------------------------------------
+
+// original and default ENGLISH text
+
+STRINGTABLE
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic Settings"
+  IDS_ISEPIC_ENABLE  "&Enable Isepic"
+  IDS_ISEPIC_SWITCH  "&Isepic switch"
+END
+
+
+// DANISH text
+
+STRINGTABLE
+LANGUAGE LANG_DANISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic-indstillinger"
+  IDS_ISEPIC_ENABLE  "&Aktivér Isepic"
+  IDS_ISEPIC_SWITCH  "&Isepic-kontakt"
+END
+
+
+// GERMAN text
+
+STRINGTABLE
+LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic Einstellungen"
+  IDS_ISEPIC_ENABLE  "Isepic Aktivier&en"
+  IDS_ISEPIC_SWITCH  "&Isepic Schalter"
+END
+
+
+// FRENCH text
+
+STRINGTABLE
+LANGUAGE LANG_FRENCH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic Settings"
+  IDS_ISEPIC_ENABLE  "&Enable Isepic"
+  IDS_ISEPIC_SWITCH  "&Isepic switch"
+END
+
+
+// HUNGARIAN text
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28592)
+#endif
+STRINGTABLE
+LANGUAGE LANG_HUNGARIAN, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic beállítások"
+  IDS_ISEPIC_ENABLE  "Isepic &engedélyezése"
+  IDS_ISEPIC_SWITCH  "&Isepic kapcsoló"
+END
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+
+// ITALIAN text
+
+STRINGTABLE
+LANGUAGE LANG_ITALIAN, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Impostazioni Isepic"
+  IDS_ISEPIC_ENABLE  "&Attiva Isepic"
+  IDS_ISEPIC_SWITCH  "Interruttore &Isepic"
+END
+
+
+// DUTCH text
+
+STRINGTABLE
+LANGUAGE LANG_DUTCH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic instellingen"
+  IDS_ISEPIC_ENABLE  "&Activeer Isepic"
+  IDS_ISEPIC_SWITCH  "&Isepic schakelaar"
+END
+
+
+// POLISH text
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28592)
+#endif
+STRINGTABLE
+LANGUAGE LANG_POLISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic Settings"
+  IDS_ISEPIC_ENABLE  "&Enable Isepic"
+  IDS_ISEPIC_SWITCH  "&Isepic switch"
+END
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+
+// SWEDISH text
+
+STRINGTABLE
+LANGUAGE LANG_SWEDISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic-inställningar"
+  IDS_ISEPIC_ENABLE  "&Aktivera Isepic"
+  IDS_ISEPIC_SWITCH  "&Isepic-omkopplare"
+END
+
+
+// TURKISH text
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28599)
+#endif
+STRINGTABLE
+LANGUAGE LANG_TURKISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_ISEPIC_CAPTION "Isepic Ayarlarý"
+  IDS_ISEPIC_ENABLE  "Isepic'i aktif &et"
+  IDS_ISEPIC_SWITCH  "Isepic anahtarý"
+END
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+

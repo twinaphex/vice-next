@@ -1,0 +1,186 @@
+// GEORAM specific resources.
+//
+
+#include "config.h"
+#include "res.h"
+#include "rescommon.h"
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+// template of dialog for all languages
+
+IDD_GEORAM_SETTINGS_DIALOG DIALOG DISCARDABLE 0, 0, 180, 110
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    AUTOCHECKBOX    "", IDC_GEORAM_ENABLE,
+                    7, 7, 99, 10, BS_AUTOCHECKBOX | WS_TABSTOP
+    LTEXT           "", IDC_GEORAM_SIZE_LABEL,
+                    9, 24, 50, 8
+    COMBOBOX        IDC_GEORAM_SIZE,
+                    65, 22, 50, 80, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "", IDC_GEORAM_FILE_LABEL,
+                    9, 44, 46, 8
+    PUSHBUTTON      "", IDC_GEORAM_BROWSE,
+                    55, 42, 50, 14, 0
+    EDITTEXT        IDC_GEORAM_FILE,
+                    9, 58, 160, 12, WS_TABSTOP
+
+    DEFPUSHBUTTON   "", IDOK,
+                    30, 90, 50, 14, WS_TABSTOP
+    PUSHBUTTON      "", IDCANCEL,
+                    90, 90, 50, 14, WS_TABSTOP
+END
+
+// -----------------------------------------------------------------------------
+
+// original and default ENGLISH text
+
+STRINGTABLE
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Select file for GEORAM"
+  IDS_GEORAM_CAPTION     "GEORAM Settings"
+  IDS_GEORAM_ENABLE      "&Enable GEORAM"
+  IDS_GEORAM_SIZE_LABEL  "GEORAM size"
+  IDS_GEORAM_FILE_LABEL  "GEORAM file"
+END
+
+
+// DANISH text
+
+STRINGTABLE
+LANGUAGE LANG_DANISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Vælg fil for GEORAM"
+  IDS_GEORAM_CAPTION     "GEORAM-indstillinger"
+  IDS_GEORAM_ENABLE      "&Aktivér GEORAM"
+  IDS_GEORAM_SIZE_LABEL  "GEORAM-størrelse"
+  IDS_GEORAM_FILE_LABEL  "GEORAM-fil"
+END
+
+
+// GERMAN text
+
+STRINGTABLE
+LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Datei für GEORAM auswählen"
+  IDS_GEORAM_CAPTION     "GEORAM Einstellungen"
+  IDS_GEORAM_ENABLE      "GEORAM aktivieren"
+  IDS_GEORAM_SIZE_LABEL  "GEORAM Größe"
+  IDS_GEORAM_FILE_LABEL  "GEORAM Datei"
+END
+
+
+// FRENCH text
+
+STRINGTABLE
+LANGUAGE LANG_FRENCH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Sélectionner le fichier GEORAM"
+  IDS_GEORAM_CAPTION     "Paramètres GEORAM"
+  IDS_GEORAM_ENABLE      "&Activer GEORAM"
+  IDS_GEORAM_SIZE_LABEL  "Taille du GEORAM"
+  IDS_GEORAM_FILE_LABEL  "Fichier GEORAM"
+END
+
+
+// HUNGARIAN text
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28592)
+#endif
+STRINGTABLE
+LANGUAGE LANG_HUNGARIAN, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Válasszon fájlt a GEORAM-hoz"
+  IDS_GEORAM_CAPTION     "GEORAM beállításai"
+  IDS_GEORAM_ENABLE      "GEORAM &engedélyezése"
+  IDS_GEORAM_SIZE_LABEL  "GEORAM mérete"
+  IDS_GEORAM_FILE_LABEL  "GEORAM fájl"
+END
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+
+// ITALIAN text
+
+STRINGTABLE
+LANGUAGE LANG_ITALIAN, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Seleziona il file per la GEORAM"
+  IDS_GEORAM_CAPTION     "Impostazioni GEORAM"
+  IDS_GEORAM_ENABLE      "&Attiva GEORAM"
+  IDS_GEORAM_SIZE_LABEL  "Dimensione GEORAM"
+  IDS_GEORAM_FILE_LABEL  "File della GEORAM"
+END
+
+
+// DUTCH text
+
+STRINGTABLE
+LANGUAGE LANG_DUTCH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Selecteer bestand voor GEORAM"
+  IDS_GEORAM_CAPTION     "GEORAM-instellingen"
+  IDS_GEORAM_ENABLE      "&Activeer GEORAM"
+  IDS_GEORAM_SIZE_LABEL  "GEORAM-grootte"
+  IDS_GEORAM_FILE_LABEL  "GEORAM-bestand"
+END
+
+
+// POLISH text
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28592)
+#endif
+STRINGTABLE
+LANGUAGE LANG_POLISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Select file for GEORAM"
+  IDS_GEORAM_CAPTION     "GEORAM Settings"
+  IDS_GEORAM_ENABLE      "&Enable GEORAM"
+  IDS_GEORAM_SIZE_LABEL  "Rozmiar GEORAM"
+  IDS_GEORAM_FILE_LABEL  "GEORAM file"
+END
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+
+// SWEDISH text
+
+STRINGTABLE
+LANGUAGE LANG_SWEDISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "Välj fil för GEORAM"
+  IDS_GEORAM_CAPTION     "GEORAM-inställningar"
+  IDS_GEORAM_ENABLE      "&Aktivera GEORAM"
+  IDS_GEORAM_SIZE_LABEL  "GEORAM-storlek"
+  IDS_GEORAM_FILE_LABEL  "GEORAM-fil"
+END
+
+
+// TURKISH text
+
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28599)
+#endif
+STRINGTABLE
+LANGUAGE LANG_TURKISH, SUBLANG_NEUTRAL
+BEGIN
+  IDS_SELECT_FILE_GEORAM "GEORAM için dosya seçin"
+  IDS_GEORAM_CAPTION     "GEORAM Ayarlarý"
+  IDS_GEORAM_ENABLE      "GEORAM'i aktif &et"
+  IDS_GEORAM_SIZE_LABEL  "GEORAM boyutu"
+  IDS_GEORAM_FILE_LABEL  "GEORAM dosyasý"
+END
+#ifndef WINDRES_CP_IGNORE
+#pragma code_page(28591)
+#endif
+
+
