@@ -45,7 +45,7 @@ extern "C" {
 #include "ui.h"
 }
 
-PS3Graphics::PS3Graphics() : PSGLGraphics(), gl_main_buffer(NULL), vertex_buf(NULL)
+PS3Graphics::PS3Graphics() : PSGLGraphics(), vertex_buf(NULL)
 {
 	m_smooth = false;
 	m_pal60Hz = false;
@@ -65,11 +65,6 @@ void PS3Graphics::Deinit()
 	{
 		free(vertex_buf);
 		vertex_buf = NULL;
-	}
-	if(gl_main_buffer)
-	{
-		free(gl_main_buffer);
-		gl_main_buffer = NULL;
 	}
 	if(gl_overlay_buffer)
 	{
@@ -156,14 +151,14 @@ void PS3Graphics::SetViewports()
 
 void PS3Graphics::SetOverscan(bool will_overscan, float amount)
 {
-    m_overscan_amount = amount;
-    m_overscan = will_overscan;
-    SetViewports();
+	m_overscan_amount = amount;
+	m_overscan = will_overscan;
+	SetViewports();
 }
 
 void PS3Graphics::SetPAL60Hz(bool pal60Hz)
 {
-    m_pal60Hz = pal60Hz;
+	m_pal60Hz = pal60Hz;
 }
 
 bool PS3Graphics::GetPAL60Hz()
@@ -177,11 +172,11 @@ void PS3Graphics::Refresh()
 {
 	// Is this sufficient for a callback redraw?
 
-	Clear();
+	glClear(GL_COLOR_BUFFER_BIT);
 	glDrawArrays(GL_QUADS, 0, 4); 
 	DrawHUD();
 	glFlush();
-	Swap();
+	psglSwap();
 	last_redraw = sys_time_get_system_time();
 }
 
@@ -305,7 +300,7 @@ static int offset=0;
 
 void PS3Graphics::Draw(int width, int height, uint16_t* screen, uint16_t* overlay)
 {
-	Clear();
+	glClear(GL_COLOR_BUFFER_BIT);
 	glBufferSubData(GL_TEXTURE_REFERENCE_BUFFER_SCE, 0, width * height * 2, screen);
 	glTextureReferenceSCE(GL_TEXTURE_2D, 1, width, height, 0, GL_RGB5_A1, width*2, 0);
 	UpdateCgParams(width, height, width, height);
@@ -494,18 +489,12 @@ int32_t PS3Graphics::PSGLReInit(int width, int height, int depth)
 
 	// end testing
 
-	if (gl_main_buffer)
-		free (gl_main_buffer);
-
-	gl_main_buffer = (uint8_t*)memalign(128, height * width * (depth / 8)); // Allocate memory for texture.
-	memset(gl_main_buffer, 0, height * width * (depth / 8));
-
 	// TODO : this line is new... test it.
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glBindBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, vbo[0]);
 
-	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, width * height * (depth / 8), gl_main_buffer, GL_STREAM_DRAW);
+	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, width * height * (depth / 8), NULL, GL_STREAM_DRAW);
 	glTextureReferenceSCE(GL_TEXTURE_2D, 1, width, height, 0, GL_RGB5_A1, width * (depth / 8), 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -549,10 +538,6 @@ int32_t PS3Graphics::PSGLInit()
 	memset(gl_overlay_buffer, 0, SCREEN_RENDER_TEXTURE_HEIGHT * SCREEN_RENDER_TEXTURE_PITCH);
 	// end testing
 
-
-	gl_main_buffer = (uint8_t*)memalign(128, SCREEN_RENDER_TEXTURE_HEIGHT * SCREEN_RENDER_TEXTURE_PITCH); // Allocate memory for texture.
-	memset(gl_main_buffer, 0, SCREEN_RENDER_TEXTURE_HEIGHT * SCREEN_RENDER_TEXTURE_PITCH);
-
 	vertex_buf = (uint8_t*)memalign(128, 256);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -561,7 +546,7 @@ int32_t PS3Graphics::PSGLInit()
 	glGenBuffers(2, vbo);
 
 	glBindBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, vbo[0]);
-	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, SCREEN_RENDER_TEXTURE_HEIGHT * SCREEN_RENDER_TEXTURE_PITCH, gl_main_buffer, GL_STREAM_DRAW);
+	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, SCREEN_RENDER_TEXTURE_HEIGHT * SCREEN_RENDER_TEXTURE_PITCH, NULL, GL_STREAM_DRAW);
 	glTextureReferenceSCE(GL_TEXTURE_2D, 1, SCREEN_RENDER_TEXTURE_WIDTH, SCREEN_RENDER_TEXTURE_HEIGHT, 0, GL_RGB5_A1, SCREEN_RENDER_TEXTURE_PITCH, 0);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -572,7 +557,7 @@ int32_t PS3Graphics::PSGLInit()
 	// PSGL doesn't clear the screen on startup, so let's do that here.
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-	Clear();
+	glClear(GL_COLOR_BUFFER_BIT);
 	psglSwap();
 
 	// Use some initial values for the screen quad.

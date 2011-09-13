@@ -309,7 +309,8 @@ int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *pa
 
 	canvas->palette = palette;
 
-	for (i = 0; i < palette->num_entries; i++) {
+	for (i = 0; i < palette->num_entries; i++)
+	{
 		video_render_setphysicalcolor(canvas->videoconfig, i, makecol_RGB555BE(palette->entries[i].red, palette->entries[i].green, palette->entries[i].blue), canvas->depth);
 	}
 

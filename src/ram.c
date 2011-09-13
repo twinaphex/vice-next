@@ -124,57 +124,57 @@ void ram_init(BYTE *memram, unsigned int ramsize)
 
 const char *ram_init_print_pattern(void)
 {
-    static char s[512], s_tmp[16], pattern_line[64];
-    BYTE v = start_value;
-    int i;
-    int linenum = 0;
-    int last_line_drawn = 0;
+	static char s[512], s_tmp[16], pattern_line[64];
+	BYTE v = start_value;
+	int i;
+	int linenum = 0;
+	int last_line_drawn = 0;
 
-    s[0] = 0;
+	s[0] = 0;
 
-    do {
-        pattern_line[0] = 0;
+	do {
+		pattern_line[0] = 0;
 
-        for (i = 0; i < 8; i++) {
-            sprintf(s_tmp," %02x", v);
-            
-            strcat(pattern_line, s_tmp);
+		for (i = 0; i < 8; i++) {
+			sprintf(s_tmp," %02x", v);
 
-            if (value_invert > 0
-                && (linenum * 8 + i + 1) % value_invert == 0)
-            {
-                v ^= 0xff;
-            }
+			strcat(pattern_line, s_tmp);
 
-            if (pattern_invert > 0
-                && (linenum * 8 + i + 1) % pattern_invert == 0)
-            {
-                v ^= 0xff;
-            }
-        }
+			if (value_invert > 0
+					&& (linenum * 8 + i + 1) % value_invert == 0)
+			{
+				v ^= 0xff;
+			}
 
-        if (linenum * 8 == 0
-            || linenum * 8 == value_invert
-            || linenum * 8 == pattern_invert
-            || linenum * 8 == pattern_invert + value_invert)
-        {
-            sprintf(s_tmp, "%04x ", linenum * 8);
-            strcat(s, s_tmp);
-            strcat(s, pattern_line);
-            strcat(s, "\n");
-            last_line_drawn = 1;
-        } else {
-            if (last_line_drawn == 1)
-                strcat(s, "...\n");
-            last_line_drawn = 0;
-        }
+			if (pattern_invert > 0
+					&& (linenum * 8 + i + 1) % pattern_invert == 0)
+			{
+				v ^= 0xff;
+			}
+		}
 
-        linenum++;
+		if (linenum * 8 == 0
+				|| linenum * 8 == value_invert
+				|| linenum * 8 == pattern_invert
+				|| linenum * 8 == pattern_invert + value_invert)
+		{
+			sprintf(s_tmp, "%04x ", linenum * 8);
+			strcat(s, s_tmp);
+			strcat(s, pattern_line);
+			strcat(s, "\n");
+			last_line_drawn = 1;
+		} else {
+			if (last_line_drawn == 1)
+				strcat(s, "...\n");
+			last_line_drawn = 0;
+		}
 
-    } while (linenum * 8 < value_invert * 2 || linenum * 8 < pattern_invert * 2);
+		linenum++;
 
-    if (last_line_drawn == 1)
-        strcat(s, "...\n");
+	} while (linenum * 8 < value_invert * 2 || linenum * 8 < pattern_invert * 2);
 
-    return s;
+	if (last_line_drawn == 1)
+		strcat(s, "...\n");
+
+	return s;
 }

@@ -59,7 +59,6 @@
 #include "machine.h"
 #include "ps3debug.h"
 
-//extern "C" int main_program(int argc, char **argv);
 extern "C" {
 #include "videoarch.h"
 #include "archdep.h"

@@ -2204,8 +2204,6 @@ void do_OSKMenu()
 
 		if (CellInput->WasButtonPressed(0,CTRL_CROSS))
 		{
-			//debug_printf ("appending char %d from OSK selected entry %d\n", keymap[currently_selected_osk_entry].keycode, currently_selected_osk_entry);
-
 			osk_kbd_append_buffer_char (keymap[currently_selected_osk_entry].keycode);
 
 			menuStack.pop();

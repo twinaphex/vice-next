@@ -83,105 +83,107 @@ static int init_done;
 
 int main_program(int argc, char **argv)
 {
-    int i;
-    char *program_name;
+	int i;
+	char *program_name;
 
-    /* Check for -config, -console and -vsid before initializing the user interface.
-       -config  => use specified configuration file
-       -console => no user interface
-       -vsid    => user interface in separate process */
+	/* Check for -config, -console and -vsid before initializing the user interface.
+	   -config  => use specified configuration file
+	   -console => no user interface
+	   -vsid    => user interface in separate process */
 
-    console_mode = 0;
-    video_disabled_mode = 0;
-    vsid_mode=0;
-    machine_class = VICE_MACHINE_C64;
-    //machine_class = VICE_MACHINE_CBM6x0;
+	console_mode = 0;
+	video_disabled_mode = 0;
+	vsid_mode=0;
+	machine_class = VICE_MACHINE_C64;
+	//machine_class = VICE_MACHINE_CBM6x0;
 
-    archdep_init(&argc, argv);
- 
-    if (atexit(main_exit) < 0) {
-        archdep_startup_log_error("atexit");
-        return -1;
-    }
+	archdep_init(&argc, argv);
 
-    maincpu_early_init();
-    machine_setup_context();
-    drive_setup_context();
-    machine_early_init();
+	if (atexit(main_exit) < 0) {
+		archdep_startup_log_error("atexit");
+		return -1;
+	}
 
-    /* Initialize system file locator.  */
-    sysfile_init(machine_name);
+	maincpu_early_init();
+	machine_setup_context();
+	drive_setup_context();
+	machine_early_init();
 
-    gfxoutput_early_init();
+	/* Initialize system file locator.  */
+	sysfile_init(machine_name);
 
-    if (init_resources() < 0 || init_cmdline_options() < 0)
-        return -1;
+	gfxoutput_early_init();
 
-    /* Set factory defaults.  */
-    if (resources_set_defaults() < 0) {
-        archdep_startup_log_error("Cannot set defaults.\n");
-        return -1;
-    }
+	if (init_resources() < 0 || init_cmdline_options() < 0)
+		return -1;
 
-    /* Initialize the user interface.  `ui_init()' might need to handle the
-       command line somehow, so we call it before parsing the options.
-       (e.g. under X11, the `-display' option is handled independently).  */
-    if (!console_mode && ui_init(&argc, argv) < 0) {
-        archdep_startup_log_error("Cannot initialize the UI.\n");
-        return -1;
-    }
+	/* Set factory defaults.  */
+	if (resources_set_defaults() < 0) {
+		archdep_startup_log_error("Cannot set defaults.\n");
+		return -1;
+	}
 
-    if (initcmdline_check_args(argc, argv) < 0)
-        return -1;
+	/* Initialize the user interface.  `ui_init()' might need to handle the
+	   command line somehow, so we call it before parsing the options.
+	   (e.g. under X11, the `-display' option is handled independently).  */
+	if (!console_mode && ui_init(&argc, argv) < 0) {
+		archdep_startup_log_error("Cannot initialize the UI.\n");
+		return -1;
+	}
 
-    program_name = archdep_program_name();
+	if (initcmdline_check_args(argc, argv) < 0)
+		return -1;
 
-    /* VICE boot sequence.  */
-    log_message(LOG_DEFAULT, "*** VICE Version %s ***", VERSION);
-    log_message(LOG_DEFAULT, "OS compiled for: %s", platform_get_compile_time_os());
-    log_message(LOG_DEFAULT, "GUI compiled for: %s", platform_get_ui());
-    log_message(LOG_DEFAULT, "CPU compiled for: %s", platform_get_compile_time_cpu());
-    log_message(LOG_DEFAULT, "Compiler used: %s", platform_get_compile_time_compiler());
-    log_message(LOG_DEFAULT, "Current OS: %s", platform_get_runtime_os());
-    log_message(LOG_DEFAULT, "Current CPU: %s", platform_get_runtime_cpu());
-    log_message(LOG_DEFAULT, " ");
-    log_message(LOG_DEFAULT, "Welcome to %s, the free portable %s Emulator.",
-                program_name, machine_name);
-    log_message(LOG_DEFAULT, " ");
-    log_message(LOG_DEFAULT, "Current VICE team members:");
-    log_message(LOG_DEFAULT, "A. Boose, D. Lem, T. Biczo, A. Dehmel, T. Bretz, A. Matthies,");
-    log_message(LOG_DEFAULT, "M. Pottendorfer, M. Brenner, S. Trikaliotis, M. van den Heuvel,");
-    log_message(LOG_DEFAULT, "C. Vogelgsang, F. Gennari, H. Nuotio, D. Kahlin, A. Lankila.");
-    log_message(LOG_DEFAULT, " ");
-    log_message(LOG_DEFAULT, "This is free software with ABSOLUTELY NO WARRANTY.");
-    log_message(LOG_DEFAULT, "See the \"About VICE\" command for more info.");
-    log_message(LOG_DEFAULT, " ");
+	program_name = archdep_program_name();
 
-    lib_free(program_name);
+	/* VICE boot sequence.  */
+	#if 0
+	log_message(LOG_DEFAULT, "*** VICE Version %s ***", VERSION);
+	log_message(LOG_DEFAULT, "OS compiled for: %s", platform_get_compile_time_os());
+	log_message(LOG_DEFAULT, "GUI compiled for: %s", platform_get_ui());
+	log_message(LOG_DEFAULT, "CPU compiled for: %s", platform_get_compile_time_cpu());
+	log_message(LOG_DEFAULT, "Compiler used: %s", platform_get_compile_time_compiler());
+	log_message(LOG_DEFAULT, "Current OS: %s", platform_get_runtime_os());
+	log_message(LOG_DEFAULT, "Current CPU: %s", platform_get_runtime_cpu());
+	log_message(LOG_DEFAULT, " ");
+	log_message(LOG_DEFAULT, "Welcome to %s, the free portable %s Emulator.",
+			program_name, machine_name);
+	log_message(LOG_DEFAULT, " ");
+	log_message(LOG_DEFAULT, "Current VICE team members:");
+	log_message(LOG_DEFAULT, "A. Boose, D. Lem, T. Biczo, A. Dehmel, T. Bretz, A. Matthies,");
+	log_message(LOG_DEFAULT, "M. Pottendorfer, M. Brenner, S. Trikaliotis, M. van den Heuvel,");
+	log_message(LOG_DEFAULT, "C. Vogelgsang, F. Gennari, H. Nuotio, D. Kahlin, A. Lankila.");
+	log_message(LOG_DEFAULT, " ");
+	log_message(LOG_DEFAULT, "This is free software with ABSOLUTELY NO WARRANTY.");
+	log_message(LOG_DEFAULT, "See the \"About VICE\" command for more info.");
+	log_message(LOG_DEFAULT, " ");
+	#endif
 
-    /* Complete the GUI initialization (after loading the resources and
-       parsing the command-line) if necessary.  */
-    if (!console_mode && ui_init_finish() < 0)
-        return -1;
+	lib_free(program_name);
 
-    if (!console_mode && video_init() < 0)
-        return -1;
+	/* Complete the GUI initialization (after loading the resources and
+	   parsing the command-line) if necessary.  */
+	if (!console_mode && ui_init_finish() < 0)
+		return -1;
 
-    if (initcmdline_check_psid() < 0)
-        return -1;
+	if (!console_mode && video_init() < 0)
+		return -1;
 
-    if (init_main() < 0)
-        return -1;
+	if (initcmdline_check_psid() < 0)
+		return -1;
 
-    initcmdline_check_attach();
+	if (init_main() < 0)
+		return -1;
 
-    init_done = 1;
+	initcmdline_check_attach();
 
-    /* Let's go...  */
-    log_message(LOG_DEFAULT, "Main CPU: starting at ($FFFC).");
-    maincpu_mainloop();
+	init_done = 1;
 
-    log_error(LOG_DEFAULT, "perkele!");
+	/* Let's go...  */
+	log_message(LOG_DEFAULT, "Main CPU: starting at ($FFFC).");
+	maincpu_mainloop();
 
-    return 0;
+	log_error(LOG_DEFAULT, "perkele!");
+
+	return 0;
 }
