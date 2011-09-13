@@ -122,7 +122,6 @@ class PS3Graphics : public PSGLGraphics
 		bool m_pal60Hz;
 
 		uint8_t *gl_main_buffer;
-		uint8_t *gl_overlay_buffer;
 		uint8_t *vertex_buf;
 
 		std::string _curFragmentShaderPath;

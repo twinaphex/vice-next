@@ -81,11 +81,11 @@ bool ingame_menu_running = false;
 
 static void callback_dialog_yes_no ( int button_type, void *userdata )
 {
-	debug_printf ("cb_mode_string_dialog_test_1 received : %d, %d\n", button_type, (int)userdata);
-
-	switch ( button_type ) {
+	switch ( button_type )
+	{
 		case CELL_MSGDIALOG_BUTTON_YES:
-			switch ( (int) userdata ) {
+			switch ( (int) userdata )
+			{
 				case OPTION_LOAD_SNAPSHOT:
 					load_snapshot(get_current_rom());
 					ingame_menu_running=false;
@@ -124,7 +124,6 @@ void DialogYesNo (const char *message, int selection)
 			debug_printf("WARN  : cellMsgDialogOpen2() = 0x%x (CELL_SYSUTIL_ERROR_BUSY) ... Retry.\n", ret);
 			return;
 		}
-		debug_printf("ERROR : cellMsgDialogOpen2() = 0x%x\n", ret);
 		return;
 	}
 }

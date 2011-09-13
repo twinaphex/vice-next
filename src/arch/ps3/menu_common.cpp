@@ -38,13 +38,16 @@ void attenuate_scroll_speed(void)
 	int sleep_countdown = 0;
 
 
-	if (sleep_countdown > 0) {
+	if (sleep_countdown > 0)
+	{
 		sleep_countdown -= 5;
 		sys_timer_usleep (1000 * 5 );  // sleep for 5 ms at a time
 
 		// Start ignoring analogue controls
 		menu_ignore_analog = true;
-	} else {
+	}
+	else
+	{
 		// re-set the scroll sleep timer
 		vert_scroll_factor = 1 - menu_vert_scroll_speed; // inversely proportional
 		sleep_gain = (int) 70 * vert_scroll_factor;

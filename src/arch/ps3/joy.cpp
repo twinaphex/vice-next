@@ -102,22 +102,22 @@ int get_joymap_keycode (int index)
 
 int joystick_init_cmdline_options(void)
 {
-    return 0;
+	return 0;
 }
 
 void joystick_close(void)
 {
-    return;
+	return;
 }
 
 int joystick_arch_init_resources(void)
 {
-    return 0;
+	return 0;
 }
 
 int joy_arch_init(void)
 {
-    return 0;
+	return 0;
 }
 
 bool joyswap=false;

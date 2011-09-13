@@ -1,5 +1,5 @@
 /******************************************************************************* 
- *  -- PS3Graphics.cpp    Interface to cellframework library Graphics.h
+ *  -- ps3video.cpp    Interface to cellframework library Graphics.h
  *
  *     VICE PS3 -   Commodore 64 emulator for the Playstation 3
  *                  ported from the original VICE distribution
@@ -65,11 +65,6 @@ void PS3Graphics::Deinit()
 	{
 		free(vertex_buf);
 		vertex_buf = NULL;
-	}
-	if(gl_overlay_buffer)
-	{
-		free(gl_overlay_buffer);
-		gl_overlay_buffer = NULL;
 	}
 }
 
@@ -480,15 +475,6 @@ int32_t PS3Graphics::PSGLReInit(int width, int height, int depth)
 
 	printf("ReInit called with width=%d, height=%d, depth=%d\n", width, height, depth);
 
-	// TODO testing (memalign? should this do some re-alloc instead?)
-	if (gl_overlay_buffer)
-		free (gl_overlay_buffer);
-
-	gl_overlay_buffer = (uint8_t*)memalign(128, height * width * (depth / 8)); // Allocate memory for texture.
-	memset(gl_overlay_buffer, 0, height * width * (depth / 8));
-
-	// end testing
-
 	// TODO : this line is new... test it.
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -524,8 +510,6 @@ int32_t PS3Graphics::PSGLInit()
 	context_width = SCREEN_RENDER_TEXTURE_WIDTH;
 	context_height = SCREEN_RENDER_TEXTURE_HEIGHT;;
 
-
-
 	uint32_t ret = InitCg();
 	if (ret != CELL_OK)
 	{
@@ -533,10 +517,6 @@ int32_t PS3Graphics::PSGLInit()
 	}
 
 	SetViewports();
-
-	gl_overlay_buffer = (uint8_t*)memalign(128, SCREEN_RENDER_TEXTURE_HEIGHT * SCREEN_RENDER_TEXTURE_PITCH); // Allocate memory for texture.
-	memset(gl_overlay_buffer, 0, SCREEN_RENDER_TEXTURE_HEIGHT * SCREEN_RENDER_TEXTURE_PITCH);
-	// end testing
 
 	vertex_buf = (uint8_t*)memalign(128, 256);
 

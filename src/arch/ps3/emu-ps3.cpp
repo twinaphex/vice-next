@@ -78,7 +78,6 @@ extern "C" {
 
 #include "menu.hpp"
 
-
 extern int ps3_audio_suspend(void);
 extern int ps3_audio_resume(void);
 
@@ -95,7 +94,6 @@ char* current_rom = NULL;
 
 // mode the main loop is in
 static Emulator_Modes mode_switch = MODE_MENU;
-
 
 void Emulator_SwitchMode(Emulator_Modes m)
 {
@@ -230,9 +228,9 @@ void sysutil_callback_redraw(void)
 	}
 }
 
-
-int cellInit(void)
+int main (void)
 {
+	cellSysutilRegisterCallback(0, sysutil_exit_callback, NULL);
 	debug_init();
 	sys_spu_initialize(6, 1);
 
@@ -256,15 +254,6 @@ int cellInit(void)
 	Graphics->SetOverscan(false,(float)0);
 
 	Graphics->InitDbgFont();
-
-	return 0;
-}
-
-
-int main (void)
-{
-	cellSysutilRegisterCallback(0, sysutil_exit_callback, NULL);
-	cellInit();
 
 
 	// Start running Vice.
