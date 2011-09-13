@@ -16,10 +16,6 @@ PPU_LOADLIBS	+=	libc64.ppu.a libc64cart.ppu.a libiec.ppu.a libiecieee.ppu.a libi
 
 PPU_SRCS	+= 	alarm.c attach.c autostart.c autostart-prg.c charset.c clkguard.c clipboard.c cmdline.c cbmdos.c cbmimage.c color.c crc32.c datasette.c debug.c dma.c emuid.c event.c findpath.c fliplist.c gcr.c info.c init.c initcmdline.c interrupt.c ioutil.c joystick.c kbdbuf.c keyboard.c lib.c log.c machine-bus.c machine.c main.c network.c palette.c ram.c rawfile.c resources.c romset.c screenshot.c snapshot.c sound.c sysfile.c translate.c traps.c util.c vsync.c zfile.c zipcode.c maincpu.c midi.c mouse.c lightpen.c
 
-PPU_SRCS	+=	$(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
-$(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
-
-
 PPU_LDLIBDIR += -L.
 PPU_LDLIBDIR += -L$(CELL_SDK)/target/ppu/lib/hash
 PPU_LDLIBDIR += -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt 
@@ -28,23 +24,7 @@ PPU_LDLIBS	+= 	-ldbgfont -lPSGL -lgcm_cmd -lgcm_sys_stub -lresc_stub -lc -lm -li
 
 PPU_TARGET	=	viceC64.ppu.elf
 
-VPSHADER_SRCS	=	arch/ps3/vpshader.cg
-FPSHADER_SRCS	=	arch/ps3/fpshader.cg
-
-VPSHADER_PPU_OBJS = $(patsubst %.cg, $(OBJS_DIR)/%.ppu.o, $(VPSHADER_SRCS))
-FPSHADER_PPU_OBJS = $(patsubst %.cg, $(OBJS_DIR)/%.ppu.o, $(FPSHADER_SRCS))
-
 include $(CELL_MK_DIR)/sdk.target.mk
-
-PPU_OBJS += $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
-
-$(VPSHADER_PPU_OBJS): $(OBJS_DIR)/%.ppu.o : %.vpo
-	@mkdir -p $(dir $(@))
-	$(PPU_OBJCOPY)  -I binary -O elf64-powerpc-celloslv2 -B powerpc $< $@
-
-$(FPSHADER_PPU_OBJS): $(OBJS_DIR)/%.ppu.o : %.fpo
-	@mkdir -p $(dir $(@))
-	$(PPU_OBJCOPY)  -I binary -O elf64-powerpc-celloslv2 -B powerpc $< $@
 
 .PHONY: pkg
 pkg: $(PPU_TARGET) 
