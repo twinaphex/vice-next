@@ -199,7 +199,7 @@ void RenderBrowser(FileBrowser* b)
 			cellDbgFontPuts(currentX, currentY, Emulator_GetFontSize(),
 					i == current_index ? RED : (*b)[i]->d_type == CELL_FS_TYPE_DIRECTORY ? GREEN : WHITE,
 					(*b)[i]->d_name);
-			Graphics->FlushDbgFont();
+			cellDbgFontDraw();
 		}
 	}
 
@@ -227,7 +227,7 @@ void RenderBrowser(FileBrowser* b)
 	}
 
 
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
 
 void do_shaderChoice()
@@ -269,7 +269,7 @@ void do_shaderChoice()
 
 				// TODO  On initial launch, the screen dump will be blank. We need a default image here.
 				Graphics->DumpScreen();
-				Graphics->Swap();
+				psglSwap();
 				sys_timer_usleep (1000 * 1000 * 2);
 			}
 		}
@@ -281,7 +281,7 @@ void do_shaderChoice()
 
 	cellDbgFontPuts(0.09f, 0.88f, Emulator_GetFontSize(), YELLOW, "CROSS    - Select shader");
 	cellDbgFontPuts(0.09f, 0.92f, Emulator_GetFontSize(), PURPLE, "TRIANGLE - return to settings");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	RenderBrowser(tmpBrowser);
 }
@@ -333,7 +333,7 @@ void do_pathChoice()
 	cellDbgFontPuts(0.05f, 0.88f, Emulator_GetFontSize(), YELLOW, "CROSS    - enter directory");
 	cellDbgFontPuts(0.05f, 0.92f, Emulator_GetFontSize(), BLUE,   "SQUARE   - select directory as path");
 	cellDbgFontPuts(0.55f, 0.92f, Emulator_GetFontSize(), PURPLE, "TRIANGLE - return to settings");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	RenderBrowser(tmpBrowser);
 }
@@ -426,7 +426,7 @@ void do_path_settings()
 	cellDbgFontPuts (0.44f, 0.05f, Emulator_GetFontSize(), PURPLE, "PATHS");
 	cellDbgFontPuts (0.61f, 0.05f, Emulator_GetFontSize(), BLUE,   "CONTROLS");
 	cellDbgFontPuts (0.78f, 0.05f, Emulator_GetFontSize(), BLUE,   "DATASETTE");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	resources_get_string ("PS3PathRomDir", &res_string);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_path_setting == SETTING_PATH_DEFAULT_ROM_DIRECTORY ? YELLOW : WHITE, "Startup ROM Directory");
@@ -436,7 +436,7 @@ void do_path_settings()
 	yPos += ySpacing;
 	yPos += ySpacing;
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_path_setting == SETTING_PATH_SAVE_SETTINGS ? YELLOW : GREEN, "SAVE SETTINGS");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos += ySpacing;
@@ -448,7 +448,7 @@ void do_path_settings()
 		footer = util_concat("L1/CIRCLE - back      START        - return to ", machine_name, "   R1       - forward", NULL);
 
 	cellDbgFontPuts(0.05f, 0.92f, Emulator_GetFontSize(), YELLOW, footer);
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
 
 // // called from ROM menu by pressing the SELECT button
@@ -873,7 +873,7 @@ void do_controller_settings()
 	cellDbgFontPuts (0.44f, 0.05f, Emulator_GetFontSize(), BLUE,   "PATHS");
 	cellDbgFontPuts (0.61f, 0.05f, Emulator_GetFontSize(), PURPLE, "CONTROLS");
 	cellDbgFontPuts (0.78f, 0.05f, Emulator_GetFontSize(), BLUE,   "DATASETTE");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_controller_setting == SETTING_CONTROLLER_1_CROSS ? YELLOW : WHITE, "Controller 1 CROSS");
@@ -943,7 +943,7 @@ void do_controller_settings()
 
 	yPos += ySpacing;
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_controller_setting == SETTING_CONTROLLER_SAVE_SETTINGS ? YELLOW : GREEN, "SAVE SETTINGS");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos += ySpacing;
@@ -955,7 +955,7 @@ void do_controller_settings()
 
 	cellDbgFontPuts(0.05f, 0.88f, Emulator_GetFontSize(), YELLOW, "UP/DOWN   - select    X/LEFT/RIGHT - change          TRIANGLE - default");
 	cellDbgFontPuts(0.05f, 0.92f, Emulator_GetFontSize(), YELLOW, footer);
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
 
 #define MAX_NO_OF_DATASETTE_CONTROLS 7
@@ -1029,7 +1029,7 @@ void do_datasette_controls(void)
 	cellDbgFontPuts (0.44f, 0.05f, Emulator_GetFontSize(), BLUE,   "PATHS");
 	cellDbgFontPuts (0.61f, 0.05f, Emulator_GetFontSize(), BLUE,   "CONTROLS");
 	cellDbgFontPuts (0.78f, 0.05f, Emulator_GetFontSize(), PURPLE, "DATASETTE");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	for (int i=0; i < MAX_NO_OF_DATASETTE_CONTROLS; i++) {
@@ -1045,7 +1045,7 @@ void do_datasette_controls(void)
 
 	cellDbgFontPuts(0.05f, 0.88f, Emulator_GetFontSize(), YELLOW, "UP/DOWN   - select    X");
 	cellDbgFontPuts(0.05f, 0.92f, Emulator_GetFontSize(), YELLOW, footer);
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
 
 void inline process_drive_change (const char *res, int default_type)
@@ -1429,26 +1429,26 @@ void do_vice_settings()
 	cellDbgFontPuts (0.44f, 0.05f, Emulator_GetFontSize(), BLUE,    "PATHS");
 	cellDbgFontPuts (0.61f, 0.05f, Emulator_GetFontSize(), BLUE,    "CONTROLS");
 	cellDbgFontPuts (0.78f, 0.05f, Emulator_GetFontSize(), BLUE,    "DATASETTE");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	yPos+=ybrk;
 	resources_get_int("DisplayFrameRate", &res_value);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_DISPLAY_FRAMERATE ? YELLOW : WHITE, "Display framerate");
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), res_value == false ? GREEN : RED, res_value == true ? "ON" : "OFF");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	resources_get_int("DisplayDriveIndicators", &res_value);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_DISPLAY_DRIVE_INDICATORS ? YELLOW : WHITE, "Show Disk/Tape Activity");
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), res_value == false ? GREEN : RED, res_value == true ? "ON" : "OFF");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	resources_get_int("SidFilters", &res_value);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_SID_FILTERS ? YELLOW : WHITE, "SID Filtering Enabled");
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), res_value == true ? GREEN : RED, res_value == true ? "ON" : "OFF");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos+=ybrk;
@@ -1466,7 +1466,7 @@ void do_vice_settings()
 			cellDbgFontPuts        (0.5f, yPos, Emulator_GetFontSize(), GRAY, "ReSID-FP  (highest quality)");
 			break;
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 
@@ -1474,7 +1474,7 @@ void do_vice_settings()
 	yPos+=ybrk;
 	resources_get_int("SidResidSampling", &res_value);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_SID_RESID_SAMPLING ? YELLOW : WHITE, "ReSID Sampling Mode");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	switch (res_value) {
 		case SAMPLE_FAST:
@@ -1504,42 +1504,39 @@ void do_vice_settings()
 	}
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_SID_MODEL ? YELLOW : WHITE, "SID Model");
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), ui_sid_engine_model_id[model_index] == SID_RESIDFP_6581R4AR_3789 ? GREEN : RED, ui_sid_engine_model[model_index]);
-	Graphics->FlushDbgFont();
-
-
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	resources_get_int("SidResidPassband", &res_value);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_SID_RESID_PASSBAND ? YELLOW : WHITE, "ReSID Passband Filter (20-90)");
 	cellDbgFontPrintf(0.5f, yPos, Emulator_GetFontSize(), SidOptionPassbandDisabled==true ? GRAY : (res_value == 90 ? GREEN : RED), "%d", res_value);
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos+=ybrk;
 	resources_get_int("Mouse", &res_value);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_MOUSE_SUPPORT ? YELLOW : WHITE, "Mouse Enabled");
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), res_value == false ? GREEN : RED, res_value == true ? "ON":"OFF");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos+=ybrk;
 	resources_get_int("Mousetype", &res_value);
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_MOUSE_TYPE ? YELLOW : WHITE, "Mouse Type");
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), MouseDisabled==true ? GRAY : (res_value == MOUSE_TYPE_1351 ? GREEN : RED), res_value == MOUSE_TYPE_1351 ? "CBM 1351" : "NEOS");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos+=ybrk;
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_SWAP_JOYSTICKS ? YELLOW : WHITE, "Swap Joysticks");
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), joyswap==false ? GREEN : RED, joyswap == true ? "ON" : "OFF");
-	Graphics->FlushDbgFont();
-
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_KEYMAP ? YELLOW : WHITE, "Keyboard Mapping");
 	resources_get_int("KeymapIndex", &res_value);
 	cellDbgFontPuts (0.5f,  yPos, Emulator_GetFontSize(), res_value == 0 ? GREEN : RED, res_value == 0 ? "Symbolic" : "Positional");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos+=ybrk;
@@ -1554,7 +1551,7 @@ void do_vice_settings()
 			break;
 		}
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	resources_get_int("Drive9Type", &res_value);
@@ -1566,7 +1563,7 @@ void do_vice_settings()
 			break;
 		}
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	resources_get_int("Drive10Type", &res_value);
@@ -1578,7 +1575,7 @@ void do_vice_settings()
 			break;
 		}
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	resources_get_int("Drive11Type", &res_value);
@@ -1590,23 +1587,22 @@ void do_vice_settings()
 			break;
 		}
 	}
-	Graphics->FlushDbgFont();
-
+	cellDbgFontDraw();
 
 	yPos+=ybrk;
 	yPos+=ybrk;
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_HARD_RESET ? YELLOW : GREEN, "ISSUE HARD RESET");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos+=ybrk;
 	cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_SAVE_SETTINGS ? YELLOW : GREEN, "SAVE SETTINGS");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	yPos+=ybrk;
 	cellDbgFontPrintf(0.09f, yPos, Emulator_GetFontSize(), currently_selected_vice_setting == SETTING_VICE_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	if (footer == NULL)
@@ -1616,7 +1612,7 @@ void do_vice_settings()
 	cellDbgFontPuts(0.05f, 0.92f, Emulator_GetFontSize(), YELLOW, footer);
 
 
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
 
 void do_general_settings(void)
@@ -1888,7 +1884,7 @@ void do_general_settings(void)
 			cellDbgFontPrintf(0.5f, yPos, Emulator_GetFontSize(), Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_960x1080 ? GREEN : RED, "960x1080");
 			break;
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos += ySpacing;
 
@@ -1909,7 +1905,7 @@ void do_general_settings(void)
 	resources_get_int ("PS3KeepAspect", &res_int);
 	cellDbgFontPuts(0.09f, yPos, Emulator_GetFontSize(), currently_selected_setting == SETTING_KEEP_ASPECT_RATIO ? YELLOW : WHITE, "Aspect Ratio");
 	cellDbgFontPrintf(0.5f, yPos, Emulator_GetFontSize(), (res_int == false) ? GREEN : RED, "%s", res_int == true ? "Scaled" : "Stretched");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos += ySpacing;
 	resources_get_int ("PS3HardwareFilter", &res_int);
@@ -1935,11 +1931,11 @@ void do_general_settings(void)
 	yPos += ySpacing;
 	yPos += ySpacing;
 	cellDbgFontPuts  (0.09f, yPos, Emulator_GetFontSize(), currently_selected_setting == SETTING_SAVE_SETTINGS ? YELLOW : GREEN, "SAVE SETTINGS");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	yPos += ySpacing;
 	cellDbgFontPrintf(0.09f, yPos, Emulator_GetFontSize(), currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	if (footer == NULL)
@@ -1948,7 +1944,7 @@ void do_general_settings(void)
 	cellDbgFontPuts(0.05f, 0.88f, Emulator_GetFontSize(), YELLOW,              "UP/DOWN   - select    X/LEFT/RIGHT - change          TRIANGLE - default");
 	cellDbgFontPuts(0.05f, 0.92f, Emulator_GetFontSize(), YELLOW, footer);
 
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
 
 void do_ROMMenu()
@@ -2154,7 +2150,7 @@ void do_ROMMenu()
 		else
 			cellDbgFontPrintf(0.755f, yPos, Emulator_GetFontSize(),  CYAN, "%s", filepathptr);
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 
@@ -2163,12 +2159,12 @@ void do_ROMMenu()
 
 	cellDbgFontPuts(0.09f, 0.88f, Emulator_GetFontSize(), BLUE,                "SELECT - settings screen");
 	cellDbgFontPuts(0.09f, 0.92f, Emulator_GetFontSize(), PURPLE, footer);
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	cellDbgFontPuts(0.44f, 0.84f, Emulator_GetFontSize(), GREEN,  " X - Reset with image (FastLoad)");
 	cellDbgFontPuts(0.44f, 0.88f, Emulator_GetFontSize(), YELLOW, "[] - Reset with image (SlowLoad + TDE)");
 	cellDbgFontPuts(0.44f, 0.92f, Emulator_GetFontSize(), CYAN ,  "/\\ + L1/L2/R1/R2 - Attach to D8/9/10/11");
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 	RenderBrowser(browser);
 }
@@ -2224,7 +2220,7 @@ void do_OSKMenu()
 		yPos+=ybrk;
 		cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), currently_selected_osk_entry == i ? YELLOW : WHITE, keymap[i].keyname);
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 
 
 	if (footer == NULL)
@@ -2232,7 +2228,7 @@ void do_OSKMenu()
 
 	cellDbgFontPuts(0.05f, 0.88f, Emulator_GetFontSize(), YELLOW, "UP/DOWN       - navigate           X - select");
 	cellDbgFontPuts(0.05f, 0.92f, Emulator_GetFontSize(), YELLOW, footer);
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
 
 void MenuMainLoop(void)
@@ -2262,11 +2258,11 @@ void MenuMainLoop(void)
 	menuRunning = true;
 	while (!menuStack.empty() && menuRunning)
 	{
-		Graphics->Clear();
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		menuStack.top()();
 
-		Graphics->Swap();
+		psglSwap();
 
 		cellSysutilCheckCallback();
 

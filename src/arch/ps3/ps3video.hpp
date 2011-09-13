@@ -74,10 +74,7 @@ class PS3Graphics : public PSGLGraphics
 		PS3Graphics();
 		~PS3Graphics();
 
-		void Clear();
 		void Draw(int width, int height, uint16_t* screen, uint16_t* overlay);
-		void FlushDbgFont();
-		void Swap();
 		void Init();
                 int32_t PSGLReInit(int width, int height, int depth);
 		void Deinit();
@@ -96,7 +93,6 @@ class PS3Graphics : public PSGLGraphics
 		void SetPAL60Hz(bool pal60Hz);
 		bool GetPAL60Hz();
 
-		void DeInitDbgFont();
 		void InitDbgFont();
 		std::string GetFragmentShaderPath() { return _curFragmentShaderPath; }
 		void ScreenDump (void);

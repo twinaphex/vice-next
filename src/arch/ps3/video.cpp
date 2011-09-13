@@ -261,7 +261,7 @@ void video_canvas_refresh(video_canvas_t *canvas,
 
 	set_last_redraw();
 	Graphics->Draw (canvas->width, canvas->height, (std::uint16_t *)screenbuffer, (std::uint16_t *)overlaybuffer);
-	Graphics->Swap();
+	psglSwap();
 }
 
 void fullscreen_capability(cap_fullscreen_t *cap_fullscreen)

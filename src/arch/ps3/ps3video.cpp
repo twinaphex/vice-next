@@ -68,29 +68,9 @@ void PS3Graphics::Deinit()
 	}
 }
 
-void PS3Graphics::DeInitDbgFont()
-{
-	PSGLGraphics::DeinitDbgFont();
-}
-
 void PS3Graphics::InitDbgFont()
 {
 	PSGLGraphics::InitDbgFont();
-}
-
-void PS3Graphics::FlushDbgFont()
-{
-	cellDbgFontDraw();
-}
-
-void PS3Graphics::Swap()
-{
-	psglSwap();
-}
-
-void PS3Graphics::Clear()
-{
-	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void PS3Graphics::SetViewports()

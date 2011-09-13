@@ -278,9 +278,8 @@ void do_ingame_menu()
 		}
 
 	}
-	Graphics->FlushDbgFont();
+	cellDbgFontDraw();
 }
-
 
 
 void InGameMenuLoop(void)
@@ -304,10 +303,10 @@ void InGameMenuLoop(void)
 		// TODO Only clear a portion of the screen.. OR simply call "force-refresh" and
 		// draw directly over the top...  ?
 
-		Graphics->Clear();
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		do_ingame_menu();
-		Graphics->Swap();
+		psglSwap();
 
 		cellSysutilCheckCallback();
 
