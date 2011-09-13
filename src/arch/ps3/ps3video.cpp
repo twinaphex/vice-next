@@ -45,7 +45,7 @@ extern "C" {
 #include "ui.h"
 }
 
-PS3Graphics::PS3Graphics() : PSGLGraphics(), vertex_buf(NULL)
+PS3Graphics::PS3Graphics() : PSGLGraphics()
 {
 	m_smooth = false;
 	m_pal60Hz = false;
@@ -61,11 +61,6 @@ PS3Graphics::~PS3Graphics()
 void PS3Graphics::Deinit()
 {
 	PSGLGraphics::Deinit();
-	if(vertex_buf)
-	{
-		free(vertex_buf);
-		vertex_buf = NULL;
-	}
 }
 
 void PS3Graphics::InitDbgFont()
@@ -306,40 +301,6 @@ void PS3Graphics::UpdateCgParams(unsigned width, unsigned height, unsigned tex_w
 	cgGLSetParameter2f(_cgpOutputSize, _cgViewWidth, _cgViewHeight);
 }
 
-void PS3Graphics::InitScreenQuad(int width, int height)
-{
-	screenQuad.v1.x = 0;
-	screenQuad.v1.y = 0;
-	screenQuad.v1.z = 0;
-
-	screenQuad.v2.x = 0;
-	screenQuad.v2.y = 1;
-	screenQuad.v2.z = 0;
-
-	screenQuad.v3.x = 1;
-	screenQuad.v3.y = 1;
-	screenQuad.v3.z = 0;
-
-	screenQuad.v4.x = 1;
-	screenQuad.v4.y = 0;
-	screenQuad.v4.z = 0;
-
-	screenQuad.t1.u = 0;
-	screenQuad.t1.v = 1;
-
-	screenQuad.t2.u = 0;
-	screenQuad.t2.v = 0;
-
-	screenQuad.t3.u = 1;
-	screenQuad.t3.v = 0;
-
-	screenQuad.t4.u = 1;
-	screenQuad.t4.v = 1;
-
-	memcpy(vertex_buf, ((float*)&screenQuad), 12 * sizeof(GLfloat));
-	memcpy(vertex_buf + 128, ((float*)&screenQuad) + 12, 8 * sizeof(GLfloat));
-}
-
 void PS3Graphics::SetSmooth(bool smooth)
 {
 	m_smooth = smooth;
@@ -478,8 +439,6 @@ int32_t PS3Graphics::PSGLInit()
 
 	SetViewports();
 
-	vertex_buf = (uint8_t*)memalign(128, 256);
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -501,9 +460,21 @@ int32_t PS3Graphics::PSGLInit()
 	psglSwap();
 
 	// Use some initial values for the screen quad.
-	// Should this be "actual" res? or max possible res?  
-	// Possibly we should resize this quad for each resolution/canvas active at the time
-	InitScreenQuad(1920, 1080);
+	GLfloat vertexes[] = {
+		0, 0, 0,
+		0, 1, 0,
+		1, 1, 0,
+		1, 0, 0,
+		0, 1,
+		0, 0,
+		1, 0,
+		1, 1
+	};
+
+	GLfloat vertex_buf[128];
+	__builtin_memcpy(vertex_buf, vertexes, 12 * sizeof(GLfloat));
+	__builtin_memcpy(vertex_buf + 32, vertexes + 12, 8 * sizeof(GLfloat));
+	__builtin_memcpy(vertex_buf + 32 * 3, vertexes + 12, 8 * sizeof(GLfloat));
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 	glBufferData(GL_ARRAY_BUFFER, 256, vertex_buf, GL_STATIC_DRAW);

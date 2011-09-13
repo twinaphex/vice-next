@@ -29,44 +29,12 @@
 #include <sysutil/sysutil_sysparam.h>
 #include "cellframework/graphics/PSGLGraphics.h"
  
-
-
 #define DEFAULT_SHADER_FILE VICE_USRDIR "shaders/stock.cg"
-
-//#define EMULATOR_ASPECT_RATIO_16_9 0;
-//#define EMULATOR_ASPECT_RATIO_4_3 1;
 
 #define SCREEN_16_9_ASPECT_RATIO (16.0/9)
 #define SCREEN_4_3_ASPECT_RATIO (4.0/3)
 
-
 #define SCREEN_REAL_ASPECT_RATIO SCREEN_4_3_ASPECT_RATIO
-
-
-typedef struct _Vertex
-{
-	float x;
-	float y;
-	float z;
-} Vertex;
-
-typedef struct _TextureCoord
-{
-	float u;
-	float v;
-} TextureCoord;
-
-typedef struct _Quad
-{
-	Vertex v1;
-	Vertex v2;
-	Vertex v3;
-	Vertex v4;
-	TextureCoord t1;
-	TextureCoord t2;
-	TextureCoord t3;
-	TextureCoord t4;
-} Quad;
 
 class PS3Graphics : public PSGLGraphics
 {
@@ -87,7 +55,6 @@ class PS3Graphics : public PSGLGraphics
 		void UpdateCgParams(unsigned width, unsigned height, unsigned tex_width, unsigned tex_height);
 
 		void SetAspectRatio(bool keep_aspect);
-		void InitScreenQuad(int width, int height);
 		void SetSmooth(bool smooth);
 		void SetPAL60Hz(bool pal60Hz);
 		bool GetPAL60Hz();
@@ -105,7 +72,6 @@ class PS3Graphics : public PSGLGraphics
 	private:
 		int32_t PSGLInit();
 		void DrawHUD();
-		Quad screenQuad;
 		GLuint vbo[2];
 		bool overscan;
 
