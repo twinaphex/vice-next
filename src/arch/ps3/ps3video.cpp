@@ -448,26 +448,6 @@ int32_t PS3Graphics::LoadFragmentShader(std::string shaderPath)
 	return CELL_OK;
 }
 
-int32_t PS3Graphics::PSGLReInit(int width, int height, int depth)
-{
-	context_width = width;
-	context_height = height;
-
-	printf("ReInit called with width=%d, height=%d, depth=%d\n", width, height, depth);
-
-	// TODO : this line is new... test it.
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glBindBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, vbo[0]);
-
-	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, width * height * (depth / 8), NULL, GL_STREAM_DRAW);
-	glTextureReferenceSCE(GL_TEXTURE_2D, 1, width, height, 0, GL_RGB5_A1, width * (depth / 8), 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-	return CELL_OK;
-}
-
 int32_t PS3Graphics::PSGLInit()
 {
 	glDisable(GL_DEPTH_TEST);

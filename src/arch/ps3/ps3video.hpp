@@ -76,7 +76,6 @@ class PS3Graphics : public PSGLGraphics
 
 		void Draw(int width, int height, uint16_t* screen, uint16_t* overlay);
 		void Init();
-                int32_t PSGLReInit(int width, int height, int depth);
 		void Deinit();
 		void Refresh();
 		unsigned int TimeSinceLastDraw(void);

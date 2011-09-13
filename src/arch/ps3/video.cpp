@@ -136,6 +136,7 @@ void video_arch_canvas_init(struct video_canvas_s *canvas)
 	debug_printf_quick ("canvas init width wants to be : %d\ncanvas init height wants to be : %d\n", canvas->width, canvas->height);
 }
 
+#if 0
 void video_canvas_resize(video_canvas_t *canvas, unsigned int width, unsigned int height)
 {
 	debug_printf_quick ("canvas width resize wants to be : %d\ncanvas height resize wants to be : %d\n", width, height);
@@ -157,6 +158,7 @@ void video_canvas_resize(video_canvas_t *canvas, unsigned int width, unsigned in
 
 	Graphics->PSGLReInit (width, height, canvas->depth);
 }
+#endif
 
 
 /* Note: `mapped' is ignored.  */
