@@ -305,13 +305,6 @@ int joystick(void)
 			}
 		}
 
-		// Create a screenshot
-		if(CellInput->WasButtonPressed(i,CTRL_R1) & CellInput->IsButtonPressed(i,CTRL_L1))
-		{
-			//Graphics->ScreenDump();
-			save_screenshot(last_canvas);
-		}
-
 		if (  (CellInput->IsButtonPressed(0,CTRL_R2) && CellInput->IsButtonPressed(0,CTRL_L2))  ||
 				(CellInput->IsButtonPressed(1,CTRL_R2) && CellInput->IsButtonPressed(1,CTRL_L2))  )
 		{

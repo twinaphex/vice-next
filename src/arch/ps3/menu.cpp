@@ -222,20 +222,6 @@ void RenderBrowser(FileBrowser* b)
 				// We're processing a regular file, or a zipfile having only a single entry embedded
 				// gzip files by definition on ly have a single entry, and thus treated as regular files also.
 
-				long size;
-				BYTE * screenshot;
-
-				screenshot = load_screenshot(path.c_str(), &size);
-
-				if (screenshot != NULL) {
-					// Display screenshot
-
-					// proof of concept. Really should get the dimensions fromthe screenshot file.
-					// Also, this draws full-screen.. should draw as a seperate Quad as an overlay
-					Graphics->Draw(Graphics->ContextWidth(), Graphics->ContextHeight(), (std::uint16_t*) screenshot, (std::uint16_t*) NULL);
-					Graphics->Swap();
-					sys_timer_usleep (1000 * 1000 * 1/2);
-				}
 			}
 		}
 	}

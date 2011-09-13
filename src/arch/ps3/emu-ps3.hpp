@@ -36,7 +36,4 @@ void sysutil_callback_redraw(void);
 }
 #endif
 
-unsigned char * load_screenshot(const char *filename, long *bytes);
-int save_screenshot(struct video_canvas_s *canvas);
-
 #endif /* EMULATOR_H_ */
