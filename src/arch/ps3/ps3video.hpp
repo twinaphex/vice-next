@@ -68,7 +68,7 @@ class PS3Graphics : public PSGLGraphics
                 int RetrieveDumpSize (void);
                 int ContextWidth (void);
                 int ContextHeight (void);
-
+		int32_t PSGLReInit(int width, int height, int depth);
 	private:
 		int32_t PSGLInit();
 		void DrawHUD();
