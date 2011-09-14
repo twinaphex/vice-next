@@ -92,26 +92,26 @@ static const resource_string_t resources_string[] = {
 
 static int set_display_drive_indicators(int val, void *param)
 {
-    ui.display_drives=val;
-    return 0;
+	ui.display_drives=val;
+	return 0;
 }
 
 static int set_display_framerate(int val, void *param)
 {
-    ui.display_speed=val;
-    return 0;
+	ui.display_speed=val;
+	return 0;
 }
 
 static int ps3_set_pal60 (int val, void *param)
 {
-    ps3_pal60 = val;
-    return 0;
+	ps3_pal60 = val;
+	return 0;
 }
 
 static int ps3_set_font_size (int val, void *param)
 {
-    ps3_font_size = val;
-    return 0;
+	ps3_font_size = val;
+	return 0;
 }
 
 static int ps3_set_aspect (int val, void *param)
@@ -161,7 +161,7 @@ int ui_callback(void)
 	}
 
 
-	// The callback only works correclty if the screen continuously updates.
+	// The callback only works correctly if the screen continuously updates.
 	// So we need to be sure the screen is updating, since the emulators vsync only occurs if
 	// something needs to be updated on-screen
 
