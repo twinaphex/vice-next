@@ -6,31 +6,24 @@
 #include <netex/libnetctl.h>
 #include <sys/timer.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
 
-
 #define PS3_DEBUG_IP "192.168.1.1"
 
-#ifdef PS3_DEBUG_IP
-	#define BUFSIZE	(64 * 1024)
-	#define TCPDUMP_FILE	(SYS_APP_HOME "/tcpdump.dump")
-	#define TCPDUMP_STACKSIZE	(16 * 1024)
-	#define TCPDUMP_PRIO	(2048)
+#define BUFSIZE	(64 * 1024)
+#define TCPDUMP_FILE	(SYS_APP_HOME "/tcpdump.dump")
+#define TCPDUMP_STACKSIZE	(16 * 1024)
+#define TCPDUMP_PRIO	(2048)
 
-	//static unsigned char g_log_buf[BUFSIZE];
-	//static int g_log_id;
-	static int g_sid;
-	static int sock;
-	static sockaddr_in target;
-	static char sendbuf[4096];
-#endif
+static int g_sid;
+static int sock;
+static sockaddr_in target;
+static char sendbuf[4096];
 
 int if_up_with(int index)
 {
-#ifdef PS3_DEBUG_IP
 	int timeout_count = 10;
 	int state;
 	int ret;
@@ -64,42 +57,34 @@ int if_up_with(int index)
 	target.sin_port = htons(3490);
 	inet_pton(AF_INET, PS3_DEBUG_IP, &target.sin_addr);
 
-#endif
 	return (0);
 }
 
 int if_down(int sid)
 {
-#ifdef PS3_DEBUG_IP
 	(void)sid;
 	cellNetCtlTerm();
-#endif
 	return (0);
 }
 
 void net_init()
 {
-#ifdef PS3_DEBUG_IP
 	int ret;
 
 	ret = cellSysmoduleLoadModule(CELL_SYSMODULE_NET);
 	ret = sys_net_initialize_network();
 	g_sid = if_up_with(1);
-#endif
 }
 
 void net_shutdown()
 {
-#ifdef PS3_DEBUG_IP
 	if_down(g_sid);
 	sys_net_finalize_network();
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_NET);
-#endif
 }
 
 void net_send(int sleep, const char *__format,...)
 {
-#ifdef PS3_DEBUG_IP
 	va_list args;
 
 	va_start(args,__format);
@@ -111,14 +96,4 @@ void net_send(int sleep, const char *__format,...)
 
 	if (sleep != 0)
 		sys_timer_usleep(sleep * 1000);
-
-#endif
 }
-
-/*int s,
-void *buf,
-size_t len,
-int flags,
-struct sockaddr *addr,
-socklen_t addrlen
-*/
