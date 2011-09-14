@@ -232,22 +232,20 @@ CellVideoOutState PSGLGraphics::GetVideoOutState()
 
 void PSGLGraphics::Deinit()
 {
-   glFinish();
-   this->DeinitDbgFont();
-   //free(gl_buffer);
-   //free(vertex_buf);
+	glFinish();
+	this->DeinitDbgFont();
 
-   psglDestroyContext(psgl_context);
-   psglDestroyDevice(psgl_device);
+	psglDestroyContext(psgl_context);
+	psglDestroyDevice(psgl_device);
 #ifdef PS3_SDK_3_41
-   //FIXME: It will crash here for 1.92 - termination of the PSGL library - works fine for 3.41
-   psglExit();
+	//FIXME: It will crash here for 1.92 - termination of the PSGL library - works fine for 3.41
+	psglExit();
 #else
-   //for 1.92
-   gl_width = 0;
-   gl_height = 0;
-   psgl_context = NULL;
-   psgl_device = NULL;
+	//for 1.92
+	gl_width = 0;
+	gl_height = 0;
+	psgl_context = NULL;
+	psgl_device = NULL;
 #endif
 }
 
@@ -285,9 +283,6 @@ GLint PSGLGraphics::GetResolutionHeight()
 	return gl_height;
 }
 
-
-
-
 //FIXME: classify this
 void dprintf_console(const char* fmt, ...)
 {
@@ -301,31 +296,31 @@ void dprintf_console(const char* fmt, ...)
 
 	cellDbgFontConsoleEnable(dbg_id);
 	cellDbgFontDraw();
-	psglSwap();	// added comment by SSNES author - should this be here?
+	psglSwap();
 }
 
 void dprintf_noswap(float x, float y, float scale, const char* fmt, ...)
 {
-   char buffer[512];
+	char buffer[512];
 
-   va_list ap;
+	va_list ap;
 
-   va_start(ap, fmt);
-   vsnprintf(buffer, 512, fmt, ap);
-   cellDbgFontPuts(x, y, scale, 0xffffffff, buffer);
-   va_end(ap);
+	va_start(ap, fmt);
+	vsnprintf(buffer, 512, fmt, ap);
+	cellDbgFontPuts(x, y, scale, 0xffffffff, buffer);
+	va_end(ap);
 
-   cellDbgFontDraw();
+	cellDbgFontDraw();
 }
 
 void write_fps(void)
 {
-   static float last_time = 0.0;
-   float new_time = sys_time_get_system_time() / 1000000.0;
-   float delta = new_time - last_time;
-   last_time = new_time;
+	static float last_time = 0.0;
+	float new_time = sys_time_get_system_time() / 1000000.0;
+	float delta = new_time - last_time;
+	last_time = new_time;
 
-   dprintf_noswap(0.1, 0.1, 1.0, "FPS: %.2f\n", 1.0f/delta);
+	dprintf_noswap(0.1, 0.1, 1.0, "FPS: %.2f\n", 1.0f/delta);
 }
 
 
