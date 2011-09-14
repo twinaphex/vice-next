@@ -1,5 +1,5 @@
 /******************************************************************************* 
- *  -- menu_common.cpp - Common routines for menu functionality
+ *  -- menu_common.c - Common routines for menu functionality
  *
  *     VICE PS3 -   Commodore 64 emulator for the Playstation 3
  *                  ported from the original VICE distribution
@@ -26,6 +26,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ********************************************************************************/
 
+#include <stdbool.h>
 #include <sys/timer.h>
 
 float menu_vert_scroll_speed = 0;

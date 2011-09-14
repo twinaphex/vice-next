@@ -10,7 +10,7 @@ PPU_SRCS	+=	arch/ps3/cellframework/threads/thread.cpp arch/ps3/cellframework/thr
 PPU_SRCS	+=	arch/ps3/cellframework/fileio/FileBrowser.cpp
 PPU_SRCS	+=	arch/ps3/cellframework/input/cellInput.cpp arch/ps3/cellframework/utility/OSKUtil.cpp
 PPU_SRCS	+=	arch/ps3/emu-ps3.cpp arch/ps3/menu.cpp arch/ps3/ps3video.cpp
-PPU_SRCS	+=	arch/ps3/menu_common.cpp arch/ps3/in_game_menu.cpp arch/ps3/ui_snapshot.c
+PPU_SRCS	+=	arch/ps3/menu_common.c arch/ps3/in_game_menu.cpp arch/ps3/ui_snapshot.c
 
 PPU_LIB_TARGET	=	libarch.ppu.a
 
