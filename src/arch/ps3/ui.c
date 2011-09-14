@@ -210,24 +210,24 @@ void ui_display_drive_current_image(unsigned int drive_number, const char *image
 
 void ui_update_menus(void)
 {
-    /* needed */
+	/* needed */
 }
 
 void ui_display_tape_current_image(const char *image)
 {
-    /* needed */
+	/* needed */
 }
 
 void ui_display_tape_counter(int counter)
 {
-    ui.tape.counter=counter;
-    force_redraw();
+	ui.tape.counter=counter;
+	force_redraw();
 }
 
 void ui_display_tape_motor_status(int motor)
 {
-    ui.tape.motor=motor;
-    force_redraw();
+	ui.tape.motor=motor;
+	force_redraw();
 }
 
 void ui_display_tape_control_status(int control)
@@ -254,22 +254,20 @@ void ui_display_playback(int playback_status, char *version)
 
 int ui_init(int *argc, char **argv)
 {
-    resources_load(NULL);
-    resources_get_int("DisplayFrameRate", &ui.display_speed);
-    resources_get_int("DisplayDriveIndicators", &ui.display_speed);
-    return 0;
+	resources_load(NULL);
+	resources_get_int("DisplayFrameRate", &ui.display_speed);
+	resources_get_int("DisplayDriveIndicators", &ui.display_speed);
+	return 0;
 }
-
-
 
 void archdep_ui_init(int argc, char *argv[])
 {
-    return;
+	return;
 }
 
 int ui_init_finish(void)
 {
-    return 0;
+	return 0;
 }
 
 
@@ -395,17 +393,17 @@ void ui_resources_shutdown(void)
 
 void _ui_menu_radio_helper(void)
 {
-    /* needed */
+	/* needed */
 }
 
 void ui_check_mouse_cursor(void)
 {
-    /* needed */
+	/* needed */
 }
 
 void ui_dispatch_events(void)
 {
-    /* needed */
+	/* needed */
 }
 
 void ui_display_speed(float speed, float frame_rate, int warp_enabled)

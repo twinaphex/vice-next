@@ -31,8 +31,8 @@ float Emulator_GetFontSize();
 
 #ifdef __cplusplus
 extern "C" {
-int menu(Emulator_Modes mode);
-void sysutil_callback_redraw(void);
+	int menu(Emulator_Modes mode);
+	void sysutil_callback_redraw(void);
 }
 #endif
 

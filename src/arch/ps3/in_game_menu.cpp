@@ -52,9 +52,6 @@ extern "C" {
 #include "ui_snapshot.h"
 #include "ps3debug.h"
 
-
-
-
 #define OPTION_SWAP_JOYSTICKS 0
 #define OPTION_HARD_RESET     1
 #define OPTION_LOAD_SNAPSHOT  2
@@ -127,7 +124,6 @@ void DialogYesNo (const char *message, int selection)
 		return;
 	}
 }
-
 
 int16_t currently_selected_option = 0;
 int16_t last_selected_option = -1;

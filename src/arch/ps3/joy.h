@@ -33,8 +33,6 @@ extern CellInputFacade *CellInput;
 extern "C" {
 #endif
 
-
-
 // Joystick mapping
 
 #define CROSS               0

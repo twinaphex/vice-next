@@ -51,7 +51,6 @@ void attenuate_scroll_speed(void)
 		// re-set the scroll sleep timer
 		vert_scroll_factor = 1 - menu_vert_scroll_speed; // inversely proportional
 		sleep_gain = (int) 70 * vert_scroll_factor;
-		//debug_printf_quick ("resetting vert_scroll_factor = %f, sleep_gain = 80 * factor = %d\n", vert_scroll_factor, sleep_gain);
 		sleep_countdown = (8 + sleep_gain);  // 8ms minimum (fastest),   78ms maximum (slowest)
 
 		// Start listening to analogue controls again

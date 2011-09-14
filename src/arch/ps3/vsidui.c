@@ -50,12 +50,12 @@ void vsid_ui_display_author(const char *author)
 
 void vsid_ui_display_copyright(const char *copyright)
 {
-    log_message(LOG_DEFAULT, "Copyright by: %s", copyright);
+	log_message(LOG_DEFAULT, "Copyright by: %s", copyright);
 }
 
 void vsid_ui_display_sync(int sync)
 {
-    log_message(LOG_DEFAULT, "Using %s sync", sync == MACHINE_SYNC_PAL ? "PAL" : "NTSC");
+	log_message(LOG_DEFAULT, "Using %s sync", sync == MACHINE_SYNC_PAL ? "PAL" : "NTSC");
 }
 
 void vsid_ui_display_sid_model(int model)

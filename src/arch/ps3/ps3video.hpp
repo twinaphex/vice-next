@@ -23,8 +23,8 @@
  ********************************************************************************/
 
 
-#ifndef EMULATOR_GRAPHICS_H_
-#define EMULATOR_GRAPHICS_H_
+#ifndef PS3VIDEO_H_
+#define PS3VIDEO_H_
 
 #include <sysutil/sysutil_sysparam.h>
 #include "cellframework/graphics/PSGLGraphics.h"
@@ -81,9 +81,6 @@ class PS3Graphics : public PSGLGraphics
 		float m_ratio;
 		bool m_smooth;
 		bool m_pal60Hz;
-
-		uint8_t *gl_main_buffer;
-		uint8_t *vertex_buf;
 
 		std::string _curFragmentShaderPath;
 
