@@ -117,12 +117,6 @@ static int ps3_audio_write(SWORD *pbuf, size_t nr)
 
 	if (nr >= (AUDIO_BLOCK_SAMPLES * AUDIO_CHANNELS))
 	{
-		while (CellAudio->write_avail() < AUDIO_BLOCK_SAMPLES * AUDIO_CHANNELS)
-		{
-			// Wait for the buffer to become large enough
-			sys_timer_usleep(5);
-		}
-
 		if (num_channels == 1)
 		{
 			// PS3 requires stereo audio.
