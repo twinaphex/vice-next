@@ -16,7 +16,7 @@ extern "C" {
 #include "ui.h"
 }
 
-void Emulator_RequestLoadROM(char* rom, bool forceReboot=false, bool warpmode=false);
+void Emulator_RequestLoadROM(const char* rom, bool forceReboot=false, bool warpmode=false);
 
 const char *get_current_rom(void);
 void Emulator_SwitchMode(Emulator_Modes);

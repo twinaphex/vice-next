@@ -39,10 +39,6 @@
 #include "pcxdrv.h"
 #include "ppmdrv.h"
 
-#ifdef HAVE_PNG
-#include "pngdrv.h"
-#endif
-
 #ifdef HAVE_JPEG
 #include "jpegdrv.h"
 #endif
@@ -106,9 +102,6 @@ int gfxoutput_early_init(void)
     gfxoutput_init_jpeg();
 #endif
     gfxoutput_init_pcx();
-#ifdef HAVE_PNG
-    gfxoutput_init_png();
-#endif
     gfxoutput_init_ppm();
 #ifdef HAVE_FFMPEG
     gfxoutput_init_ffmpeg();

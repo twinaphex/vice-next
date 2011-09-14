@@ -1981,8 +1981,7 @@ void do_ROMMenu()
 				Emulator_StartROMRunning();
 
 
-				//FIXME: 1x dirty const char* to char* casts... menu sucks.
-				Emulator_RequestLoadROM((char*)rom_path.c_str(), true, false);
+				Emulator_RequestLoadROM(rom_path.c_str(), true, false);
 
 				return;
 			}
@@ -1999,7 +1998,7 @@ void do_ROMMenu()
 
 				// switch emulator to emulate mode
 				Emulator_StartROMRunning();
-				Emulator_RequestLoadROM((char*)rom_path.c_str(), true, true);
+				Emulator_RequestLoadROM(rom_path.c_str(), true, true);
 				return;
 			}
 		}

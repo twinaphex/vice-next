@@ -231,18 +231,17 @@ int joystick(void)
 
 		// Set the joystick values
 
-		if (CellInput->IsButtonPressed(i,CTRL_LEFT) | CellInput->IsAnalogPressedLeft(i,CTRL_LSTICK)) {
+		if (CellInput->IsButtonPressed(i,CTRL_LEFT) | CellInput->IsAnalogPressedLeft(i,CTRL_LSTICK))
 			value |= 4;
-		}
-		if (CellInput->IsButtonPressed(i,CTRL_RIGHT) | CellInput->IsAnalogPressedRight(i,CTRL_LSTICK)) {
+
+		if (CellInput->IsButtonPressed(i,CTRL_RIGHT) | CellInput->IsAnalogPressedRight(i,CTRL_LSTICK))
 			value |= 8;
-		}
-		if (CellInput->IsButtonPressed(i,CTRL_UP) | CellInput->IsAnalogPressedUp(i,CTRL_LSTICK)) {
+
+		if (CellInput->IsButtonPressed(i,CTRL_UP) | CellInput->IsAnalogPressedUp(i,CTRL_LSTICK))
 			value |= 1;
-		}
-		if (CellInput->IsButtonPressed(i,CTRL_DOWN) | CellInput->IsAnalogPressedDown(i,CTRL_LSTICK)) {
+
+		if (CellInput->IsButtonPressed(i,CTRL_DOWN) | CellInput->IsAnalogPressedDown(i,CTRL_LSTICK))
 			value |= 2;
-		}
 
 
 		// Process re-definable controls
@@ -257,25 +256,34 @@ int joystick(void)
 
 
 		// Emulator cursor keys
-		if (CellInput->IsAnalogPressedUp(i,CTRL_RSTICK)) {
-			if (!key_cursorup) {
+		if (CellInput->IsAnalogPressedUp(i,CTRL_RSTICK))
+		{
+			if (!key_cursorup)
+			{
 				keyboard_key_pressed((signed long)  32850);  // Cursor Up key pressed
 				key_cursorup = true;
 			}
-		} else {
-			if (key_cursorup) {
+		}
+		else
+		{
+			if (key_cursorup)
+			{
 				keyboard_key_released((signed long) 32850);  // Cursor Up key released
 				key_cursorup = false;
 			}
 		}
 
-		if (CellInput->IsAnalogPressedDown(i,CTRL_RSTICK)) {
+		if (CellInput->IsAnalogPressedDown(i,CTRL_RSTICK))
+		{
 			if (!key_cursordown) {
 				keyboard_key_pressed((signed long)  32849);  // Cursor Down key pressed
 				key_cursordown = true;
 			}
-		} else {
-			if (key_cursordown) {
+		}
+		else
+		{
+			if (key_cursordown)
+			{
 				keyboard_key_released((signed long) 32849);  // Cursor Down key released
 				key_cursordown = false;
 			}
@@ -305,8 +313,7 @@ int joystick(void)
 			}
 		}
 
-		if (  (CellInput->IsButtonPressed(0,CTRL_R2) && CellInput->IsButtonPressed(0,CTRL_L2))  ||
-				(CellInput->IsButtonPressed(1,CTRL_R2) && CellInput->IsButtonPressed(1,CTRL_L2))  )
+		if ((CellInput->IsButtonPressed(0,CTRL_R2) && CellInput->IsButtonPressed(0,CTRL_L2)) || (CellInput->IsButtonPressed(1,CTRL_R2) && CellInput->IsButtonPressed(1,CTRL_L2)))
 		{
 			if (!warp_mode)
 			{
@@ -329,8 +336,7 @@ int joystick(void)
 		}
 
 
-		if (CellInput->IsButtonPressed(i,CTRL_L1) && CellInput->IsButtonPressed(i,CTRL_R1) &&
-				CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->IsButtonPressed(i,CTRL_R2) )
+		if (CellInput->IsButtonPressed(i,CTRL_L1) && CellInput->IsButtonPressed(i,CTRL_R1) && CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->IsButtonPressed(i,CTRL_R2) )
 			machine_trigger_reset(MACHINE_RESET_MODE_HARD);
 
 
@@ -348,7 +354,8 @@ int joystick(void)
 		}
 		 */
 
-		if (CellInput->WasButtonPressed(i,CTRL_SELECT)) {
+		if (CellInput->WasButtonPressed(i,CTRL_SELECT))
+		{
 			InGameMenuLoop();
 		}
 

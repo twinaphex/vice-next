@@ -22,4 +22,4 @@ PPU_CXXFLAGS	+=	-DPS3_SDK_3_41 -DPS3
 PPU_CFLAGS	+=	-DPSGL -funroll-loops -DWORDS_BIGENDIAN 
 PPU_CXXFLAGS	+=	-DPSGL -funroll-loops -DWORDS_BIGENDIAN 
 
-PPU_INCDIRS 	+= 	-I./arch/ -I./arch/ps3/ -I./arch/ps3/cellframework/ -I./drive/ -I./vdrive/ -I./imagecontents/ -I./lib/zlib/ -I./c64/cart/ -I./sid/ -I./vicii/ -I./tape/ -I./raster/ -I./c64/ -I./rtc/ -I./drive/iecieee/ -I./drive/iec/c64exp/ -I./drive/iec/ -I./parallel -I./monitor -I./sounddrv/ -I./lib/lpng/ -I./c64dtv/ -I./core/ -I./vdc/ -I./vic20/ -I./vic20/cart/ -I./plus4 -I./drive/iec/plus4exp/ -I./
+PPU_INCDIRS 	+= 	-I./arch/ -I./arch/ps3/ -I./arch/ps3/cellframework/ -I./drive/ -I./vdrive/ -I./imagecontents/ -I./lib/zlib/ -I./c64/cart/ -I./sid/ -I./vicii/ -I./tape/ -I./raster/ -I./c64/ -I./rtc/ -I./drive/iecieee/ -I./drive/iec/c64exp/ -I./drive/iec/ -I./parallel -I./monitor -I./sounddrv/ -I./c64dtv/ -I./core/ -I./vdc/ -I./vic20/ -I./vic20/cart/ -I./plus4 -I./drive/iec/plus4exp/ -I./

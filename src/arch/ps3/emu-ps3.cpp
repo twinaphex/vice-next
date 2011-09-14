@@ -137,7 +137,7 @@ void Emulator_StartROMRunning()
 	Emulator_SwitchMode(MODE_EMULATION);
 }
 
-void Emulator_RequestLoadROM(char* rom, bool forceReboot, bool compatibility_mode) 
+void Emulator_RequestLoadROM(const char* rom, bool forceReboot, bool compatibility_mode) 
 {
 	if (current_rom == NULL || strcmp(rom, current_rom) != 0)
 	{
@@ -257,7 +257,7 @@ int main (void)
 
 
 	// Start running Vice.
-	// When it init's the UI, if willcall back here for the 'menu' function below
+	// When it inits the UI, it will call back here for the 'menu' function below
 	char  arg0[] = "vice";
 	char* argv[] = { &arg0[0], NULL };
 	int   argc   = 1;
@@ -296,7 +296,7 @@ extern "C" int menu(Emulator_Modes mode)
 				Graphics->DestroyDump();
 				ps3_audio_resume();
 
-				// The C64 only redraws if it needs to, so we force one here to clena up after the menu
+				// The C64 only redraws if it needs to, so we force one here to clean up after the menu
 				force_redraw();
 				return 0;
 				break;

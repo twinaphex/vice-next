@@ -85,7 +85,7 @@
 #define HAVE_RESID             1
 #define HAVE_RESID_FP          1
 //#define HAVE_RESID_DTV         1
-#define HAVE_PNG               1
+#define HAVE_PNG               0
 #define HAVE_ZLIB              1
 #define HAS_JOYSTICK           1
 #define HAVE_MOUSE             1
