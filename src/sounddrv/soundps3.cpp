@@ -117,42 +117,7 @@ static int ps3_audio_write(SWORD *pbuf, size_t nr)
 
 	if (nr >= (AUDIO_BLOCK_SAMPLES * AUDIO_CHANNELS))
 	{
-		if (num_channels == 1)
-		{
-			// PS3 requires stereo audio.
-			// fudge this.
-			//stereo_pbuf = realloc (stereo_pbuf, sizeof(SWORD) * nr * 2);
-			//stereo_pbuf = (SWORD *) lib_malloc(sizeof(SWORD) * nr * 2);
-
-			if (stereo_pbuf)
-			{
-				if (stereo_pbuf_size != (sizeof(SWORD) * nr * 2)) {
-					stereo_pbuf_size = sizeof(SWORD) * nr * 2;
-					stereo_pbuf = (SWORD *) lib_realloc(stereo_pbuf, stereo_pbuf_size);
-				}
-			}
-			else
-			{
-				stereo_pbuf_size = sizeof(SWORD) * nr * 2;
-				stereo_pbuf = (SWORD *) lib_malloc(stereo_pbuf_size);
-			}
-
-			stereo_ptr = stereo_pbuf;
-			mono_ptr = pbuf;
-
-			for (size_t i=0; i<nr; i++)
-			{
-				*stereo_ptr++ = *mono_ptr;
-				*stereo_ptr++ = *mono_ptr++;
-			}
-			CellAudio->write(stereo_pbuf, nr*2);
-		}
-		else
-		{
-			CellAudio->write(pbuf, nr);
-		}
-
-
+		CellAudio->write(pbuf, nr);
 	}
 	return 0;
 }
