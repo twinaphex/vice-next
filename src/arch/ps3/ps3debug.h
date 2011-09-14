@@ -25,7 +25,15 @@
  ********************************************************************************/
 
 // DEBUG
-extern "C" int debug_init(void);
-extern "C" void debug_printf(const char *, ...);
-extern "C" void debug_printf_quick(const char *, ...);
-extern "C" void debug_close(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	int debug_init(void);
+	void debug_printf(const char *, ...);
+	void debug_printf_quick(const char *, ...);
+	void debug_close(void);
+
+#ifdef __cplusplus
+}
+#endif

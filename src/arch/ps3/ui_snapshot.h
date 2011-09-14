@@ -30,8 +30,16 @@
 #ifndef UI_SNAPSHOT_H_
 #define UI_SNAPSHOT_H_
 
-bool snapshot_exists(const char *romfile);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int snapshot_exists(const char *romfile);
 int  load_snapshot(const char *romfile);
 int  save_snapshot(const char *romfile);
+
+#ifdef __cplusplus
+}
+#endif
   
 #endif /* UI_SNAPSHOT_H_ */

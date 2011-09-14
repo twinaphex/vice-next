@@ -26,11 +26,11 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ********************************************************************************/
 
-#include <string>
+#include <stdio.h>
+#include <string.h>
 #include "ui_snapshot.h"
 #include "ps3debug.h"
 
-extern "C" {
 #include "common.h"
 #include "machine.h"
 #include "ioutil.h"
@@ -39,10 +39,9 @@ extern "C" {
 #include "log.h"
 #include "lib/zlib/zlib.h"
 #include "archdep.h"
-}
 
 // Check for the existence of a snapshot matching this romfile
-bool snapshot_exists(const char *filepath)
+int snapshot_exists(const char *filepath)
 {
 	// Get MD5 of 'current_rom'
 

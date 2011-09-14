@@ -37,9 +37,6 @@
 #include "netdbg/net.h"
 #include "ps3debug.h"
 
-
-#define DEBUGGERY
-
 static bool netdebug_active=false;
 
 int debug_init(void)

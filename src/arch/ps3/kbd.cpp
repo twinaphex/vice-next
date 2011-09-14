@@ -293,7 +293,6 @@ void kbd_process(void)
 
 }
 
-
 signed long kbd_arch_keyname_to_keynum(char *keyname)
 {
 	return (signed long)atoi(keyname);
