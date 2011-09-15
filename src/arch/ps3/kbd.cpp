@@ -329,7 +329,8 @@ void osk_kbd_append_buffer (char *keystring)
 {
 	for (unsigned int i=0; i < strlen(keystring); i++)
 	{
-		if (osk_active_bufferlen >= MAX_BUFFER) {
+		if (osk_active_bufferlen >= MAX_BUFFER)
+		{
 			log_warning (LOG_DEFAULT, "WARNING: Keystring inputbufer overflow\n");
 			return;
 		}

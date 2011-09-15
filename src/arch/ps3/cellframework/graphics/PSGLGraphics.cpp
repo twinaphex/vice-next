@@ -25,8 +25,6 @@
 #include <string.h>
 #include <sys/sys_time.h>
 
-#include "ps3debug.h"
-
 PSGLGraphics::PSGLGraphics()
 {
 	psgl_device = NULL;

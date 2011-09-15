@@ -235,7 +235,8 @@ int main (void)
 	CellInput->Init();
 
 	osk = new OSKUtil();
-	if (!osk->Init()) {
+	if (!osk->Init())
+	{
 		#ifdef CELL_DEBUG
 		printf("WARNING: OSK could not be initialised\n");
 		#endif

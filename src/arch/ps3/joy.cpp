@@ -36,7 +36,6 @@
 #include "kbd.h"
 #include "osk.h"
 #include "keyboard.h"
-#include "ps3debug.h"
 
 extern "C" {
 #include "autostart.h"

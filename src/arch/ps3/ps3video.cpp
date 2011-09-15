@@ -411,21 +411,23 @@ int32_t PS3Graphics::LoadFragmentShader(std::string shaderPath)
 
 int32_t PS3Graphics::PSGLReInit(int width, int height, int depth)
 {
-    context_width = width;
-    context_height = height;
+	context_width = width;
+	context_height = height;
 
-    printf("ReInit called with width=%d, height=%d, depth=%d\n", width, height, depth);
+#ifdef CELL_DEBUG
+	printf("ReInit called with width=%d, height=%d, depth=%d\n", width, height, depth);
+#endif
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glBindBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, vbo[0]);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glBindBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, vbo[0]);
 
-    glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, width * height * (depth / 8), NULL, GL_STREAM_DRAW);
-    glTextureReferenceSCE(GL_TEXTURE_2D, 1, width, height, 0, GL_RGB5_A1, width * (depth / 8), 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, width * height * (depth / 8), NULL, GL_STREAM_DRAW);
+	glTextureReferenceSCE(GL_TEXTURE_2D, 1, width, height, 0, GL_RGB5_A1, width * (depth / 8), 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-    return CELL_OK;
+	return CELL_OK;
 }
 
 int32_t PS3Graphics::PSGLInit()
@@ -451,10 +453,12 @@ int32_t PS3Graphics::PSGLInit()
 	context_height = SCREEN_RENDER_TEXTURE_HEIGHT;;
 
 	uint32_t ret = InitCg();
+	#ifdef CELL_DEBUG
 	if (ret != CELL_OK)
 	{
 		printf("Failed to InitCg: %d", __LINE__);
 	}
+	#endif
 
 	SetViewports();
 
