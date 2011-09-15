@@ -175,12 +175,14 @@ void do_ingame_menu()
 
 			// The order of these is important
 
-			if (currently_selected_option == OPTION_SAVE_SNAPSHOT) {
+			if (currently_selected_option == OPTION_SAVE_SNAPSHOT)
+			{
 				// If there is no currently loaded rom image, this option is disabled. SKip it.
 				if (rompath == NULL)
 					currently_selected_option--;
 			}
-			if (currently_selected_option == OPTION_LOAD_SNAPSHOT) {
+			if (currently_selected_option == OPTION_LOAD_SNAPSHOT)
+			{
 				// If there is no snapshot, this option is disabled. SKip it.
 				if ( (rompath == NULL) || (!snapshot_avail) )
 					currently_selected_option--;

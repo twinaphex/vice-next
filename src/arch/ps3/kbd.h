@@ -24,17 +24,14 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ********************************************************************************/
 
-
 #ifndef VICE_KBD_PS3_H
 #define VICE_KBD_PS3_H
 
-#include "types.h"
-
 #ifdef __cplusplus
-#include "cellframework/utility/OSKUtil.h"
-extern OSKUtil *osk;
 extern "C" {
 #endif
+
+#include "types.h"
 
 extern void kbd_arch_init(void);
 
@@ -78,14 +75,6 @@ typedef struct {
     int vshift;
 } keyconv;
 
-/*
-extern BYTE _kbd_extended_key_tab[256];
-extern int kbd_init(int num, ...);
-extern void kbd_install(void);
-extern void kbd_uninstall(void);
-extern void kbd_flush_commands(void);
-extern void kbd_set_freeze_function(void (*f)(void));
-*/
 extern int osk_active_bufferlen;
 extern void osk_kbd_type_key(void);
 extern void osk_kbd_append_buffer (char *keystring);

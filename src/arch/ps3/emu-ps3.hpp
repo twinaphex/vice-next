@@ -16,6 +16,11 @@ extern "C" {
 #include "ui.h"
 }
 
+#ifdef __cplusplus
+#include "cellframework/utility/OSKUtil.h"
+extern OSKUtil *osk;
+#endif
+
 void Emulator_RequestLoadROM(const char* rom, bool forceReboot=false, bool warpmode=false);
 
 const char *get_current_rom(void);

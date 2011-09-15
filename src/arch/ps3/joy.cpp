@@ -29,6 +29,7 @@
  ********************************************************************************/
 
 #include "cellframework/input/cellInput.h"
+#include "cellframework/utility/OSKUtil.h"
 
 #include "vice.h"
 #include "emu-ps3.hpp"
@@ -48,6 +49,8 @@ extern "C" {
 }
 
 #include "in_game_menu.h"
+
+OSKUtil *osk;
 /* ------------------------------------------------------------------------- */
 
 

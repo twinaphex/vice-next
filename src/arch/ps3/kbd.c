@@ -25,23 +25,39 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ********************************************************************************/
 
-
 #include "vice.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <cell/keyboard.h>
 
 #include "kbd.h"
 #include "keyboard.h"
 
-extern "C" {
 #include "log.h"
-}
 
 #define MAX_KEYBD 2
 
-OSKUtil *osk;
 uint8_t old_status[MAX_KEYBD];
+
+static CellKbInfo status; 
+uint32_t old_info = 0;
+
+#define MAX_KEYS 8
+
+//Unlikely we'll ever want to register more than 8 keys at a time
+static uint16_t keysdown[MAX_KEYS];
+static unsigned int mkey;
+
+#define L_CTRL  300
+#define L_SHIFT 301
+#define L_ALT   302
+#define L_WIN   303
+
+#define R_CTRL  304
+#define R_SHIFT 305
+#define R_ALT   306
+#define R_WIN   307
 
 void kbd_arch_init(void)
 {
@@ -71,26 +87,6 @@ void kbd_arch_destroy(void)
 	cellKbEnd();
 	return;
 }
-
-
-static CellKbInfo status; 
-uint32_t old_info = 0;
-
-#define MAX_KEYS 8
-
-//Unlikely we'll ever want to register more than 8 keys at a time
-static uint16_t keysdown[MAX_KEYS];
-static unsigned int mkey;
-
-#define L_CTRL  300
-#define L_SHIFT 301
-#define L_ALT   302
-#define L_WIN   303
-
-#define R_CTRL  304
-#define R_SHIFT 305
-#define R_ALT   306
-#define R_WIN   307
 
 void kbd_process(void)
 {
@@ -140,49 +136,62 @@ void kbd_process(void)
 	{
 		keyboard_key_pressed (L_SHIFT);
 	}
-	if ((mkey & CELL_KB_MKEY_L_SHIFT) && !(kdata.mkey & CELL_KB_MKEY_L_SHIFT)) {
+	if ((mkey & CELL_KB_MKEY_L_SHIFT) && !(kdata.mkey & CELL_KB_MKEY_L_SHIFT))
+	{
 		keyboard_key_released (L_SHIFT);
 	}
 
-	if ( !(mkey & CELL_KB_MKEY_L_ALT) && (kdata.mkey & CELL_KB_MKEY_L_ALT)) {
+	if ( !(mkey & CELL_KB_MKEY_L_ALT) && (kdata.mkey & CELL_KB_MKEY_L_ALT))
+	{
 		keyboard_key_pressed (L_ALT);
 	}
-	if ((mkey & CELL_KB_MKEY_L_ALT) && !(kdata.mkey & CELL_KB_MKEY_L_ALT)) {
+	if ((mkey & CELL_KB_MKEY_L_ALT) && !(kdata.mkey & CELL_KB_MKEY_L_ALT))
+	{
 		keyboard_key_released (L_ALT);
 	}
 
-	if ( !(mkey & CELL_KB_MKEY_L_WIN) && (kdata.mkey & CELL_KB_MKEY_L_WIN)) {
+	if ( !(mkey & CELL_KB_MKEY_L_WIN) && (kdata.mkey & CELL_KB_MKEY_L_WIN))
+	{
 		keyboard_key_pressed (L_WIN);
 	}
-	if ((mkey & CELL_KB_MKEY_L_WIN) && !(kdata.mkey & CELL_KB_MKEY_L_WIN)) {
+	if ((mkey & CELL_KB_MKEY_L_WIN) && !(kdata.mkey & CELL_KB_MKEY_L_WIN))
+	{
 		keyboard_key_released (L_WIN);
 	}
 
-	if ( !(mkey & CELL_KB_MKEY_R_CTRL) && (kdata.mkey & CELL_KB_MKEY_R_CTRL)) {
+	if ( !(mkey & CELL_KB_MKEY_R_CTRL) && (kdata.mkey & CELL_KB_MKEY_R_CTRL))
+	{
 		keyboard_key_pressed (R_CTRL);
 	}
-	if ((mkey & CELL_KB_MKEY_R_CTRL) && !(kdata.mkey & CELL_KB_MKEY_R_CTRL)) {
+	if ((mkey & CELL_KB_MKEY_R_CTRL) && !(kdata.mkey & CELL_KB_MKEY_R_CTRL))
+	{
 		keyboard_key_released (R_CTRL);
 	}
 
-	if ( !(mkey & CELL_KB_MKEY_R_SHIFT) && (kdata.mkey & CELL_KB_MKEY_R_SHIFT)) {
+	if ( !(mkey & CELL_KB_MKEY_R_SHIFT) && (kdata.mkey & CELL_KB_MKEY_R_SHIFT))
+	{
 		keyboard_key_pressed (R_SHIFT);
 	}
-	if ((mkey & CELL_KB_MKEY_R_SHIFT) && !(kdata.mkey & CELL_KB_MKEY_R_SHIFT)) {
+	if ((mkey & CELL_KB_MKEY_R_SHIFT) && !(kdata.mkey & CELL_KB_MKEY_R_SHIFT))
+	{
 		keyboard_key_released (R_SHIFT);
 	}
 
-	if ( !(mkey & CELL_KB_MKEY_R_ALT) && (kdata.mkey & CELL_KB_MKEY_R_ALT)) {
+	if ( !(mkey & CELL_KB_MKEY_R_ALT) && (kdata.mkey & CELL_KB_MKEY_R_ALT))
+	{
 		keyboard_key_pressed (R_ALT);
 	}
-	if ((mkey & CELL_KB_MKEY_R_ALT) && !(kdata.mkey & CELL_KB_MKEY_R_ALT)) {
+	if ((mkey & CELL_KB_MKEY_R_ALT) && !(kdata.mkey & CELL_KB_MKEY_R_ALT))
+	{
 		keyboard_key_released (R_ALT);
 	}
 
-	if ( !(mkey & CELL_KB_MKEY_R_WIN) && (kdata.mkey & CELL_KB_MKEY_R_WIN)) {
+	if ( !(mkey & CELL_KB_MKEY_R_WIN) && (kdata.mkey & CELL_KB_MKEY_R_WIN))
+	{
 		keyboard_key_pressed (R_WIN);
 	}
-	if ((mkey & CELL_KB_MKEY_R_WIN) && !(kdata.mkey & CELL_KB_MKEY_R_WIN)) {
+	if ((mkey & CELL_KB_MKEY_R_WIN) && !(kdata.mkey & CELL_KB_MKEY_R_WIN))
+	{
 		keyboard_key_released (R_WIN);
 	}
 
@@ -196,9 +205,9 @@ void kbd_process(void)
 	uint16_t kcode;
 	for (j = 0; j < kdata.len; j++)
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf ("kdata.len is %d, mkey is %x\n", kdata.len, kdata.mkey);
-		#endif
+#endif
 
 		if (kdata.keycode[j] == 0x8039)    //caps lock
 			continue;
@@ -208,9 +217,9 @@ void kbd_process(void)
 		else
 			kcode = kdata.keycode[j];
 
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf ("orig keycode = 0x%x\n", kdata.keycode[j]);
-		#endif
+#endif
 
 		if (kcode == 0x00)
 		{
@@ -220,9 +229,9 @@ void kbd_process(void)
 			{
 				if (keysdown[i] != 0x00)
 				{
-					#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 					printf("detected keyUP kcode   '%d'\n", keysdown[i]);
-					#endif
+#endif
 					keyboard_key_released((signed long)keysdown[i]);
 					keysdown[i] = 0x00;
 				}
@@ -232,14 +241,15 @@ void kbd_process(void)
 	}
 
 	// Find the keys that need to be released
-	for (i=0; i<MAX_KEYS; i++)
+	for (i=0; i < MAX_KEYS; i++)
 	{
 		bool found=false;
 
 		if (keysdown[i] == 0x00)
 			continue;
 
-		for (j=0; j < kdata.len; j++) {
+		for (j=0; j < kdata.len; j++)
+		{
 			if (kdata.keycode[j] & CELL_KB_KEYPAD)
 				kcode = kdata.keycode[j] & ~CELL_KB_KEYPAD;
 			else 
@@ -252,9 +262,9 @@ void kbd_process(void)
 		if (found==false)
 		{
 			// This key isn't pressed anymore.
-			#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 			printf("detected keyUP kcode   '%d'\n", keysdown[i]);
-			#endif
+#endif
 			keyboard_key_released((signed long)keysdown[i]);
 			keysdown[i] = 0x00;
 		}
@@ -270,7 +280,7 @@ void kbd_process(void)
 		else 
 			kcode = kdata.keycode[j];
 
-		for (i=0; i<MAX_KEYS; i++)
+		for (i=0; i < MAX_KEYS; i++)
 		{
 			if (kcode == keysdown[i])
 			{
@@ -289,9 +299,9 @@ void kbd_process(void)
 				if (keysdown[i]==0)
 				{
 					keysdown[i] = kcode;
-					#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 					printf("detected keyDOWN kcode '%d'\n", keysdown[i]);
-					#endif
+#endif
 					keyboard_key_pressed((signed long)keysdown[i]);
 					break;
 				}
@@ -341,9 +351,9 @@ void osk_kbd_append_buffer (char *keystring)
 
 void osk_kbd_append_buffer_char (int keycode)
 {
-	#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 	printf("appending char keycode %d\n", keycode);
-	#endif
+#endif
 	inputbuffer[osk_active_bufferlen++] = keycode;
 }
 
