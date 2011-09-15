@@ -237,18 +237,17 @@ void video_canvas_destroy(video_canvas_t *canvas)
 
 
 //inline void video_canvas_refresh(video_canvas_t *canvas,
-void video_canvas_refresh(video_canvas_t *canvas,
-		unsigned int xs, unsigned int ys,
-		unsigned int xi, unsigned int yi,
-		unsigned int w, unsigned int h)
+void video_canvas_refresh(video_canvas_t *canvas, unsigned int xs, unsigned int ys, unsigned int xi, unsigned int yi, unsigned int w, unsigned int h)
 {
 	// TODO This version will NOT draw the VDC
-	if (active_canvas != canvas) {
+	if (active_canvas != canvas)
+	{
 		return;
 	}
 
 	/* this is a hack for F7 change between VICII and VDC */
-	if (active_canvas != canvas) {
+	if (active_canvas != canvas)
+	{
 		active_canvas = canvas;
 		//canvas_update_colors(canvas);
 		//clear(screen);
