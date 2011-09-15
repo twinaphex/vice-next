@@ -168,7 +168,9 @@ int archdep_num_text_columns(void)
 
 int archdep_default_logger(const char *level_string, const char *txt)
 {
-	debug_printf ("%s%s\n", level_string, txt);
+	#ifdef CELL_DEBUG
+	printf("%s%s\n", level_string, txt);
+	#endif
 	return 0;
 }
 
@@ -182,7 +184,9 @@ int archdep_path_is_relative(const char *path)
 
 int archdep_spawn(const char *name, char **argv, char **pstdout_redir, const char *stderr_redir)
 {
-	debug_printf ("ARCHDEP_SPAWN NOT IMPLEMENTED");
+	#ifdef CELL_DEBUG
+	printf("ARCHDEP_SPAWN NOT IMPLEMENTED");
+	#endif
 	return -1;
 }
 
@@ -209,7 +213,9 @@ void archdep_startup_log_error(const char *format, ...)
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
 
-	debug_printf_quick (format, ap);
+	#ifdef CELL_DEBUG
+	printf(format, ap);
+	#endif
 }
 
 char *archdep_filename_parameter(const char *name)
@@ -362,7 +368,9 @@ extern void Emulator_Shutdown(void);
 
 void main_exit(void)
 {
-	debug_printf ("machine_shutdown called from main_exit()\n");
+	#ifdef CELL_DEBUG
+	printf("machine_shutdown called from main_exit()\n");
+	#endif
 	machine_shutdown();
 	Emulator_Shutdown();
 }
@@ -382,21 +390,29 @@ char * md5_sum_file(const char *filepath)
 
 	res=cellFsOpen(filepath, CELL_FS_O_RDONLY, &fd, NULL, 0);
 
-	if (fd < 0) {
-		debug_printf("cellFsOpen('%s') error: 0x%08X\n", filepath, res);
+	if (fd < 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("cellFsOpen('%s') error: 0x%08X\n", filepath, res);
+		#endif
 		return NULL;
 	}
 
 	cellMd5BlockInit(&ctx);
 	do {
 		res = cellFsRead(fd, g_buf, sizeof(g_buf), &nread);
-		if (res < 0) {
-			debug_printf("cellFsRead('%s') error: 0x%08X\n", filepath, res);
+		if (res < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("cellFsRead('%s') error: 0x%08X\n", filepath, res);
+			#endif
 			cellFsClose(fd);    
 			return NULL;
 		}
-		debug_printf("read in %lld bytes from file\n", nread);
-		debug_printf("Calculating MD5 chunk...\n");
+		#ifdef CELL_DEBUG
+		printf("read in %lld bytes from file\n", nread);
+		printf("Calculating MD5 chunk...\n");
+		#endif
 		cellMd5BlockUpdate(&ctx, g_buf, (unsigned int)nread);
 	} while (res == sizeof(g_buf));
 	cellMd5BlockResult(&ctx, digest);
@@ -405,7 +421,9 @@ char * md5_sum_file(const char *filepath)
 	{
 		int i;
 
-		debug_printf("\nMD5 Hash calculated from %s:\n", filepath);
+		#ifdef CELL_DEBUG
+		printf("\nMD5 Hash calculated from %s:\n", filepath);
+		#endif
 		char *digest_ptr = digest_string;
 		for(i = 0; i < CELL_MD5_DIGEST_SIZE; i++) {
 			snprintf (digest_ptr, 2+1, "%02x", digest[i]);

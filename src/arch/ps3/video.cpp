@@ -35,7 +35,6 @@
 #include "log.h"
 #include "palette.h"
 #include "ui.h"
-#include "ps3debug.h"
 #include "emu-ps3.hpp"
 
 #include "common.h"
@@ -57,12 +56,13 @@ video_canvas_t *last_canvas;
 video_canvas_t *active_canvas = NULL;
 static video_canvas_t *canvaslist[MAX_CANVAS_NUM];
 
-/* forward declaration */
-static void canvas_change_palette(video_canvas_t *c);
-
 /* ------------------------------------------------------------------------- */
 
 static int draw_disable=0;
+
+static void canvas_change_palette(video_canvas_t *c)
+{
+}
 
 int is_sysutil_drawing(void)
 {
@@ -133,15 +133,22 @@ void video_arch_canvas_init(struct video_canvas_s *canvas)
 	canvas->video_draw_buffer_callback = NULL;
 	active_canvas = canvas;
 
-	debug_printf_quick ("canvas init width wants to be : %d\ncanvas init height wants to be : %d\n", canvas->width, canvas->height);
+	#ifdef CELL_DEBUG
+	printf("canvas init width wants to be : %d\ncanvas init height wants to be : %d\n", canvas->width, canvas->height);
+	#endif
 }
 
 void video_canvas_resize(video_canvas_t *canvas, unsigned int width, unsigned int height)
 {
-	debug_printf_quick ("canvas width resize wants to be : %d\ncanvas height resize wants to be : %d\n", width, height);
+	#ifdef CELL_DEBUG
+	printf("canvas width resize wants to be : %d\ncanvas height resize wants to be : %d\n", width, height);
+	#endif
 
-	if ( (screenbuffer != NULL) && (canvas->width == width) && (canvas->height == height) ) {
-		debug_printf_quick ("no realloc necessary\n");
+	if ((screenbuffer != NULL) && (canvas->width == width) && (canvas->height == height))
+	{
+		#ifdef CELL_DEBUG
+		printf("no realloc necessary\n");
+		#endif
 	}
 	else
 	{
@@ -166,11 +173,15 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
 
 	canvas->videoconfig->rendermode = VIDEO_RENDER_RGB_1X1;
 
-	debug_printf_quick ("canvas width wants to be : %d\ncanvas height wants to be : %d\ncanvas depth wants to be : %d\n", canvas->width, canvas->height, canvas->depth);
+	#ifdef CELL_DEBUG
+	printf("canvas width wants to be : %d\ncanvas height wants to be : %d\ncanvas depth wants to be : %d\n", canvas->width, canvas->height, canvas->depth);
+	#endif
 
 	canvas->depth = 16;
 
-	debug_printf_quick ("canvas set to %d x %d\n", canvas->width, canvas->height);
+	#ifdef CELL_DEBUG
+	printf("canvas set to %d x %d\n", canvas->width, canvas->height);
+	#endif
 
 	canvas->bytes_per_line = canvas->width * (canvas->depth / 8);
 
@@ -187,8 +198,11 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
 	// TODO This hack ensures the C128 always uses the VICII canvas and never the VDC canvas
 
 	//if (strncmp(machine_name, "C128", 4) == 0) {
-	if (machine_class == VICE_MACHINE_C128) {
-		debug_printf_quick ("forcing C128 canvas as canvas[1]\n");
+	if (machine_class == VICE_MACHINE_C128)
+	{
+		#ifdef CELL_DEBUG
+		printf("forcing C128 canvas as canvas[1]\n");
+		#endif
 		active_canvas=canvaslist[1];
 	}
 	else
@@ -202,7 +216,8 @@ void video_canvas_destroy(video_canvas_t *canvas)
 {
 	int i;
 
-	if (canvas == NULL) {
+	if (canvas == NULL)
+	{
 		return;
 	}
 
@@ -216,9 +231,6 @@ void video_canvas_destroy(video_canvas_t *canvas)
 	}
 }
 
-static void canvas_change_palette(video_canvas_t *c)
-{
-}
 
 
 /* ------------------------------------------------------------------------- */

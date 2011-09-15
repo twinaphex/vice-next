@@ -34,8 +34,6 @@
 #include "kbd.h"
 #include "keyboard.h"
 
-#include "ps3debug.h"
-
 extern "C" {
 #include "log.h"
 }
@@ -198,7 +196,9 @@ void kbd_process(void)
 	uint16_t kcode;
 	for (j = 0; j < kdata.len; j++)
 	{
-		debug_printf ("kdata.len is %d, mkey is %x\n", kdata.len, kdata.mkey);
+		#ifdef CELL_DEBUG
+		printf ("kdata.len is %d, mkey is %x\n", kdata.len, kdata.mkey);
+		#endif
 
 		if (kdata.keycode[j] == 0x8039)    //caps lock
 			continue;
@@ -208,17 +208,21 @@ void kbd_process(void)
 		else
 			kcode = kdata.keycode[j];
 
-		debug_printf ("orig keycode = 0x%x\n", kdata.keycode[j]);
+		#ifdef CELL_DEBUG
+		printf ("orig keycode = 0x%x\n", kdata.keycode[j]);
+		#endif
 
 		if (kcode == 0x00)
 		{
-			//debug_printf_quick ("Detected 0x00. Releasing ALL keys\n");
+			//printf("Detected 0x00. Releasing ALL keys\n");
 			// Release all keys
 			for (i=0; i<MAX_KEYS; i++)
 			{
 				if (keysdown[i] != 0x00)
 				{
-					debug_printf_quick ("detected keyUP kcode   '%d'\n", keysdown[i]);
+					#ifdef CELL_DEBUG
+					printf("detected keyUP kcode   '%d'\n", keysdown[i]);
+					#endif
 					keyboard_key_released((signed long)keysdown[i]);
 					keysdown[i] = 0x00;
 				}
@@ -248,7 +252,9 @@ void kbd_process(void)
 		if (found==false)
 		{
 			// This key isn't pressed anymore.
-			debug_printf_quick ("detected keyUP kcode   '%d'\n", keysdown[i]);
+			#ifdef CELL_DEBUG
+			printf("detected keyUP kcode   '%d'\n", keysdown[i]);
+			#endif
 			keyboard_key_released((signed long)keysdown[i]);
 			keysdown[i] = 0x00;
 		}
@@ -283,7 +289,9 @@ void kbd_process(void)
 				if (keysdown[i]==0)
 				{
 					keysdown[i] = kcode;
-					debug_printf_quick ("detected keyDOWN kcode '%d'\n", keysdown[i]);
+					#ifdef CELL_DEBUG
+					printf("detected keyDOWN kcode '%d'\n", keysdown[i]);
+					#endif
 					keyboard_key_pressed((signed long)keysdown[i]);
 					break;
 				}
@@ -332,7 +340,9 @@ void osk_kbd_append_buffer (char *keystring)
 
 void osk_kbd_append_buffer_char (int keycode)
 {
-	debug_printf ("appending char keycode %d\n", keycode);
+	#ifdef CELL_DEBUG
+	printf("appending char keycode %d\n", keycode);
+	#endif
 	inputbuffer[osk_active_bufferlen++] = keycode;
 }
 

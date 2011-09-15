@@ -294,23 +294,33 @@ static void keyboard_key_shift(void)
 
 static int keyboard_key_pressed_matrix(int row, int column, int shift)
 {
-debug_printf ("key_pressed_matrix %d, %d, %d\n", row, column, shift);
+#ifdef CELL_DEBUG
+printf("key_pressed_matrix %d, %d, %d\n", row, column, shift);
+#endif
     if (row >= 0) {
         key_latch_row = row;
         key_latch_column = column;
 
         if (shift == NO_SHIFT || shift & DESHIFT_SHIFT) {
-debug_printf ("deshift\n");
+#ifdef CELL_DEBUG
+printf("deshift\n");
+#endif
             keyboard_key_deshift();
         } else {
             if (shift & VIRTUAL_SHIFT)
-debug_printf ("vritaul shift\n");
+#ifdef CELL_DEBUG
+printf("virtual shift\n");
+#endif
                 virtual_shift_down = 1;
             if (shift & LEFT_SHIFT)
-debug_printf ("left shift\n");
+	    #ifdef CELL_DEBUG
+printf("left shift\n");
+#endif
                 left_shift_down = 1;
             if (shift & RIGHT_SHIFT)
-debug_printf ("right shift\n");
+#ifdef CELL_DEBUG
+printf("right shift\n");
+#endif
                 right_shift_down = 1;
             keyboard_key_shift();
         }
@@ -386,78 +396,84 @@ static void keyboard_restore_released(void)
 
 void keyboard_key_pressed(signed long key)
 {
-    int i, latch;
-debug_printf ("keyboard_key_pressed %d\n", key);
-    if (event_playback_active())
-        return;
+	int i, latch;
+	#ifdef CELL_DEBUG
+	printf("keyboard_key_pressed %d\n", key);
+	#endif
+	if (event_playback_active())
+		return;
 
-    /* Restore */
-    if (((key == key_ctrl_restore1) || (key == key_ctrl_restore2))
-        && machine_has_restore_key())
-    {
-        keyboard_restore_pressed();
-        return;
-    }
+	/* Restore */
+	if (((key == key_ctrl_restore1) || (key == key_ctrl_restore2))
+			&& machine_has_restore_key())
+	{
+		keyboard_restore_pressed();
+		return;
+	}
 
-    if (key == key_ctrl_column4080) {
-        if (key_ctrl_column4080_func != NULL)
-            key_ctrl_column4080_func();
-        return;
-    }
+	if (key == key_ctrl_column4080) {
+		if (key_ctrl_column4080_func != NULL)
+			key_ctrl_column4080_func();
+		return;
+	}
 
-    if (key == key_ctrl_caps) {
-        if (key_ctrl_caps_func != NULL)
-            key_ctrl_caps_func();
-        return;
-    }
+	if (key == key_ctrl_caps) {
+		if (key_ctrl_caps_func != NULL)
+			key_ctrl_caps_func();
+		return;
+	}
 
-    for (i = 0; i < JOYSTICK_NUM; ++i) {
-        if (joystick_port_map[i] == JOYDEV_NUMPAD
-         || joystick_port_map[i] == JOYDEV_KEYSET1
-         || joystick_port_map[i] == JOYDEV_KEYSET2) {
-            if (joystick_check_set(key, joystick_port_map[i] - JOYDEV_NUMPAD, 1+i)) {
-                return;
-            }
-        }
-    }
+	for (i = 0; i < JOYSTICK_NUM; ++i) {
+		if (joystick_port_map[i] == JOYDEV_NUMPAD
+				|| joystick_port_map[i] == JOYDEV_KEYSET1
+				|| joystick_port_map[i] == JOYDEV_KEYSET2) {
+			if (joystick_check_set(key, joystick_port_map[i] - JOYDEV_NUMPAD, 1+i)) {
+				return;
+			}
+		}
+	}
 
-    if (keyconvmap == NULL)
-        return;
+	if (keyconvmap == NULL)
+		return;
 
-    latch = 0;
+	latch = 0;
 
-    for (i = 0; i < keyc_num; ++i) {
-        if (key == keyconvmap[i].sym) {
-            if ((keyconvmap[i].shift & ALT_MAP) && !key_alternative)
-                continue;
+	for (i = 0; i < keyc_num; ++i) {
+		if (key == keyconvmap[i].sym) {
+			if ((keyconvmap[i].shift & ALT_MAP) && !key_alternative)
+				continue;
 
-            if (keyboard_key_pressed_matrix(keyconvmap[i].row,
-                                            keyconvmap[i].column,
-                                            keyconvmap[i].shift)) {
-debug_printf ("key latched\n");
-                latch = 1;
-                if (!(keyconvmap[i].shift & ALLOW_OTHER)
-                    || (right_shift_down + left_shift_down) == 0)
-                    break;
-            }
-        }
-    }
+			if (keyboard_key_pressed_matrix(keyconvmap[i].row, keyconvmap[i].column, keyconvmap[i].shift))
+			{
+				#ifdef CELL_DEBUG
+				printf ("key latched\n");
+				#endif
+				latch = 1;
+				if (!(keyconvmap[i].shift & ALLOW_OTHER)
+						|| (right_shift_down + left_shift_down) == 0)
+					break;
+			}
+		}
+	}
 
-    if (latch) {
-debug_printf ("set_latch_keyarr %d, %d, 1\n", key_latch_row, key_latch_column, 1);
-        keyboard_set_latch_keyarr(key_latch_row, key_latch_column, 1);
-        if (network_connected()) {
-            CLOCK keyboard_delay = KEYBOARD_RAND();
-            network_event_record(EVENT_KEYBOARD_DELAY,
-                    (void *)&keyboard_delay, sizeof(keyboard_delay));
-            network_event_record(EVENT_KEYBOARD_MATRIX, 
-                    (void *)latch_keyarr, sizeof(latch_keyarr));
-        }
-        else
-        {
-            alarm_set(keyboard_alarm, maincpu_clk + KEYBOARD_RAND());
-        }
-    }
+	if (latch)
+	{
+		#ifdef CELL_DEBUG
+		printf ("set_latch_keyarr %d, %d, 1\n", key_latch_row, key_latch_column, 1);
+		#endif
+		keyboard_set_latch_keyarr(key_latch_row, key_latch_column, 1);
+		if (network_connected()) {
+			CLOCK keyboard_delay = KEYBOARD_RAND();
+			network_event_record(EVENT_KEYBOARD_DELAY,
+					(void *)&keyboard_delay, sizeof(keyboard_delay));
+			network_event_record(EVENT_KEYBOARD_MATRIX, 
+					(void *)latch_keyarr, sizeof(latch_keyarr));
+		}
+		else
+		{
+			alarm_set(keyboard_alarm, maincpu_clk + KEYBOARD_RAND());
+		}
+	}
 }
 
 static int keyboard_key_released_matrix(int row, int column, int shift)

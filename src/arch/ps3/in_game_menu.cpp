@@ -50,7 +50,6 @@ extern "C" {
 #include "menu_common.h"
 #include "in_game_menu.h"
 #include "ui_snapshot.h"
-#include "ps3debug.h"
 
 #define OPTION_SWAP_JOYSTICKS 0
 #define OPTION_HARD_RESET     1
@@ -118,7 +117,9 @@ void DialogYesNo (const char *message, int selection)
 	if ( ret != CELL_OK ) {
 		if ( ret == (int)CELL_SYSUTIL_ERROR_BUSY )
 		{
-			debug_printf("WARN  : cellMsgDialogOpen2() = 0x%x (CELL_SYSUTIL_ERROR_BUSY) ... Retry.\n", ret);
+			#ifdef CELL_DEBUG
+			printf("WARN  : cellMsgDialogOpen2() = 0x%x (CELL_SYSUTIL_ERROR_BUSY) ... Retry.\n", ret);
+			#endif
 			return;
 		}
 		return;
@@ -224,7 +225,11 @@ void do_ingame_menu()
 					break;
 				case OPTION_OSK_NATIVE:
 					if (!osk->Start(L"Characters entered here will be relayed to the emulator ", L""))
-						debug_printf ("WARNING: OSK could not start\n");
+					{
+						#ifdef CELL_DEBUG
+						printf("WARNING: OSK could not start\n");
+						#endif
+					}
 					ingame_menu_running=false;
 					return;
 					break;

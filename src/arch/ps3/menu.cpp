@@ -69,9 +69,6 @@ extern "C" {
 
 #include "common.h"
 
-#include "ps3debug.h"
-
-
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 

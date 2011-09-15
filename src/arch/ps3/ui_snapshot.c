@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "ui_snapshot.h"
-#include "ps3debug.h"
 
 #include "common.h"
 #include "machine.h"
@@ -79,12 +78,17 @@ int load_snapshot(const char *filepath)
 		md5filename = util_concat (VICE_SNAPSHOT_DIR, digest, NULL);
 
 		// load snapshot to VICE_SNAPSHOT_DIR
-		debug_printf ("Reading snapshot from %s for %s\n", md5filename, filepath);
+		#ifdef CELL_DEBUG
+		printf ("Reading snapshot from %s for %s\n", md5filename, filepath);
+		#endif
 
 		vsffilename = util_concat(md5filename, ".vsf", NULL);
 
-		if (machine_read_snapshot(vsffilename, 0) != 0) {
-			debug_printf ("Failed to read snapshot from file %s\n", vsffilename);
+		if (machine_read_snapshot(vsffilename, 0) != 0)
+		{
+			#ifdef CELL_DEBUG
+			printf ("Failed to read snapshot from file %s\n", vsffilename);
+			#endif
 		}
 
 		lib_free(md5filename);
@@ -110,7 +114,9 @@ int save_snapshot(const char *filepath)
 
 	if (archdep_stat(VICE_SNAPSHOT_DIR, &len, &isdir) != 0)
 	{
-		debug_printf ("archdep_mkstemp_fd creating VICE_SNAPSHOT_DIR : %s\n", VICE_SNAPSHOT_DIR);
+		#ifdef CELL_DEBUG
+		printf ("archdep_mkstemp_fd creating VICE_SNAPSHOT_DIR : %s\n", VICE_SNAPSHOT_DIR);
+		#endif
 		archdep_mkdir(VICE_SNAPSHOT_DIR, 0755);
 	}
 
@@ -125,11 +131,16 @@ int save_snapshot(const char *filepath)
 		md5filename = util_concat (VICE_SNAPSHOT_DIR, digest, NULL);
 
 		// save snapshot to VICE_SNAPSHOT_DIR
-		debug_printf ("Writing snapshot to %s.vsf for %s\n", md5filename, filepath);
+		#ifdef CELL_DEBUG
+		printf ("Writing snapshot to %s.vsf for %s\n", md5filename, filepath);
+		#endif
 		vsffilename = util_concat(md5filename, ".vsf", NULL);
 
-		if (machine_write_snapshot(vsffilename, 1, 1, 0) != 0) {
-			debug_printf ("Failed to write snapshot to file %s\n", vsffilename);
+		if (machine_write_snapshot(vsffilename, 1, 1, 0) != 0)
+		{
+			#ifdef CELL_DEBUG
+			printf ("Failed to write snapshot to file %s\n", vsffilename);
+			#endif
 		}
 
 

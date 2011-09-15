@@ -200,7 +200,9 @@ void ui_error(const char *format,...)
 	va_list args;
 
 	va_start(args, format);
-	debug_printf (format, args);
+	#ifdef CELL_DEBUG
+	printf(format, args);
+	#endif
 	va_end(args);
 }
 
@@ -374,7 +376,9 @@ ui_jam_action_t ui_jam_dialog(const char *format,...)
 	va_list args;
 
 	va_start(args, format);
-	debug_printf (format, args);
+	#ifdef CELL_DEBUG
+	printf(format, args);
+	#endif
 	va_end(args);
 
 	/* Always hard reset.  */
@@ -412,7 +416,9 @@ void ui_display_speed(float speed, float frame_rate, int warp_enabled)
 	ui.frame_rate = frame_rate;
 	ui.warp_enabled = warp_enabled;
 
-	debug_printf_quick ("speed = %f, frame_rate = %f, warp_enabled = %d\n", speed, frame_rate, warp_enabled);
+	#ifdef CELL_DEBUG
+	printf("speed = %f, frame_rate = %f, warp_enabled = %d\n", speed, frame_rate, warp_enabled);
+	#endif
 	force_redraw();
 }
 

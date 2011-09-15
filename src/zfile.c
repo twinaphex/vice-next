@@ -263,33 +263,46 @@ static char *try_uncompress_with_gzip(const char *name)
 
 int zipfile_entries(const char *name)
 {
-    int num_entries;
-    unzFile        file;
-    unz_global_info pglobal_info;
+	int num_entries;
+	unzFile        file;
+	unz_global_info pglobal_info;
 
-    if (name == NULL)
-        return -1;
+	if (name == NULL)
+		return -1;
 
-    file = unzOpen(name);
+	file = unzOpen(name);
 
-    if (file == NULL)
-	return -1;
+	if (file == NULL)
+		return -1;
 
-debug_printf ("2\n");
-    if (unzGetGlobalInfo(file, &pglobal_info) != UNZ_OK) {
-debug_printf ("3\n");
-        unzClose(file);
-debug_printf ("4\n");
-        return -1;
-    }
+	#ifdef CELL_DEBUG
+	printf ("2\n");
+	#endif
+	if (unzGetGlobalInfo(file, &pglobal_info) != UNZ_OK)
+	{
+		#ifdef CELL_DEBUG
+		printf("3\n");
+		#endif
+		unzClose(file);
+		#ifdef CELL_DEBUG
+		printf("4\n");
+		#endif
+		return -1;
+	}
 
-debug_printf ("5\n");
-    num_entries = pglobal_info.number_entry;
-debug_printf ("6\n");
-    unzClose(file);
-debug_printf ("7\n");
+	#ifdef CELL_DEBUG
+	printf ("5\n");
+	#endif
+	num_entries = pglobal_info.number_entry;
+	#ifdef CELL_DEBUG
+	printf("6\n");
+	#endif
+	unzClose(file);
+	#ifdef CELL_DEBUG
+	printf ("7\n");
+	#endif
 
-    return num_entries;
+	return num_entries;
 }
 
 

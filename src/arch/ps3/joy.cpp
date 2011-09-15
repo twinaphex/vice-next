@@ -378,14 +378,24 @@ int joystick(void)
 
 		if(CellInput->WasButtonPressed(i,CTRL_R3))
 		{
-			debug_printf_quick ("OSK starting\n");
+			#ifdef CELL_DEBUG
+			printf("OSK starting\n");
+			#endif
 			if (!osk->Start(L"Characters entered here will be relayed to the emulator ", L""))
-				debug_printf ("WARNING: OSK could not start\n");
+			{
+				#ifdef CELL_DEBUG
+				printf("WARNING: OSK could not start\n");
+				#endif
+			}
 
-			debug_printf_quick ("OSK started\n");
+			#ifdef CELL_DEBUG
+			printf("OSK started\n");
+			#endif
 			// Just in case. This ensures we check to see if the screen has updated, and if not.. force one
 			// The OSK fails to draw if the screen doesn't update.
-			debug_printf_quick ("OSK callback check\n");
+			#ifdef CELL_DEBUG
+			printf("OSK callback check\n");
+			#endif
 		}
 
 		cellSysutilCheckCallback();

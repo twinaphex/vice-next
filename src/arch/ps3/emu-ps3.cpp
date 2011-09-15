@@ -55,7 +55,6 @@
 #include "joy.h"
 #include "mousedrv.h"
 #include "machine.h"
-#include "ps3debug.h"
 
 extern "C" {
 #include "videoarch.h"
@@ -117,7 +116,6 @@ void Emulator_Shutdown()
 	if (Graphics)
 		delete Graphics;
 
-	debug_close();
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_AUDIO);
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_NET);
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);
@@ -228,7 +226,6 @@ void sysutil_callback_redraw(void)
 int main (void)
 {
 	cellSysutilRegisterCallback(0, sysutil_exit_callback, NULL);
-	debug_init();
 	sys_spu_initialize(6, 1);
 
 	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);
@@ -239,7 +236,9 @@ int main (void)
 
 	osk = new OSKUtil();
 	if (!osk->Init()) {
-		debug_printf ("WARNING: OSK could not be initialised\n");
+		#ifdef CELL_DEBUG
+		printf("WARNING: OSK could not be initialised\n");
+		#endif
 		// TODO: handle this
 	}
 
