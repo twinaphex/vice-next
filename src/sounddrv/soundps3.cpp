@@ -67,7 +67,6 @@ static int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fra
 	//*speed = 44100;
 
 	*speed = 48000;
-	//*channels = 2;
 
 
 	*fragsize=1024;
@@ -93,12 +92,6 @@ static int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fra
 	// Promote mono audio to stereo
 	CellAudio = new Audio::AudioPort<int16_t>(2, *speed, buflen);
 
-	//BUFLEN = (*fragsize)*(*fragnr)*sizeof(SWORD));
-	//BUFBLOCKS = *fragnr;
-
-
-	//	}
-
 	stereo_pbuf = NULL;
 
 	CellAudio->unpause();
@@ -117,7 +110,39 @@ static int ps3_audio_write(SWORD *pbuf, size_t nr)
 
 	if (nr >= (AUDIO_BLOCK_SAMPLES * AUDIO_CHANNELS))
 	{
-		CellAudio->write(pbuf, nr);
+		if (num_channels == 1)
+		{
+			// PS3 requires stereo audio.
+			// fudge this.
+			if (stereo_pbuf)
+			{
+				if (stereo_pbuf_size != (sizeof(SWORD) * nr * 2)) {
+					stereo_pbuf_size = sizeof(SWORD) * nr * 2;
+					stereo_pbuf = (SWORD *) lib_realloc(stereo_pbuf, stereo_pbuf_size);
+				}
+			}
+			else
+			{
+				stereo_pbuf_size = sizeof(SWORD) * nr * 2;
+				stereo_pbuf = (SWORD *) lib_malloc(stereo_pbuf_size);
+			}
+
+			stereo_ptr = stereo_pbuf;
+			mono_ptr = pbuf;
+
+			for (size_t i=0; i<nr; i++)
+			{
+				*stereo_ptr++ = *mono_ptr;
+				*stereo_ptr++ = *mono_ptr++;
+			}
+			CellAudio->write(stereo_pbuf, nr*2);
+		}
+		else
+		{
+			CellAudio->write(pbuf, nr);
+		}
+
+
 	}
 	return 0;
 }
