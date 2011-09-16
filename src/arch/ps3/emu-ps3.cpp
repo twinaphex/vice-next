@@ -108,7 +108,8 @@ void Emulator_Shutdown()
 
 	mousedrv_destroy();
 
-	if (osk) {
+	if (osk)
+	{
 		osk->Close();
 		delete osk;
 	}
@@ -143,7 +144,6 @@ void Emulator_RequestLoadROM(const char* rom, bool forceReboot, bool compatibili
 
 		current_rom = strdup(rom);
 	}
-
 
 	if (forceReboot)
 	{
@@ -243,13 +243,7 @@ int main (void)
 	CellInput->Init();
 
 	osk = new OSKUtil();
-	if (!osk->Init())
-	{
-		#ifdef CELL_DEBUG
-		printf("WARNING: OSK could not be initialised\n");
-		#endif
-		// TODO: handle this
-	}
+	osk->Init();
 
 	Graphics = new PS3Graphics();
 	Graphics->Init();  // width, height, depth
@@ -269,7 +263,7 @@ int main (void)
 
 	emulator_loaded = true;
 
-	main_program (argc, &argv[0]);
+	main_program(argc, &argv[0]);
 
 	emulator_loaded = false;
 

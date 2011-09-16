@@ -247,15 +247,9 @@ int32_t PS3Graphics::PSGLInit()
 	 */
 
 	context_width = SCREEN_RENDER_TEXTURE_WIDTH;
-	context_height = SCREEN_RENDER_TEXTURE_HEIGHT;;
+	context_height = SCREEN_RENDER_TEXTURE_HEIGHT;
 
-	uint32_t ret = InitCg();
-	#ifdef CELL_DEBUG
-	if (ret != CELL_OK)
-	{
-		printf("Failed to InitCg: %d", __LINE__);
-	}
-	#endif
+	InitCg();
 
 	SetViewports();
 

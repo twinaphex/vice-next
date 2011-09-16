@@ -27,7 +27,6 @@
 #ifndef VICE_VIDEOARCH_H
 #define VICE_VIDEOARCH_H
 
-
 #include "video.h"
 
 void sysutil_drawing(int);
@@ -65,17 +64,6 @@ struct video_canvas_s {
 typedef struct video_canvas_s video_canvas_t;
 
 extern BYTE *screenbuffer;
-
-
-// called when performance drops (generally due to Bloom or CRT filter)
-#ifdef __cplusplus
-extern "C" {
-#endif
-	int shader_active (void);
-	void disable_active_shader (void);
-#ifdef __cplusplus
-}
-#endif
 
 extern video_canvas_t *last_canvas;
 

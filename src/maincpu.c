@@ -408,37 +408,37 @@ unsigned int reg_pc;
 void maincpu_mainloop(void)
 {
 #ifndef C64DTV
-    /* Notice that using a struct for these would make it a lot slower (at
-       least, on gcc 2.7.2.x).  */
-    BYTE reg_a = 0;
-    BYTE reg_x = 0;
-    BYTE reg_y = 0;
+	/* Notice that using a struct for these would make it a lot slower (at
+	   least, on gcc 2.7.2.x).  */
+	BYTE reg_a = 0;
+	BYTE reg_x = 0;
+	BYTE reg_y = 0;
 #else
-    int reg_a_read_idx = 0;
-    int reg_a_write_idx = 0;
-    int reg_x_idx = 2;
-    int reg_y_idx = 1;
+	int reg_a_read_idx = 0;
+	int reg_a_write_idx = 0;
+	int reg_x_idx = 2;
+	int reg_y_idx = 1;
 #define reg_a_write dtv_registers[reg_a_write_idx]
 #define reg_a_read dtv_registers[reg_a_read_idx]
 #define reg_x dtv_registers[reg_x_idx]
 #define reg_y dtv_registers[reg_y_idx]
 #endif
-    BYTE reg_p = 0;
-    BYTE reg_sp = 0;
-    BYTE flag_n = 0;
-    BYTE flag_z = 0;
+	BYTE reg_p = 0;
+	BYTE reg_sp = 0;
+	BYTE flag_n = 0;
+	BYTE flag_z = 0;
 #ifndef NEED_REG_PC
-    unsigned int reg_pc;
+	unsigned int reg_pc;
 #endif
 
-    BYTE *bank_base;
-    int bank_limit;
+	BYTE *bank_base;
+	int bank_limit;
 
-    mem_set_bank_pointer(&bank_base, &bank_limit);
+	mem_set_bank_pointer(&bank_base, &bank_limit);
 
-    machine_trigger_reset(MACHINE_RESET_MODE_SOFT);
+	machine_trigger_reset(MACHINE_RESET_MODE_SOFT);
 
-    while (1) {
+	while (1) {
 #define CLK maincpu_clk
 #define RMW_FLAG maincpu_rmw_flag
 #define LAST_OPCODE_INFO last_opcode_info
@@ -449,40 +449,40 @@ void maincpu_mainloop(void)
 #define ALARM_CONTEXT maincpu_alarm_context
 
 #define CHECK_PENDING_ALARM() \
-   (clk >= next_alarm_clk(maincpu_int_status))
+		(clk >= next_alarm_clk(maincpu_int_status))
 
 #define CHECK_PENDING_INTERRUPT() \
-   check_pending_interrupt(maincpu_int_status)
+		check_pending_interrupt(maincpu_int_status)
 
 #define TRAP(addr) \
-   maincpu_int_status->trap_func(addr);
+		maincpu_int_status->trap_func(addr);
 
 #define ROM_TRAP_HANDLER() \
-   traps_handler()
+		traps_handler()
 
 #define JAM()                                                         \
-    do {                                                              \
-        unsigned int tmp;                                             \
-                                                                      \
-        EXPORT_REGISTERS();                                           \
-        tmp = machine_jam("   " CPU_STR ": JAM at $%04X   ", reg_pc); \
-        switch (tmp) {                                                \
-          case JAM_RESET:                                             \
-            DO_INTERRUPT(IK_RESET);                                   \
-            break;                                                    \
-          case JAM_HARD_RESET:                                        \
-            mem_powerup();                                            \
-            DO_INTERRUPT(IK_RESET);                                   \
-            break;                                                    \
-          case JAM_MONITOR:                                           \
-            caller_space = e_comp_space;                              \
-            monitor_startup();                                        \
-            IMPORT_REGISTERS();                                       \
-            break;                                                    \
-          default:                                                    \
-            CLK++;                                                    \
-        }                                                             \
-    } while (0)
+		do {                                                              \
+			unsigned int tmp;                                             \
+			\
+			EXPORT_REGISTERS();                                           \
+			tmp = machine_jam("   " CPU_STR ": JAM at $%04X   ", reg_pc); \
+			switch (tmp) {                                                \
+				case JAM_RESET:                                             \
+											    DO_INTERRUPT(IK_RESET);                                   \
+				break;                                                    \
+				case JAM_HARD_RESET:                                        \
+											    mem_powerup();                                            \
+				DO_INTERRUPT(IK_RESET);                                   \
+				break;                                                    \
+				case JAM_MONITOR:                                           \
+											    caller_space = e_comp_space;                              \
+				monitor_startup();                                        \
+				IMPORT_REGISTERS();                                       \
+				break;                                                    \
+				default:                                                    \
+											    CLK++;                                                    \
+			}                                                             \
+		} while (0)
 #define CALLER e_comp_space
 
 #define ROM_TRAP_ALLOWED() mem_rom_trap_allowed((WORD)reg_pc)
@@ -490,12 +490,12 @@ void maincpu_mainloop(void)
 #define GLOBAL_REGS maincpu_regs
 
 #include "6510core.c"
-        maincpu_int_status->num_dma_per_opcode = 0;
+		maincpu_int_status->num_dma_per_opcode = 0;
 #if 0
-        if (CLK > 246171754)
-            debug.maincpu_traceflg = 1;
+		if (CLK > 246171754)
+			debug.maincpu_traceflg = 1;
 #endif
-    }
+	}
 }
 
 /* ------------------------------------------------------------------------- */

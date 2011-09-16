@@ -70,7 +70,7 @@ int is_sysutil_drawing(void)
 
 void sysutil_drawing(int status)
 {
-	draw_disable=status;
+	draw_disable = status;
 }
 
 static int last_redraw = 0;
@@ -212,17 +212,13 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
 
 void video_canvas_destroy(video_canvas_t *canvas)
 {
-	int i;
-
 	if (canvas == NULL)
-	{
 		return;
-	}
 
 	// TODO free screenbuffer / overlaybuffer
 	//canvas_free_bitmaps(canvas);
 
-	for (i = 0; i < MAX_CANVAS_NUM; i++) {
+	for (int i = 0; i < MAX_CANVAS_NUM; i++) {
 		if (canvaslist[i] == canvas) {
 			canvaslist[i] = NULL;
 		}
@@ -297,20 +293,4 @@ void force_redraw (void)
 {
 	if (active_canvas->parent_raster != NULL)
 		raster_force_repaint(active_canvas->parent_raster);
-}
-
-int shader_active (void)
-{
-	if (strcmp (DEFAULT_SHADER_FILE, Graphics->GetCurrentShader()) == 0)
-		return 0;
-	else
-		return 1;
-}
-
-void disable_active_shader (void)
-{
-	// Actually, we just set the default shader.
-	Graphics->LoadFragmentShader(DEFAULT_SHADER_FILE);
-}
-
 }
