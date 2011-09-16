@@ -96,7 +96,7 @@ void PS3Graphics::ScreenDump (void)
 
 void PS3Graphics::DumpScreen (void)
 {
-	Draw (context_width, context_height, (std::uint16_t*) pPixels, NULL);
+	Draw (context_width, context_height, (std::uint16_t*) pPixels);
 }
 
 
@@ -374,7 +374,7 @@ void PS3Graphics::UpdateCgParams(unsigned width, unsigned height, unsigned tex_w
 	cgGLSetParameter2f(_cgpOutputSize, _cgViewWidth, _cgViewHeight);
 }
 
-void PS3Graphics::Draw(int width, int height, uint16_t* screen, uint16_t* overlay)
+void PS3Graphics::Draw(int width, int height, uint16_t* screen)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBufferSubData(GL_TEXTURE_REFERENCE_BUFFER_SCE, 0, width * height * 2, screen);

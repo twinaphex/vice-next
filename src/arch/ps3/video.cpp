@@ -48,7 +48,6 @@ extern "C" {
 #include "videoarch.h"
 
 BYTE *screenbuffer = NULL;
-BYTE *overlaybuffer = NULL;
 
 video_canvas_t *last_canvas;
 
@@ -111,6 +110,7 @@ int video_init(void)
 {
 	last_canvas = NULL;
 	active_canvas = NULL;
+
 	for (int i = 0; i < MAX_CANVAS_NUM; i++)
 	{
 		canvaslist[i] = NULL;
@@ -153,7 +153,6 @@ void video_canvas_resize(video_canvas_t *canvas, unsigned int width, unsigned in
 	else
 	{
 		screenbuffer = (unsigned char *) lib_realloc(screenbuffer, width * height * canvas->depth / 8);
-		overlaybuffer = (unsigned char *) lib_realloc(overlaybuffer, width * height * canvas->depth / 8);
 	}
 
 	canvas->width = width;
@@ -186,7 +185,6 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
 	canvas->bytes_per_line = canvas->width * (canvas->depth / 8);
 
 	screenbuffer = (unsigned char *) lib_malloc(canvas->width * canvas->height * (canvas->depth / 8));
-	overlaybuffer = (unsigned char *) lib_malloc(canvas->width * canvas->height * (canvas->depth / 8));
 	video_canvas_set_palette(canvas, canvas->palette);
 
 
@@ -241,9 +239,7 @@ void video_canvas_refresh(video_canvas_t *canvas, unsigned int xs, unsigned int 
 {
 	// TODO This version will NOT draw the VDC
 	if (active_canvas != canvas)
-	{
 		return;
-	}
 
 	/* this is a hack for F7 change between VICII and VDC */
 	if (active_canvas != canvas)
@@ -253,24 +249,13 @@ void video_canvas_refresh(video_canvas_t *canvas, unsigned int xs, unsigned int 
 		//clear(screen);
 	}
 
-	if (last_canvas != canvas) {
+	if (last_canvas != canvas)
 		last_canvas = canvas;
-	}
 
-	video_canvas_render(canvas,
-			(BYTE *)screenbuffer,
-			w, h,
-			xs, ys,
-			xi, yi,
-			canvas->bytes_per_line, canvas->depth);
-
-	// TODO : Set up some drawing functions to overlay onto the canvas
-	//        force a redraw if we have to.
-
-	//memset (overlaybuffer, 0, canvas->width * canvas->height * canvas->depth / 8);
+	video_canvas_render(canvas, (BYTE *)screenbuffer, w, h, xs, ys, xi, yi, canvas->bytes_per_line, canvas->depth);
 
 	set_last_redraw();
-	Graphics->Draw (canvas->width, canvas->height, (std::uint16_t *)screenbuffer, (std::uint16_t *)overlaybuffer);
+	Graphics->Draw (canvas->width, canvas->height, (std::uint16_t *)screenbuffer);
 	psglSwap();
 }
 
@@ -284,31 +269,11 @@ struct GLpalette_s {
 	unsigned char b;
 } colors[256];
 
-static int makecol_RGB555A1(int r, int g, int b)
-{
-	int c = (b << 16) | (g << 8) | r;
-	return c;
-}
-
 static int makecol_RGB555BE(int r, int g, int b)
 {
 	int c = ((r & 0xf8) << 7) | ((g & 0xf8) << 2) | ((b & 0xf8) >> 3);
 	return c;
 }
-
-static int makecol_RGB24(int r, int g, int b)
-{
-	int c = (b << 16) | (g << 8) | r;
-	return c;
-}
-
-static int makecol_BGR24(int r, int g, int b)
-{
-	int c = (r << 16) | (g << 8) | b;
-	return c;
-}
-
-
 
 int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *palette)
 {

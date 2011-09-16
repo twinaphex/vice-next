@@ -85,7 +85,7 @@ class PS3Graphics
 		void Deinit();
 
 		/* draw functions */
-		void Draw(int width, int height, uint16_t* screen, uint16_t* overlay);
+		void Draw(int width, int height, uint16_t* screen);
 		void Refresh();
 
 		/* cg */

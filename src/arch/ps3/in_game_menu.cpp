@@ -66,7 +66,7 @@ const char *in_game_option_text[] = {
     "Load Snapshot",
     "Save Snapshot",
     "On-Screen-Keyboard (C64 keys)",
-    "On-Screen-Keybaord (Native)",
+    "On-Screen-Keyboard (Native)",
     "Back To Emulator" 
 };
 

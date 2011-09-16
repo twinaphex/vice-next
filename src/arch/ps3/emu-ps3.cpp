@@ -90,14 +90,14 @@ bool emulator_loaded = false;
 char* current_rom = NULL;
 
 // mode the main loop is in
-static Emulator_Modes mode_switch = MODE_MENU;
+static uint32_t mode_switch = MODE_MENU;
 
-void Emulator_SwitchMode(Emulator_Modes m)
+void Emulator_SwitchMode(uint32_t m)
 {
 	mode_switch = m;
 }
 
-Emulator_Modes Emulator_GetMode(void)
+uint32_t Emulator_GetMode(void)
 {
 	return mode_switch;
 }
@@ -279,7 +279,7 @@ int main (void)
 	exit(0);
 }
 
-extern "C" int menu(Emulator_Modes mode)
+extern "C" int menu(uint32_t mode)
 {
 	// TODO : Maybe we should pause the emulator?
 
