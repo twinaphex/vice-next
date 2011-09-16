@@ -401,11 +401,8 @@ int joystick(void)
 		}
 
 		cellSysutilCheckCallback();
-		if (is_sysutil_drawing())
-			sysutil_callback_redraw();
 
 		ui_callback();
-
 
 		// pad 0 becomes port 2
 		// pad 1 becomes port 1
