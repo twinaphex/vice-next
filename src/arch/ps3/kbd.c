@@ -34,8 +34,6 @@
 #include "kbd.h"
 #include "keyboard.h"
 
-#include "log.h"
-
 #define MAX_KEYBD 2
 
 uint8_t old_status[MAX_KEYBD];
@@ -63,13 +61,17 @@ void kbd_arch_init(void)
 {
 	if (cellKbInit(1) != CELL_OK)
 	{
-		log_warning (LOG_DEFAULT, "WARNING: Keyboard failed to initialise");
+		#ifdef CELL_DEBUG
+		printf("WARNING: Keyboard failed to initialise\n");
+		#endif
 		return;
 	}
 
 	if (cellKbSetCodeType (0, CELL_KB_CODETYPE_ASCII) != CELL_KB_OK)
 	{
-		log_warning (LOG_DEFAULT, "Unable to set KB_CODETYPE_ASCII");
+		#ifdef CELL_DEBUG
+		printf("WARNING: Unable to set KB_CODETYPE_ASCII\n");
+		#endif
 		return;
 	}
 
@@ -77,7 +79,9 @@ void kbd_arch_init(void)
 	//CELL_KB_RMODE_PACKET
 	if (cellKbSetReadMode (0, CELL_KB_RMODE_INPUTCHAR) != CELL_KB_OK)
 	{
-		log_warning (LOG_DEFAULT, "WARNING: Unable to set CELL_KB_RMODE_INPUTCHAR");
+		#ifdef CELL_DEBUG
+		printf("WARNING: Unable to set CELL_KB_RMODE_INPUTCHAR\n");
+		#endif
 		return;
 	}
 }
@@ -97,23 +101,33 @@ void kbd_process(void)
 
 	if((status.info & CELL_KB_INFO_INTERCEPTED) && (!(old_info & CELL_KB_INFO_INTERCEPTED)))
 	{
-		log_message (LOG_DEFAULT, "INFO: Lost Keyboard\n");
+		#ifdef CELL_DEBUG
+		printf("INFO: Lost Keyboard\n");
+		#endif
 		old_info = status.info;
 	}
 	else if((!(status.info & CELL_KB_INFO_INTERCEPTED)) && (old_info & CELL_KB_INFO_INTERCEPTED))
 	{
-		log_message (LOG_DEFAULT, "INFO: Found Keyboard\n");
+		#ifdef CELL_DEBUG
+		printf("INFO: Found Keyboard\n");
+		#endif
 		old_info = status.info;
 	}
 	if ( (old_info != CELL_KB_STATUS_DISCONNECTED) && (status.info == CELL_KB_STATUS_DISCONNECTED))
 	{
-		log_message (LOG_DEFAULT, "Keyboard has disconnected\n");
+		#ifdef CELL_DEBUG
+		printf("Keyboard has disconnected\n");
+		#endif
 		old_info = status.info;
 		return;
 	}
 
 	if (old_status == CELL_KB_STATUS_DISCONNECTED)
-		log_message (LOG_DEFAULT, "Keyboard has connected\n");
+	{
+		#ifdef CELL_DEBUG
+		printf("Keyboard has connected\n");
+		#endif
+	}
 
 	if (cellKbRead (0, &kdata) != CELL_KB_OK)
 		return;
@@ -230,7 +244,7 @@ void kbd_process(void)
 				if (keysdown[i] != 0x00)
 				{
 #ifdef CELL_DEBUG
-					printf("detected keyUP kcode   '%d'\n", keysdown[i]);
+					printf("detected keyUP kcode '%d'\n", keysdown[i]);
 #endif
 					keyboard_key_released((signed long)keysdown[i]);
 					keysdown[i] = 0x00;
@@ -263,7 +277,7 @@ void kbd_process(void)
 		{
 			// This key isn't pressed anymore.
 #ifdef CELL_DEBUG
-			printf("detected keyUP kcode   '%d'\n", keysdown[i]);
+			printf("detected keyUP kcode '%d'\n", keysdown[i]);
 #endif
 			keyboard_key_released((signed long)keysdown[i]);
 			keysdown[i] = 0x00;
@@ -341,7 +355,9 @@ void osk_kbd_append_buffer (char *keystring)
 	{
 		if (osk_active_bufferlen >= MAX_BUFFER)
 		{
-			log_warning (LOG_DEFAULT, "WARNING: Keystring inputbufer overflow\n");
+			#ifdef CELL_DEBUG
+			printf("WARNING: Keystring inputbufer overflow\n");
+			#endif
 			return;
 		}
 

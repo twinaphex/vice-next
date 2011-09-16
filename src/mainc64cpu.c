@@ -79,61 +79,61 @@ CLOCK debug_clk;
 
 inline static void interrupt_delay(void)
 {
-    while (maincpu_clk >= alarm_context_next_pending_clk(maincpu_alarm_context)) {
-        alarm_context_dispatch(maincpu_alarm_context, maincpu_clk);
-    }
+	while (maincpu_clk >= alarm_context_next_pending_clk(maincpu_alarm_context)) {
+		alarm_context_dispatch(maincpu_alarm_context, maincpu_clk);
+	}
 
-    if (maincpu_int_status->irq_clk <= maincpu_clk) {
-        maincpu_int_status->irq_delay_cycles++;
-    }
+	if (maincpu_int_status->irq_clk <= maincpu_clk) {
+		maincpu_int_status->irq_delay_cycles++;
+	}
 
-    if (maincpu_int_status->nmi_clk <= maincpu_clk) {
-        maincpu_int_status->nmi_delay_cycles++;
-    }
+	if (maincpu_int_status->nmi_clk <= maincpu_clk) {
+		maincpu_int_status->nmi_delay_cycles++;
+	}
 }
 
 static void maincpu_steal_cycles(void)
 {
-    interrupt_cpu_status_t *cs = maincpu_int_status;
+	interrupt_cpu_status_t *cs = maincpu_int_status;
 
-    if (maincpu_ba_low_flags & MAINCPU_BA_LOW_VICII) {
-        vicii_steal_cycles();
-        maincpu_ba_low_flags &= ~MAINCPU_BA_LOW_VICII;
-    }
+	if (maincpu_ba_low_flags & MAINCPU_BA_LOW_VICII) {
+		vicii_steal_cycles();
+		maincpu_ba_low_flags &= ~MAINCPU_BA_LOW_VICII;
+	}
 
-    if (maincpu_ba_low_flags & MAINCPU_BA_LOW_REU) {
-        reu_dma_start();
-        maincpu_ba_low_flags &= ~MAINCPU_BA_LOW_REU;
-    }
+	if (maincpu_ba_low_flags & MAINCPU_BA_LOW_REU) {
+		reu_dma_start();
+		maincpu_ba_low_flags &= ~MAINCPU_BA_LOW_REU;
+	}
 
-    while (maincpu_clk >= alarm_context_next_pending_clk(maincpu_alarm_context)) {
-        alarm_context_dispatch(maincpu_alarm_context, maincpu_clk);
-    }
+	while (maincpu_clk >= alarm_context_next_pending_clk(maincpu_alarm_context)) {
+		alarm_context_dispatch(maincpu_alarm_context, maincpu_clk);
+	}
 
-    /* CLI */
-    if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) == 0x58) {
-        /* this is a hacky way of signaling CLI() that it
-           shouldn't delay the interrupt */
-        OPINFO_SET_ENABLES_IRQ(*cs->last_opcode_info_ptr, 1);
-    }
+	/* CLI */
+	if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) == 0x58) {
+		/* this is a hacky way of signaling CLI() that it
+		   shouldn't delay the interrupt */
+		OPINFO_SET_ENABLES_IRQ(*cs->last_opcode_info_ptr, 1);
+	}
 
-    /* SEI: do not update interrupt delay counters */
-    if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) != 0x78) {
-        if (cs->irq_delay_cycles == 0 && cs->irq_clk < maincpu_clk) {
-            cs->irq_delay_cycles++;
-        }
-    }
+	/* SEI: do not update interrupt delay counters */
+	if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) != 0x78) {
+		if (cs->irq_delay_cycles == 0 && cs->irq_clk < maincpu_clk) {
+			cs->irq_delay_cycles++;
+		}
+	}
 
-    /* ANE */
-    if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) == 0x8b) {
-        /* this is a hacky way of signaling ANE() that
-           cycles were stolen after the first fetch */
-        OPINFO_SET_ENABLES_IRQ(*cs->last_opcode_info_ptr, 1);
-    }
+	/* ANE */
+	if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) == 0x8b) {
+		/* this is a hacky way of signaling ANE() that
+		   cycles were stolen after the first fetch */
+		OPINFO_SET_ENABLES_IRQ(*cs->last_opcode_info_ptr, 1);
+	}
 
-    if (cs->nmi_delay_cycles == 0 && cs->nmi_clk < maincpu_clk) {
-        cs->nmi_delay_cycles++;
-    }
+	if (cs->nmi_delay_cycles == 0 && cs->nmi_clk < maincpu_clk) {
+		cs->nmi_delay_cycles++;
+	}
 }
 
 inline static void check_ba(void)
@@ -157,40 +157,40 @@ inline static void check_ba(void)
 
 void REGPARM2 memmap_mem_store(unsigned int addr, unsigned int value)
 {
-    if ((addr >= 0xd000)&&(addr <= 0xdfff)) {
-        monitor_memmap_store(addr, MEMMAP_I_O_W);
-    } else {
-        monitor_memmap_store(addr, MEMMAP_RAM_W);
-    }
-    (*_mem_write_tab_ptr[(addr) >> 8])((WORD)(addr), (BYTE)(value));
+	if ((addr >= 0xd000)&&(addr <= 0xdfff)) {
+		monitor_memmap_store(addr, MEMMAP_I_O_W);
+	} else {
+		monitor_memmap_store(addr, MEMMAP_RAM_W);
+	}
+	(*_mem_write_tab_ptr[(addr) >> 8])((WORD)(addr), (BYTE)(value));
 }
 
 BYTE REGPARM1 memmap_mem_read(unsigned int addr)
 {
-    check_ba();
+	check_ba();
 
-    switch(addr >> 12) {
-        case 0xa:
-        case 0xb:
-        case 0xe:
-        case 0xf:
-            memmap_state |= MEMMAP_STATE_IGNORE;
-            if (pport.data_read & (1 << ((addr>>14) & 1))) {
-                monitor_memmap_store(addr, (memmap_state&MEMMAP_STATE_OPCODE)?MEMMAP_ROM_X:(memmap_state&MEMMAP_STATE_INSTR)?0:MEMMAP_ROM_R);
-            } else {
-                monitor_memmap_store(addr, (memmap_state&MEMMAP_STATE_OPCODE)?MEMMAP_RAM_X:(memmap_state&MEMMAP_STATE_INSTR)?0:MEMMAP_RAM_R);
-            }
-            memmap_state &= ~(MEMMAP_STATE_IGNORE);
-            break;
-        case 0xd:
-            monitor_memmap_store(addr, MEMMAP_I_O_R);
-            break;
-        default:
-            monitor_memmap_store(addr, (memmap_state&MEMMAP_STATE_OPCODE)?MEMMAP_RAM_X:(memmap_state&MEMMAP_STATE_INSTR)?0:MEMMAP_RAM_R);
-            break;
-    }
-    memmap_state &= ~(MEMMAP_STATE_OPCODE);
-    return (*_mem_read_tab_ptr[(addr) >> 8])((WORD)(addr));
+	switch(addr >> 12) {
+		case 0xa:
+		case 0xb:
+		case 0xe:
+		case 0xf:
+			memmap_state |= MEMMAP_STATE_IGNORE;
+			if (pport.data_read & (1 << ((addr>>14) & 1))) {
+				monitor_memmap_store(addr, (memmap_state&MEMMAP_STATE_OPCODE)?MEMMAP_ROM_X:(memmap_state&MEMMAP_STATE_INSTR)?0:MEMMAP_ROM_R);
+			} else {
+				monitor_memmap_store(addr, (memmap_state&MEMMAP_STATE_OPCODE)?MEMMAP_RAM_X:(memmap_state&MEMMAP_STATE_INSTR)?0:MEMMAP_RAM_R);
+			}
+			memmap_state &= ~(MEMMAP_STATE_IGNORE);
+			break;
+		case 0xd:
+			monitor_memmap_store(addr, MEMMAP_I_O_R);
+			break;
+		default:
+			monitor_memmap_store(addr, (memmap_state&MEMMAP_STATE_OPCODE)?MEMMAP_RAM_X:(memmap_state&MEMMAP_STATE_INSTR)?0:MEMMAP_RAM_R);
+			break;
+	}
+	memmap_state &= ~(MEMMAP_STATE_OPCODE);
+	return (*_mem_read_tab_ptr[(addr) >> 8])((WORD)(addr));
 }
 
 #ifndef STORE
@@ -421,53 +421,51 @@ void maincpu_reset(void)
 /* Return nonzero if a pending NMI should be dispatched now.  This takes
    account for the internal delays of the 6510, but does not actually check
    the status of the NMI line.  */
-inline static int interrupt_check_nmi_delay(interrupt_cpu_status_t *cs,
-                                            CLOCK cpu_clk)
+inline static int interrupt_check_nmi_delay(interrupt_cpu_status_t *cs, CLOCK cpu_clk)
 {
-    unsigned int delay_cycles = INTERRUPT_DELAY;
+	unsigned int delay_cycles = INTERRUPT_DELAY;
 
-    /* BRK (0x00) delays the NMI by one opcode.  */
-    /* TODO DO_INTERRUPT sets last opcode to 0: can NMI occur right after IRQ? */
-    if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) == 0x00) {
-        return 0;
-    }
+	/* BRK (0x00) delays the NMI by one opcode.  */
+	/* TODO DO_INTERRUPT sets last opcode to 0: can NMI occur right after IRQ? */
+	if (OPINFO_NUMBER(*cs->last_opcode_info_ptr) == 0x00) {
+		return 0;
+	}
 
-    /* Branch instructions delay IRQs and NMI by one cycle if branch
-       is taken with no page boundary crossing.  */
-    if (OPINFO_DELAYS_INTERRUPT(*cs->last_opcode_info_ptr)) {
-        delay_cycles++;
-    }
+	/* Branch instructions delay IRQs and NMI by one cycle if branch
+	   is taken with no page boundary crossing.  */
+	if (OPINFO_DELAYS_INTERRUPT(*cs->last_opcode_info_ptr)) {
+		delay_cycles++;
+	}
 
-    if (cs->nmi_delay_cycles >= delay_cycles) {
-        return 1;
-    }
+	if (cs->nmi_delay_cycles >= delay_cycles) {
+		return 1;
+	}
 
-    return 0;
+	return 0;
 }
 
 /* Return nonzero if a pending IRQ should be dispatched now.  This takes
    account for the internal delays of the 6510, but does not actually check
    the status of the IRQ line.  */
-inline static int interrupt_check_irq_delay(interrupt_cpu_status_t *cs,
-                                            CLOCK cpu_clk)
+inline static int interrupt_check_irq_delay(interrupt_cpu_status_t *cs, CLOCK cpu_clk)
 {
-    unsigned int delay_cycles = INTERRUPT_DELAY;
+	unsigned int delay_cycles = INTERRUPT_DELAY;
 
-    /* Branch instructions delay IRQs and NMI by one cycle if branch
-       is taken with no page boundary crossing.  */
-    if (OPINFO_DELAYS_INTERRUPT(*cs->last_opcode_info_ptr)) {
-        delay_cycles++;
-    }
+	/* Branch instructions delay IRQs and NMI by one cycle if branch
+	   is taken with no page boundary crossing.  */
+	if (OPINFO_DELAYS_INTERRUPT(*cs->last_opcode_info_ptr)) {
+		delay_cycles++;
+	}
 
-    if (cs->irq_delay_cycles >= delay_cycles) {
-        if (!OPINFO_ENABLES_IRQ(*cs->last_opcode_info_ptr)) {
-            return 1;
-        } else {
-            cs->global_pending_int |= IK_IRQPEND;
-        }
-    }
+	if (cs->irq_delay_cycles >= delay_cycles) {
+		if (!OPINFO_ENABLES_IRQ(*cs->last_opcode_info_ptr)) {
+			return 1;
+		} else {
+			cs->global_pending_int |= IK_IRQPEND;
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -478,27 +476,27 @@ unsigned int reg_pc;
 
 void maincpu_mainloop(void)
 {
-    /* Notice that using a struct for these would make it a lot slower (at
-       least, on gcc 2.7.2.x).  */
-    BYTE reg_a = 0;
-    BYTE reg_x = 0;
-    BYTE reg_y = 0;
-    BYTE reg_p = 0;
-    BYTE reg_sp = 0;
-    BYTE flag_n = 0;
-    BYTE flag_z = 0;
+	/* Notice that using a struct for these would make it a lot slower (at
+	   least, on gcc 2.7.2.x).  */
+	BYTE reg_a = 0;
+	BYTE reg_x = 0;
+	BYTE reg_y = 0;
+	BYTE reg_p = 0;
+	BYTE reg_sp = 0;
+	BYTE flag_n = 0;
+	BYTE flag_z = 0;
 #ifndef NEED_REG_PC
-    unsigned int reg_pc;
+	unsigned int reg_pc;
 #endif
 
-    BYTE *bank_base;
-    int bank_limit;
+	BYTE *bank_base;
+	int bank_limit;
 
-    mem_set_bank_pointer(&bank_base, &bank_limit);
+	mem_set_bank_pointer(&bank_base, &bank_limit);
 
-    machine_trigger_reset(MACHINE_RESET_MODE_SOFT);
+	machine_trigger_reset(MACHINE_RESET_MODE_SOFT);
 
-    while (1) {
+	while (1) {
 
 #define CLK maincpu_clk
 #define RMW_FLAG maincpu_rmw_flag
@@ -510,40 +508,40 @@ void maincpu_mainloop(void)
 #define ALARM_CONTEXT maincpu_alarm_context
 
 #define CHECK_PENDING_ALARM() \
-   (clk >= next_alarm_clk(maincpu_int_status))
+		(clk >= next_alarm_clk(maincpu_int_status))
 
 #define CHECK_PENDING_INTERRUPT() \
-   check_pending_interrupt(maincpu_int_status)
+		check_pending_interrupt(maincpu_int_status)
 
 #define TRAP(addr) \
-   maincpu_int_status->trap_func(addr);
+		maincpu_int_status->trap_func(addr);
 
 #define ROM_TRAP_HANDLER() \
-   traps_handler()
+		traps_handler()
 
 #define JAM()                                                         \
-    do {                                                              \
-        unsigned int tmp;                                             \
-                                                                      \
-        EXPORT_REGISTERS();                                           \
-        tmp = machine_jam("   " CPU_STR ": JAM at $%04X   ", reg_pc); \
-        switch (tmp) {                                                \
-          case JAM_RESET:                                             \
-            DO_INTERRUPT(IK_RESET);                                   \
-            break;                                                    \
-          case JAM_HARD_RESET:                                        \
-            mem_powerup();                                            \
-            DO_INTERRUPT(IK_RESET);                                   \
-            break;                                                    \
-          case JAM_MONITOR:                                           \
-            caller_space = e_comp_space;                              \
-            monitor_startup();                                        \
-            IMPORT_REGISTERS();                                       \
-            break;                                                    \
-          default:                                                    \
-            CLK_INC();                                                \
-        }                                                             \
-    } while (0)
+		do {                                                              \
+			unsigned int tmp;                                             \
+			\
+			EXPORT_REGISTERS();                                           \
+			tmp = machine_jam("   " CPU_STR ": JAM at $%04X   ", reg_pc); \
+			switch (tmp) {                                                \
+				case JAM_RESET:                                             \
+											    DO_INTERRUPT(IK_RESET);                                   \
+				break;                                                    \
+				case JAM_HARD_RESET:                                        \
+											    mem_powerup();                                            \
+				DO_INTERRUPT(IK_RESET);                                   \
+				break;                                                    \
+				case JAM_MONITOR:                                           \
+											    caller_space = e_comp_space;                              \
+				monitor_startup();                                        \
+				IMPORT_REGISTERS();                                       \
+				break;                                                    \
+				default:                                                    \
+											    CLK_INC();                                                \
+			}                                                             \
+		} while (0)
 
 #define CALLER e_comp_space
 
@@ -553,12 +551,12 @@ void maincpu_mainloop(void)
 
 #include "6510dtvcore.c"
 
-        maincpu_int_status->num_dma_per_opcode = 0;
+		maincpu_int_status->num_dma_per_opcode = 0;
 #if 0
-        if (CLK > 246171754)
-            debug.maincpu_traceflg = 1;
+		if (CLK > 246171754)
+			debug.maincpu_traceflg = 1;
 #endif
-    }
+	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -613,55 +611,55 @@ fail:
 
 int maincpu_snapshot_read_module(snapshot_t *s)
 {
-    BYTE a, x, y, sp, status;
-    WORD pc;
-    BYTE major, minor;
-    snapshot_module_t *m;
+	BYTE a, x, y, sp, status;
+	WORD pc;
+	BYTE major, minor;
+	snapshot_module_t *m;
 
-    m = snapshot_module_open(s, snap_module_name, &major, &minor);
-    if (m == NULL) {
-        return -1;
-    }
+	m = snapshot_module_open(s, snap_module_name, &major, &minor);
+	if (m == NULL) {
+		return -1;
+	}
 
-    /* XXX: Assumes `CLOCK' is the same size as a `DWORD'.  */
-    if (0
-        || SMR_DW(m, &maincpu_clk) < 0
-        || SMR_B(m, &a) < 0
-        || SMR_B(m, &x) < 0
-        || SMR_B(m, &y) < 0
-        || SMR_B(m, &sp) < 0
-        || SMR_W(m, &pc) < 0
-        || SMR_B(m, &status) < 0
-        || SMR_DW_UINT(m, &last_opcode_info) < 0
-        || SMR_DW_INT(m, &maincpu_ba_low_flags) < 0) {
-        goto fail;
-    }
+	/* XXX: Assumes `CLOCK' is the same size as a `DWORD'.  */
+	if (0
+			|| SMR_DW(m, &maincpu_clk) < 0
+			|| SMR_B(m, &a) < 0
+			|| SMR_B(m, &x) < 0
+			|| SMR_B(m, &y) < 0
+			|| SMR_B(m, &sp) < 0
+			|| SMR_W(m, &pc) < 0
+			|| SMR_B(m, &status) < 0
+			|| SMR_DW_UINT(m, &last_opcode_info) < 0
+			|| SMR_DW_INT(m, &maincpu_ba_low_flags) < 0) {
+		goto fail;
+	}
 
-    MOS6510_REGS_SET_A(&maincpu_regs, a);
-    MOS6510_REGS_SET_X(&maincpu_regs, x);
-    MOS6510_REGS_SET_Y(&maincpu_regs, y);
-    MOS6510_REGS_SET_SP(&maincpu_regs, sp);
-    MOS6510_REGS_SET_PC(&maincpu_regs, pc);
-    MOS6510_REGS_SET_STATUS(&maincpu_regs, status);
+	MOS6510_REGS_SET_A(&maincpu_regs, a);
+	MOS6510_REGS_SET_X(&maincpu_regs, x);
+	MOS6510_REGS_SET_Y(&maincpu_regs, y);
+	MOS6510_REGS_SET_SP(&maincpu_regs, sp);
+	MOS6510_REGS_SET_PC(&maincpu_regs, pc);
+	MOS6510_REGS_SET_STATUS(&maincpu_regs, status);
 
-    if (interrupt_read_snapshot(maincpu_int_status, m) < 0) {
-        goto fail;
-    }
+	if (interrupt_read_snapshot(maincpu_int_status, m) < 0) {
+		goto fail;
+	}
 
-    if (interrupt_read_new_snapshot(maincpu_int_status, m) < 0) {
-        goto fail;
-    }
+	if (interrupt_read_new_snapshot(maincpu_int_status, m) < 0) {
+		goto fail;
+	}
 
-    if (interrupt_read_sc_snapshot(maincpu_int_status, m) < 0) {
-        goto fail;
-    }
+	if (interrupt_read_sc_snapshot(maincpu_int_status, m) < 0) {
+		goto fail;
+	}
 
-    return snapshot_module_close(m);
+	return snapshot_module_close(m);
 
 fail:
-    if (m != NULL) {
-        snapshot_module_close(m);
-    }
-    return -1;
+	if (m != NULL) {
+		snapshot_module_close(m);
+	}
+	return -1;
 }
 

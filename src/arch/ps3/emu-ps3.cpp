@@ -157,8 +157,11 @@ void Emulator_RequestLoadROM(const char* rom, bool forceReboot, bool compatibili
 		resources_set_int("DriveTrueEmulation", (int) compatibility_mode);
 
 		// name, program_name, program_number, run/load
-		if (autostart_autodetect(current_rom, NULL, 0, AUTOSTART_MODE_RUN) < 0) {
-			log_warning (LOG_DEFAULT, "autostart_autodetect failed for image : '%s'", current_rom);
+		if (autostart_autodetect(current_rom, NULL, 0, AUTOSTART_MODE_RUN) < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("WARNING: autostart_autodetect failed for image : '%s'", current_rom);
+			#endif
 		}
 	}
 	else
@@ -167,11 +170,16 @@ void Emulator_RequestLoadROM(const char* rom, bool forceReboot, bool compatibili
 		// TODO : Allow device selection (drive 8, 9, 10, 11 or tape)
 		// This hack assumes we're attaching a disk image to drive 8
 
-		if (file_system_attach_disk(8, current_rom) < 0 && tape_image_attach(1, current_rom) < 0 ) {
-			log_warning (LOG_DEFAULT, "could not attach image : %s to any disk/tape device", current_rom);
+		if (file_system_attach_disk(8, current_rom) < 0 && tape_image_attach(1, current_rom) < 0 )
+		{
+			#ifdef CELL_DEBUG
+			printf("WARNING: could not attach image : %s to any disk/tape device", current_rom);
+			#endif
 		}
 
-		log_message (LOG_DEFAULT, "Attached disk image (%s) to device %d\n", current_rom, 8);
+		#ifdef CELL_DEBUG
+		printf("Attached disk image (%s) to device %d\n", current_rom, 8);
+		#endif
 	}
 }
 

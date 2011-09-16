@@ -2033,34 +2033,57 @@ void do_ROMMenu()
 				if ( (drive_count == 1) || (CellInput->WasButtonPressed(0,CTRL_L1)) ) {
 					// Insert the disk into Drive8
 					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(8, rom_path.c_str()) < 0) {
-						log_message (LOG_DEFAULT, "could not attach image to device 8 : %s\n", rom_path.c_str());
+					if (file_system_attach_disk(8, rom_path.c_str()) < 0)
+					{
+						#ifdef CELL_DEBUG
+						printf("could not attach image to device 8 : %s\n", rom_path.c_str());
+						#endif
 					}
-					log_message (LOG_DEFAULT, "Attached disk image to device %d\n", 8);
+					#ifdef CELL_DEBUG
+					printf(LOG_DEFAULT, "Attached disk image to device %d\n", 8);
+					#endif
 				} 
-				else if (CellInput->WasButtonPressed(0,CTRL_L2)) {
+				else if (CellInput->WasButtonPressed(0,CTRL_L2))
+				{
 					// Insert the disk into Drive9
 					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(9, rom_path.c_str()) < 0) {
-						log_message (LOG_DEFAULT, "could not attach image to device 9 : %s\n", rom_path.c_str());
+					if (file_system_attach_disk(9, rom_path.c_str()) < 0)
+					{
+						#ifdef CELL_DEBUG
+						printf("could not attach image to device 9 : %s\n", rom_path.c_str());
+						#endif
 					}
-					log_message (LOG_DEFAULT, "Attached disk image to device %d\n", 9);
+					#ifdef CELL_DEBUG
+					printf("Attached disk image to device %d\n", 9);
+					#endif
 				}
-				else if (CellInput->WasButtonPressed(0,CTRL_L2)) {
+				else if (CellInput->WasButtonPressed(0,CTRL_L2))
+				{
 					// Insert the disk into Drive10
 					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(10, rom_path.c_str()) < 0) {
-						log_message (LOG_DEFAULT, "could not attach image to device 10 : %s\n", rom_path.c_str());
+					if (file_system_attach_disk(10, rom_path.c_str()) < 0)
+					{
+						#ifdef CELL_DEBUG
+						printf("could not attach image to device 10 : %s\n", rom_path.c_str());
+						#endif
 					}
-					log_message (LOG_DEFAULT, "Attached disk image to device %d\n", 10);
+					#ifdef CELL_DEBUG
+					printf("Attached disk image to device %d\n", 10);
+					#endif
 				}
-				else if (CellInput->WasButtonPressed(0,CTRL_L2)) {
+				else if (CellInput->WasButtonPressed(0,CTRL_L2))
+				{
 					// Insert the disk into Drive11
 					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(11, rom_path.c_str()) < 0) {
-						log_message (LOG_DEFAULT, "could not attach image to device 11 : %s\n", rom_path.c_str());
+					if (file_system_attach_disk(11, rom_path.c_str()) < 0)
+					{
+						#ifdef CELL_DEBUG
+						printf("could not attach image to device 11 : %s\n", rom_path.c_str());
+						#endif
 					}
-					log_message (LOG_DEFAULT, "Attached disk image to device %d\n", 11);
+					#ifdef CELL_DEBUG
+					printf("Attached disk image to device %d\n", 11);
+					#endif
 				}
 
 			}

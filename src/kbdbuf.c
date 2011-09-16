@@ -77,138 +77,138 @@ static char *kbd_buf_string = NULL;
 
 static void kbd_buf_parse_string(const char *string)
 {
-    unsigned int i, j;
-    size_t len;
+	unsigned int i, j;
+	size_t len;
 
-    len = strlen(string);
+	len = strlen(string);
 
-    if (len > QUEUE_SIZE)
-        len = QUEUE_SIZE;
+	if (len > QUEUE_SIZE)
+		len = QUEUE_SIZE;
 
-    kbd_buf_string = lib_realloc(kbd_buf_string, len + 1);
-    memset(kbd_buf_string, 0, len + 1);
+	kbd_buf_string = lib_realloc(kbd_buf_string, len + 1);
+	memset(kbd_buf_string, 0, len + 1);
 
-    for (i = 0, j = 0; i < len; i++) {
-        if (string[i] == '\\' && i < (len - 2) && isxdigit(string[i + 1])
-            && isxdigit(string[i + 2])) {
-            char hexvalue[3];
+	for (i = 0, j = 0; i < len; i++)
+	{
+		if (string[i] == '\\' && i < (len - 2) && isxdigit(string[i + 1]) && isxdigit(string[i + 2]))
+		{
+			char hexvalue[3];
 
-            hexvalue[0] = string[i + 1];
-            hexvalue[1] = string[i + 2];
-            hexvalue[2] = '\0';
-            kbd_buf_string[j] = (char)strtol(hexvalue, NULL, 16);
-            j++;
-            i += 2;
-        } else {
-            kbd_buf_string[j] = string[i];
-            j++;
-        }
-    }
+			hexvalue[0] = string[i + 1];
+			hexvalue[1] = string[i + 2];
+			hexvalue[2] = '\0';
+			kbd_buf_string[j] = (char)strtol(hexvalue, NULL, 16);
+			j++;
+			i += 2;
+		}
+		else
+		{
+			kbd_buf_string[j] = string[i];
+			j++;
+		}
+	}
 }
 
 int kbdbuf_feed_string(const char *string)
 {
-    kbd_buf_parse_string(string);
+	kbd_buf_parse_string(string);
 
-    return kbdbuf_feed(kbd_buf_string);
+	return kbdbuf_feed(kbd_buf_string);
 }
 
 static int kdb_buf_feed_cmdline(const char *param, void *extra_param)
 {
-    kbd_buf_parse_string(param);
+	kbd_buf_parse_string(param);
 
-    return 0;
+	return 0;
 }
 
 static const cmdline_option_t cmdline_options[] =
 {
-    { "-keybuf", CALL_FUNCTION, 1,
-      kdb_buf_feed_cmdline, NULL, NULL, NULL,
-      USE_PARAM_ID, USE_DESCRIPTION_ID,
-      IDCLS_P_STRING, IDCLS_PUT_STRING_INTO_KEYBUF,
-      NULL, NULL },
-    { NULL }
+	{ "-keybuf", CALL_FUNCTION, 1,
+		kdb_buf_feed_cmdline, NULL, NULL, NULL,
+		USE_PARAM_ID, USE_DESCRIPTION_ID,
+		IDCLS_P_STRING, IDCLS_PUT_STRING_INTO_KEYBUF,
+		NULL, NULL },
+	{ NULL }
 };
 
 int kbdbuf_cmdline_options_init(void)
 {
-    return cmdline_register_options(cmdline_options);
+	return cmdline_register_options(cmdline_options);
 }
 
 /* ------------------------------------------------------------------------- */
 
 void kbdbuf_reset(int location, int plocation, int size, CLOCK mincycles)
 {
-    buffer_location = location;
-    num_pending_location = plocation;
-    buffer_size = size;
-    kernal_init_cycles = mincycles;
+	buffer_location = location;
+	num_pending_location = plocation;
+	buffer_size = size;
+	kernal_init_cycles = mincycles;
 
-    if (mincycles)
-        kbd_buf_enabled = 1;
-    else
-        kbd_buf_enabled = 0;
+	if (mincycles)
+		kbd_buf_enabled = 1;
+	else
+		kbd_buf_enabled = 0;
 }
 
 /* Initialization.  */
 void kbdbuf_init(int location, int plocation, int size, CLOCK mincycles)
 {
-    kbdbuf_reset(location, plocation, size, mincycles);
+	kbdbuf_reset(location, plocation, size, mincycles);
 
-    if (kbd_buf_string != NULL)
-        kbdbuf_feed(kbd_buf_string);
+	if (kbd_buf_string != NULL)
+		kbdbuf_feed(kbd_buf_string);
 }
 
 void kbdbuf_shutdown(void)
 {
-    lib_free(kbd_buf_string);
+	lib_free(kbd_buf_string);
 }
 
 /* Return nonzero if the keyboard buffer is empty.  */
 int kbdbuf_is_empty(void)
 {
-    return (int)(mem_read((WORD)(num_pending_location)) == 0);
+	return (int)(mem_read((WORD)(num_pending_location)) == 0);
 }
 
 /* Feed `s' into the queue.  */
 int kbdbuf_feed(const char *string)
 {
-    const int num = (int)strlen(string);
-    int i, p;
+	const int num = (int)strlen(string);
+	int i, p;
 
-    if (num_pending + num > QUEUE_SIZE || !kbd_buf_enabled)
-        return -1;
+	if (num_pending + num > QUEUE_SIZE || !kbd_buf_enabled)
+		return -1;
 
-    for (p = (head_idx + num_pending) % QUEUE_SIZE, i = 0;
-        i < num; p = (p + 1) % QUEUE_SIZE, i++) {
-        queue[p] = string[i];
-    }
+	for (p = (head_idx + num_pending) % QUEUE_SIZE, i = 0; i < num; p = (p + 1) % QUEUE_SIZE, i++)
+	{
+		queue[p] = string[i];
+	}
 
-    num_pending += num;
+	num_pending += num;
 
-    /* XXX: We waste time this way, as we copy into the queue and then into
-       memory.  */
-    kbdbuf_flush();
+	/* XXX: We waste time this way, as we copy into the queue and then into
+	   memory.  */
+	kbdbuf_flush();
 
-    return 0;
+	return 0;
 }
 
 /* Flush pending characters into the kernal's queue if possible.  */
 void kbdbuf_flush(void)
 {
-    unsigned int i, n;
+	unsigned int i, n;
 
-    if ((!kbd_buf_enabled)
-          || num_pending == 0
-          || maincpu_clk < kernal_init_cycles
-          || !kbdbuf_is_empty())
-        return;
+	if ((!kbd_buf_enabled) || num_pending == 0 || maincpu_clk < kernal_init_cycles || !kbdbuf_is_empty())
+		return;
 
-    n = num_pending > buffer_size ? buffer_size : num_pending;
-    for (i = 0; i < n; head_idx = (head_idx + 1) % QUEUE_SIZE, i++)
-        mem_store((WORD)(buffer_location + i), queue[head_idx]);
+	n = num_pending > buffer_size ? buffer_size : num_pending;
+	for (i = 0; i < n; head_idx = (head_idx + 1) % QUEUE_SIZE, i++)
+		mem_store((WORD)(buffer_location + i), queue[head_idx]);
 
-    mem_store((WORD)(num_pending_location), (BYTE)(n));
-    num_pending -= n;
+	mem_store((WORD)(num_pending_location), (BYTE)(n));
+	num_pending -= n;
 }
 

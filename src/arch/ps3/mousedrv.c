@@ -52,13 +52,17 @@ int mousedrv_cmdline_options_init(void)
 
 void mousedrv_init(void)
 {
-	log_message(LOG_DEFAULT, "Attempting to initialize the mouse driver... ");
-
 	ret = cellMouseInit(1);
 	if (ret != CELL_OK)
-		log_message (LOG_DEFAULT, "cellMouseInit failed (%d)", ret);
+	{
+		#ifdef CELL_DEBUG
+		printf("cellMouseInit failed (%d)", ret);
+		#endif
+	}
 
-	log_message(LOG_DEFAULT, "Mouse is available.");
+	#ifdef CELL_DEBUG
+	printf("Mouse is available.");
+	#endif
 	_mouse_available = 1;
 }
 
@@ -68,7 +72,11 @@ void mousedrv_destroy(void)
 	{
 		ret = cellMouseEnd();
 		if (ret != CELL_OK)
-			log_message (LOG_DEFAULT, "cellMouseEnd failed (%d)\n", ret);
+		{
+			#ifdef CELL_DEBUG
+			printf("cellMouseEnd failed (%d)\n", ret);
+			#endif
+		}
 	}
 }
 
@@ -81,39 +89,59 @@ inline void update_mouse(void)
 	static uint8_t old_buttons;
 
 
-	if ((ret = cellMouseGetInfo (&Info)) != CELL_OK) {
-		log_message(LOG_DEFAULT, "Error(%08X) : cellMouseGetInfo\n", ret);
+	if ((ret = cellMouseGetInfo (&Info)) != CELL_OK)
+	{
+		#ifdef CELL_DEBUG
+		printf("Error(%08X) : cellMouseGetInfo\n", ret);
+		#endif
 		return;
 	}
 
-	if((Info.info & CELL_MOUSE_INFO_INTERCEPTED) && (!(old_info & CELL_MOUSE_INFO_INTERCEPTED))){
-		log_message (LOG_DEFAULT, "Lost mouse\n");
+	if((Info.info & CELL_MOUSE_INFO_INTERCEPTED) && (!(old_info & CELL_MOUSE_INFO_INTERCEPTED)))
+	{
+		#ifdef CELL_DEBUG
+		printf("Lost mouse\n");
+		#endif
 		old_info = Info.info;
-	} else if((!(Info.info & CELL_MOUSE_INFO_INTERCEPTED)) && (old_info & CELL_MOUSE_INFO_INTERCEPTED)){
-		log_message (LOG_DEFAULT, "Found mouse\n");
+	} else if((!(Info.info & CELL_MOUSE_INFO_INTERCEPTED)) && (old_info & CELL_MOUSE_INFO_INTERCEPTED))
+	{
+		#ifdef CELL_DEBUG
+		printf("Found mouse\n");
+		#endif
 		old_info = Info.info;
 	}
 
-	if ( (old_status != CELL_MOUSE_STATUS_DISCONNECTED) && (Info.status[0] == CELL_MOUSE_STATUS_DISCONNECTED)) {
-		log_message (LOG_DEFAULT, "Mouse disconnected\n");
+	if ( (old_status != CELL_MOUSE_STATUS_DISCONNECTED) && (Info.status[0] == CELL_MOUSE_STATUS_DISCONNECTED))
+	{
+		#ifdef CELL_DEBUG
+		printf("Mouse disconnected\n");
+		#endif
 		old_info = Info.info;
 		return;
 	}
 
-	if (Info.status[0] == CELL_MOUSE_STATUS_DISCONNECTED) {
+	if (Info.status[0] == CELL_MOUSE_STATUS_DISCONNECTED)
+	{
 		old_info = Info.info;
 		return;
 	}
 
 
-	if ( (old_status == CELL_MOUSE_STATUS_DISCONNECTED) && (Info.status[0] != CELL_MOUSE_STATUS_DISCONNECTED) )
-		log_message (LOG_DEFAULT, "New Mouse %d is connected: VENDOR_ID=%d PRODUCT_ID=%d\n", 0, Info.vendor_id[0], Info.product_id[0]);
+	if ( (old_status == CELL_MOUSE_STATUS_DISCONNECTED) && (Info.status[0] != CELL_MOUSE_STATUS_DISCONNECTED))
+	{
+		#ifdef CELL_DEBUG
+		printf("New Mouse %d is connected: VENDOR_ID=%d PRODUCT_ID=%d\n", 0, Info.vendor_id[0], Info.product_id[0]);
+		#endif
+	}
 
 
 	ret = cellMouseGetData (0, &data);
 
-	if (ret != CELL_OK) {
-		log_message (LOG_DEFAULT, "Read Error(%08X) port id %d\n", ret , 0);
+	if (ret != CELL_OK)
+	{
+		#ifdef CELL_DEBUG
+		printf("Read Error(%08X) port id %d\n", ret , 0);
+		#endif
 		old_info = Info.info;
 		return;
 	}
@@ -124,28 +152,42 @@ inline void update_mouse(void)
 		_mouse_x = (_mouse_x + data.x_axis) & 0xff;
 		_mouse_y = (_mouse_y + data.y_axis) & 0xff;
 
-		if (data.buttons & CELL_MOUSE_BUTTON_1) {
+		if (data.buttons & CELL_MOUSE_BUTTON_1)
+		{
 			mouse_button_left(1);
-		} else {
+		}
+		else
+		{
 			mouse_button_left(0);
 		}
 
-		if (data.buttons & CELL_MOUSE_BUTTON_2) {
+		if (data.buttons & CELL_MOUSE_BUTTON_2)
+		{
 			mouse_button_right(1);
-		} else {
+		}
+		else
+		{
 			mouse_button_right(0);
 		}
 
 		old_buttons = data.buttons;
-	} else {
-		if (old_buttons & CELL_MOUSE_BUTTON_1) {
+	}
+	else
+	{
+		if (old_buttons & CELL_MOUSE_BUTTON_1)
+		{
 			mouse_button_left(1);
-		} else {
+		}
+		else
+		{
 			mouse_button_left(0);
 		}
-		if (old_buttons & CELL_MOUSE_BUTTON_2) {
+		if (old_buttons & CELL_MOUSE_BUTTON_2)
+		{
 			mouse_button_right(1);
-		} else {
+		}
+		else
+		{
 			mouse_button_right(0);
 		}
 

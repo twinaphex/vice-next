@@ -252,79 +252,90 @@ static int log_archdep(const char *logtxt, const char *fmt, va_list ap)
     return rc;
 }
 
-static int log_helper(log_t log, unsigned int level, const char *format,
-                      va_list ap)
+static int log_helper(log_t log, unsigned int level, const char *format, va_list ap)
 {
-    static const char *level_strings[3] = {
-        "",
-        "Warning - ",
-        "Error - "
-    };
+	static const char *level_strings[3] = {
+		"",
+		"Warning - ",
+		"Error - "
+	};
 
-    const signed int logi = (signed int)log;
-    int rc = 0;
-    char *logtxt = NULL;
+	const signed int logi = (signed int)log;
+	int rc = 0;
+	char *logtxt = NULL;
 
-    if (!log_enabled)
-        return 0;
+	if (!log_enabled)
+		return 0;
 
-    if (logi == LOG_ERR
-        || (logi != LOG_DEFAULT && (logs == NULL || logs[logi] == NULL)))
-        return -1;
+	if (logi == LOG_ERR
+			|| (logi != LOG_DEFAULT && (logs == NULL || logs[logi] == NULL)))
+		return -1;
 
-    if (logi != LOG_DEFAULT && *logs[logi] != '\0')
-        logtxt = lib_msprintf("%s: %s", logs[logi], level_strings[level]);
-    else
-        logtxt = lib_stralloc("");
+	if (logi != LOG_DEFAULT && *logs[logi] != '\0')
+		logtxt = lib_msprintf("%s: %s", logs[logi], level_strings[level]);
+	else
+		logtxt = lib_stralloc("");
 
 
 
-    if (log_file == NULL) {
-        rc = log_archdep(logtxt, format, ap);
-    } else {
+	if (log_file == NULL) {
+		rc = log_archdep(logtxt, format, ap);
+	} else {
 #ifdef WIN32
-        log_archdep(logtxt, format, ap);
+		log_archdep(logtxt, format, ap);
 #endif /* #ifdef WIN32 */
-        if (fputs(logtxt, log_file) == EOF
-            || vfprintf(log_file, format, ap) < 0
-            || fputc ('\n', log_file) == EOF)
-            rc = -1;
-    }
-    lib_free(logtxt);
+		if (fputs(logtxt, log_file) == EOF
+				|| vfprintf(log_file, format, ap) < 0
+				|| fputc ('\n', log_file) == EOF)
+			rc = -1;
+	}
+	lib_free(logtxt);
 
-    return rc;
+	return rc;
 }
 
 int log_message(log_t log, const char *format, ...)
 {
+#if 0
     va_list ap;
 
     va_start(ap, format);
     return log_helper(log, 0, format, ap);
+#endif
+	return 0;
 }
 
 int log_warning(log_t log, const char *format, ...)
 {
+#if 0
     va_list ap;
 
     va_start(ap, format);
     return log_helper(log, 1, format, ap);
+#endif
+	return 0;
 }
 
 int log_error(log_t log, const char *format, ...)
 {
+#if 0
     va_list ap;
 
     va_start(ap, format);
     return log_helper(log, 2, format, ap);
+#endif
+	return 0;
 }
 
 int log_debug(const char *format, ...)
 {
+#if 0
     va_list ap;
 
     va_start(ap, format);
     return log_helper(LOG_DEFAULT, 0, format, ap);
+#endif
+	return 0;
 }
 
 int log_verbose(const char *format, ...)

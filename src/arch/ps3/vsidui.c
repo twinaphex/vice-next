@@ -40,42 +40,58 @@ int vsid_ui_init(void)
 
 void vsid_ui_display_name(const char *name)
 {
-	log_message(LOG_DEFAULT, "Name: %s", name);
+	#ifdef CELL_DEBUG
+	printf("Name: %s", name);
+	#endif
 }
 
 void vsid_ui_display_author(const char *author)
 {
-	log_message(LOG_DEFAULT, "Author: %s", author);
+	#ifdef CELL_DEBUG
+	printf("Author: %s", author);
+	#endif
 }
 
 void vsid_ui_display_copyright(const char *copyright)
 {
-	log_message(LOG_DEFAULT, "Copyright by: %s", copyright);
+	#ifdef CELL_DEBUG
+	printf("Copyright by: %s", copyright);
+	#endif
 }
 
 void vsid_ui_display_sync(int sync)
 {
-	log_message(LOG_DEFAULT, "Using %s sync", sync == MACHINE_SYNC_PAL ? "PAL" : "NTSC");
+	#ifdef CELL_DEBUG
+	printf("Using %s sync", sync == MACHINE_SYNC_PAL ? "PAL" : "NTSC");
+	#endif
 }
 
 void vsid_ui_display_sid_model(int model)
 {
-	log_message(LOG_DEFAULT, "Using %s emulation", model == 0 ? "MOS6581" : "MOS8580");
+	#ifdef CELL_DEBUG
+	printf("Using %s emulation", model == 0 ? "MOS6581" : "MOS8580");
+	#endif
 }
 
 void vsid_ui_set_default_tune(int nr)
 {
-	log_message(LOG_DEFAULT, "Default Tune: %i", nr);
+	#ifdef CELL_DEBUG
+	printf("Default Tune: %i", nr);
+	#endif
 }
 
 void vsid_ui_display_tune_nr(int nr)
 {
-	log_message(LOG_DEFAULT, "Playing Tune: %i", nr);
+	#ifdef CELL_DEBUG
+	printf("Playing Tune: %i", nr);
+	#endif
 }
 
 void vsid_ui_display_nr_of_tunes(int count)
 {
-	log_message(LOG_DEFAULT, "Number of Tunes: %i", count);
+	#ifdef CELL_DEBUG
+	printf("Number of Tunes: %i", count);
+	#endif
 }
 
 void vsid_ui_display_time(unsigned int sec)

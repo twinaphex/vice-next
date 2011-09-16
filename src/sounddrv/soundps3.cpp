@@ -59,7 +59,9 @@ static int num_channels;
 
 static int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fragnr, int *channels)
 {
-	log_message (LOG_DEFAULT, "PS3 Audio : ps3_audio_init called with speed=%d, fragsiz=%d, fragnr=%d, channels=%d\n", *speed, *fragsize, *fragnr, *channels);
+	#ifdef CELL_DEBUG
+	printf("PS3 Audio : ps3_audio_init called with speed=%d, fragsiz=%d, fragnr=%d, channels=%d\n", *speed, *fragsize, *fragnr, *channels);
+	#endif
 
 	// Must use these values.
 	//*fragnr *=4;
@@ -73,7 +75,10 @@ static int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fra
 	*fragnr = 20;
 
 	num_channels =* channels;
-	log_message (LOG_DEFAULT, "PS3 Audio : forcing settings to speed=%d, fragsiz=%d, fragnr=%d, channels=%d\n", *speed, *fragsize, *fragnr, *channels);
+
+	#ifdef CELL_DEBUG
+	printf("PS3 Audio : forcing settings to speed=%d, fragsiz=%d, fragnr=%d, channels=%d\n", *speed, *fragsize, *fragnr, *channels);
+	#endif
 
 	if(CellAudio)
 	{
@@ -85,9 +90,12 @@ static int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fra
 	//	}
 	//	else
 	//	{
-	//size_t buflen = (*fragsize) * (*fragnr) * sizeof(SWORD);
+
 	size_t buflen = (*fragsize) * (*fragnr) ;
-	log_message (LOG_DEFAULT, "PS3 Audio : setting up audioport with buffer size %d\n", buflen);
+
+	#ifdef CELL_DEBUG
+	printf("PS3 Audio : setting up audioport with buffer size %d\n", buflen);
+	#endif
 
 	// Promote mono audio to stereo
 	CellAudio = new Audio::AudioPort<int16_t>(2, *speed, buflen);
@@ -116,7 +124,8 @@ static int ps3_audio_write(SWORD *pbuf, size_t nr)
 			// fudge this.
 			if (stereo_pbuf)
 			{
-				if (stereo_pbuf_size != (sizeof(SWORD) * nr * 2)) {
+				if (stereo_pbuf_size != (sizeof(SWORD) * nr * 2))
+				{
 					stereo_pbuf_size = sizeof(SWORD) * nr * 2;
 					stereo_pbuf = (SWORD *) lib_realloc(stereo_pbuf, stereo_pbuf_size);
 				}

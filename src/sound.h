@@ -57,49 +57,46 @@ extern int sid_state_changed;
 /* device structure */
 typedef struct sound_device_s
 {
-    /* name of the device */
-    const char *name;
-    /* init -routine to be called at device initialization. Should use
-       suggested values if possible or return new values if they cannot be
-       used */
-    int (*init)(const char *param,
-        int *speed,
-        int *fragsize, int *fragnr,
-        int *channels);
-    /* send number of bytes to the soundcard. it is assumed to block if kernel
-       buffer is full */
-    int (*write)(SWORD *pbuf, size_t nr);
-    /* dump-routine to be called for every write to SID */
-    int (*dump)(WORD addr, BYTE byte, CLOCK clks);
-    /* flush-routine to be called every frame */
-    int (*flush)(char *state);
-    /* return number of samples currently available in the kernel buffer */
-    int (*bufferspace)(void);
-    /* close and cleanup device */
-    void (*close)(void);
-    /* suspend device */
-    int (*suspend)(void);
-    /* resume device */
-    int (*resume)(void);
-    /* is attenuation needed on suspend or not */
-    int need_attenuation;
+	/* name of the device */
+	const char *name;
+	/* init -routine to be called at device initialization. Should use
+	   suggested values if possible or return new values if they cannot be
+	   used */
+	int (*init)(const char *param, int *speed, int *fragsize, int *fragnr, int *channels);
+	/* send number of bytes to the soundcard. it is assumed to block if kernel
+	   buffer is full */
+	int (*write)(SWORD *pbuf, size_t nr);
+	/* dump-routine to be called for every write to SID */
+	int (*dump)(WORD addr, BYTE byte, CLOCK clks);
+	/* flush-routine to be called every frame */
+	int (*flush)(char *state);
+	/* return number of samples currently available in the kernel buffer */
+	int (*bufferspace)(void);
+	/* close and cleanup device */
+	void (*close)(void);
+	/* suspend device */
+	int (*suspend)(void);
+	/* resume device */
+	int (*resume)(void);
+	/* is attenuation needed on suspend or not */
+	int need_attenuation;
 } sound_device_t;
 
 static inline SWORD sound_audio_mix(int ch1, int ch2)
 {
-  if (ch1 == 0)
-    return (SWORD)ch2;
+	if (ch1 == 0)
+		return (SWORD)ch2;
 
-  if (ch2 == 0)
-    return (SWORD)ch1;
+	if (ch2 == 0)
+		return (SWORD)ch1;
 
-  if ((ch1 > 0 && ch2 < 0) || (ch1 < 0 && ch2 >0))
-    return (SWORD)ch1+ch2;
+	if ((ch1 > 0 && ch2 < 0) || (ch1 < 0 && ch2 >0))
+		return (SWORD)ch1+ch2;
 
-  if (ch1 > 0)
-    return (SWORD)((ch1 + ch2) - (ch1 * ch2 / 32768));
+	if (ch1 > 0)
+		return (SWORD)((ch1 + ch2) - (ch1 * ch2 / 32768));
 
-  return (SWORD)-((-(ch1) + -(ch2)) - (-(ch1) * -(ch2) / 32768));
+	return (SWORD)-((-(ch1) + -(ch2)) - (-(ch1) * -(ch2) / 32768));
 }
 
 /* Sound adjustment types.  */
@@ -115,11 +112,7 @@ static inline SWORD sound_audio_mix(int ch1, int ch2)
 /* external functions for vice */
 extern void sound_init(unsigned int clock_rate, unsigned int ticks_per_frame);
 extern void sound_reset(void);
-#if defined(__MSDOS__) || defined(__riscos)
-extern int sound_flush(void);
-#else
 extern double sound_flush(void);
-#endif
 extern void sound_suspend(void);
 extern void sound_resume(void);
 extern int sound_open(void);
@@ -203,14 +196,6 @@ extern void sound_machine_enable(int enable);
 
 extern unsigned int sound_device_num(void);
 extern const char *sound_device_name(unsigned int num);
-
-#ifdef __riscos
-extern int SoundPollEvery;
-extern int SoundMachineReady;
-extern int SoundThreadActive;
-extern void sound_poll(void);
-extern void sound_synthesize(SWORD *buffer, int length);
-#endif
 
 extern sound_t *sound_get_psid(unsigned int channel);
 
