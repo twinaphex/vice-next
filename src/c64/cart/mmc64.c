@@ -43,7 +43,6 @@
 #include "cmdline.h"
 #include "crt.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "mem.h"
 #include "mmc64.h"
@@ -138,8 +137,6 @@ static BYTE mmc64_extgame;
 static int mmc64_revision;
 static int mmc64_sd_type = 0;
 static BYTE mmc64_image_file_readonly = 0;
-
-static log_t mmc64_log = LOG_ERR;
 
 static BYTE mmc64_bios[0x2002];
 static int mmc64_bios_offset = 0;
@@ -490,144 +487,147 @@ static void REGPARM2 mmc64_clockport_enable_store(WORD addr, BYTE value)
 
 static void REGPARM2 mmc64_reg_store(WORD addr, BYTE value,int active)
 {
-    switch (addr) {
-        case 0:
-            /*
-             * $DF10: MMC SPI transfer register
-             *
-             * byte written is sent to the card
-             */
-            if (active) {
+	switch (addr)
+	{
+		case 0:
+			/*
+			 * $DF10: MMC SPI transfer register
+			 *
+			 * byte written is sent to the card
+			 */
+			if (active) {
 #ifdef LOG_WRITE_DF10
-                LOG(("MMC64: IO2 ST %04x %02x", addr, value));
+				LOG(("MMC64: IO2 ST %04x %02x", addr, value));
 #endif
-                spi_mmc_data_write(value);
-                return;
-            }
+				spi_mmc_data_write(value);
+				return;
+			}
 #ifdef LOG_WRITE_DF10
-            else {
-                LOG(("MMC64: unhandled IO2 ST %04x %02x", addr, value));
-            }
+			else {
+				LOG(("MMC64: unhandled IO2 ST %04x %02x", addr, value));
+			}
 #endif
-            break;
+			break;
 
-        case 1:
-            /*
-             * $DF11: MMC control register
-             *        ------------------------
-             *        bit 0:  0 = MMC BIOS enabled, 1 = MMC BIOS disabled                   (R/W)
-             *        bit 1:  0 = card selected, 1 = card not selected                      (R/W)
-             *        bit 2:  0 = 250khz transfer, 1 = 8mhz transfer                        (R/W)
-             *        bit 3:  0 = clock port @ $DE00, 1 = clock port @ $DF20                (R/W)
-             *        bit 4:  0 = normal Operation, 1 = flash mode                          (R/W)  (*)
-             *        bit 5:  0 = allow external rom when BIOS is disabled , 1 = disable    (R/W)
-             *        bit 6:  0 = SPI write trigger mode, 1 = SPI read trigger mode         (R/W)
-             *        bit 7:  0 = MMC64 is active, 1 = MMC64 is completely disabled         (R/W)  (**)
-             *
-             * (*) bit can only be programmed when flash jumper is set
-             * (**) bit can only be modified after unlocking
-             */
-            if (active) {
-                mmc64_biossel = (value) & 1; /* bit 0 */
-                mmc64_extrom = (value >> 5) & 1;      /* bit 5 */
+		case 1:
+			/*
+			 * $DF11: MMC control register
+			 *        ------------------------
+			 *        bit 0:  0 = MMC BIOS enabled, 1 = MMC BIOS disabled                   (R/W)
+			 *        bit 1:  0 = card selected, 1 = card not selected                      (R/W)
+			 *        bit 2:  0 = 250khz transfer, 1 = 8mhz transfer                        (R/W)
+			 *        bit 3:  0 = clock port @ $DE00, 1 = clock port @ $DF20                (R/W)
+			 *        bit 4:  0 = normal Operation, 1 = flash mode                          (R/W)  (*)
+			 *        bit 5:  0 = allow external rom when BIOS is disabled , 1 = disable    (R/W)
+			 *        bit 6:  0 = SPI write trigger mode, 1 = SPI read trigger mode         (R/W)
+			 *        bit 7:  0 = MMC64 is active, 1 = MMC64 is completely disabled         (R/W)  (**)
+			 *
+			 * (*) bit can only be programmed when flash jumper is set
+			 * (**) bit can only be modified after unlocking
+			 */
+			if (active) {
+				mmc64_biossel = (value) & 1; /* bit 0 */
+				mmc64_extrom = (value >> 5) & 1;      /* bit 5 */
 
 #ifdef LOG_WRITE_DF11
-                LOG(("MMC64: IO2 ST %04x %02x mmc64_biossel %x mmc64_extrom %x", addr, value, mmc64_biossel, mmc64_extrom));
-                LOG(("MMC64:                  mmc64_flashmode %d", (((value >> 4)) & 1)));
-                LOG(("MMC64:                  mmc64_active %d", (((value >> 7)) & 1)));
+				LOG(("MMC64: IO2 ST %04x %02x mmc64_biossel %x mmc64_extrom %x", addr, value, mmc64_biossel, mmc64_extrom));
+				LOG(("MMC64:                  mmc64_flashmode %d", (((value >> 4)) & 1)));
+				LOG(("MMC64:                  mmc64_active %d", (((value >> 7)) & 1)));
 #endif
 
-                spi_mmc_card_selected_write((BYTE)(((value >> 1) ^ 1) & 1));   /* bit 1 */
-                spi_mmc_enable_8mhz_write((BYTE)(((value >> 2)) & 1)); /* bit 2 */
-                mmc64_cport = (((value >> 3)) & 1); /* bit 3 */
+				spi_mmc_card_selected_write((BYTE)(((value >> 1) ^ 1) & 1));   /* bit 1 */
+				spi_mmc_enable_8mhz_write((BYTE)(((value >> 2)) & 1)); /* bit 2 */
+				mmc64_cport = (((value >> 3)) & 1); /* bit 3 */
 
-                if (mmc64_flashjumper) {    /* this bit can only be changed if the flashjumper is on */
-                    mmc64_flashmode = (((value >> 4)) & 1); /* bit 4 */
-                }
-                spi_mmc_trigger_mode_write((BYTE)(((value >> 6)) & 1));        /* bit 6 */
+				if (mmc64_flashjumper)    /* this bit can only be changed if the flashjumper is on */
+					mmc64_flashmode = (((value >> 4)) & 1); /* bit 4 */
 
-                mmc64_active=(((value >> 7)) & 1); /* bit 7 */
+				spi_mmc_trigger_mode_write((BYTE)(((value >> 6)) & 1));        /* bit 6 */
+
+				mmc64_active=(((value >> 7)) & 1); /* bit 7 */
 
 #if USEPASSTHROUGHHACK
-                if (mmc64_active) {
-                    export.exrom = 0;
-                    mem_pla_config_changed();
-                } else {
-                    /* this controls the mapping of the MMC64 bios */
-                    if (mmc64_biossel) {
-                        export.exrom = 0;
-                    } else {
-                        export.exrom = 1;
-                    }
-                    mem_pla_config_changed();
-                }
+				if (mmc64_active)
+				{
+					export.exrom = 0;
+					mem_pla_config_changed();
+				} else {
+					/* this controls the mapping of the MMC64 bios */
+					if (mmc64_biossel)
+						export.exrom = 0;
+					else
+						export.exrom = 1;
+					mem_pla_config_changed();
+				}
 #else
-                if (mmc64_active) {
-                    log_message(mmc64_log,"disabling MMC64");
-                    cartridge_config_changed(2, 2, CMODE_READ);
-                } else {
-                    if (mmc64_biossel) {
-                        cartridge_config_changed(2, 2, CMODE_READ);
-                    } else {
-                        cartridge_config_changed(2, 0, CMODE_READ);
-                    }
-                }
+				if (mmc64_active)
+				{
+					#ifdef CELL_DEBUG
+					printf("INFO: disabling MMC64\n");
+					#endif
+					cartridge_config_changed(2, 2, CMODE_READ);
+				} else {
+					if (mmc64_biossel)
+						cartridge_config_changed(2, 2, CMODE_READ);
+					else
+						cartridge_config_changed(2, 0, CMODE_READ);
+				}
 #endif
-                if (mmc64_cport) {
-                    mmc64_hw_clockport = 0xdf22;
-                    mmc64_current_clockport_device = &mmc64_io2_clockport_device;
-                    c64io_unregister(mmc64_clockport_list_item);
-                    mmc64_clockport_list_item = c64io_register(mmc64_current_clockport_device);
+				if (mmc64_cport) {
+					mmc64_hw_clockport = 0xdf22;
+					mmc64_current_clockport_device = &mmc64_io2_clockport_device;
+					c64io_unregister(mmc64_clockport_list_item);
+					mmc64_clockport_list_item = c64io_register(mmc64_current_clockport_device);
 #ifdef HAVE_TFE
-                    tfe_clockport_changed();
+					tfe_clockport_changed();
 #endif
-                } else {
-                    mmc64_hw_clockport = 0xde02;
-                    mmc64_current_clockport_device = &mmc64_io1_clockport_device;
-                    c64io_unregister(mmc64_clockport_list_item);
-                    mmc64_clockport_list_item = c64io_register(mmc64_current_clockport_device);
+				} else {
+					mmc64_hw_clockport = 0xde02;
+					mmc64_current_clockport_device = &mmc64_io1_clockport_device;
+					c64io_unregister(mmc64_clockport_list_item);
+					mmc64_clockport_list_item = c64io_register(mmc64_current_clockport_device);
 #ifdef HAVE_TFE
-                    tfe_clockport_changed();
+					tfe_clockport_changed();
 #endif
-                }
-                return;
-            }
+				}
+				return;
+			}
 #ifdef LOG_WRITE_DF11
-            else {
-                LOG(("MMC64: unhandled IO2 ST %04x %02x", addr, value));
-            }
+			else {
+				LOG(("MMC64: unhandled IO2 ST %04x %02x", addr, value));
+			}
 #endif
-            break;
+			break;
 
-        case 2:  /* MMC64 status register, read only */
-            break;
+		case 2:  /* MMC64 status register, read only */
+			break;
 
-        case 3:  /* MMC64 identification register, also used for unlocking sequences */
-            mmc64_unlocking[0] = mmc64_unlocking[1];
-            mmc64_unlocking[1] = value;
-            if ((mmc64_unlocking[0] == 0x55) && (mmc64_unlocking[1] == 0xaa)) {
-                LOG(("MMC64: bit 7 unlocked"));
-                mmc64_bit7_unlocked=1;    /* unlock bit 7 of $DF11 */
-            } else if ((mmc64_unlocking[0] == 0x0a) && (mmc64_unlocking[1] == 0x1c)) {
-                LOG(("MMC64: mmc64 reenabled"));
-                mmc64_active = 0;
+		case 3:  /* MMC64 identification register, also used for unlocking sequences */
+			mmc64_unlocking[0] = mmc64_unlocking[1];
+			mmc64_unlocking[1] = value;
+			if ((mmc64_unlocking[0] == 0x55) && (mmc64_unlocking[1] == 0xaa)) {
+				LOG(("MMC64: bit 7 unlocked"));
+				mmc64_bit7_unlocked=1;    /* unlock bit 7 of $DF11 */
+			} else if ((mmc64_unlocking[0] == 0x0a) && (mmc64_unlocking[1] == 0x1c)) {
+				LOG(("MMC64: mmc64 reenabled"));
+				mmc64_active = 0;
 #if USEPASSTHROUGHHACK
-                export.exrom = 1;
-                mem_pla_config_changed();   /* re-enable the MMC64 */
+				export.exrom = 1;
+				mem_pla_config_changed();   /* re-enable the MMC64 */
 #else
-                cartridge_config_changed(2, 0, CMODE_READ);
+				cartridge_config_changed(2, 0, CMODE_READ);
 #endif
-            }
+			}
 #ifdef LOG_WRITE_DF11
-            else {
-                LOG(("MMC64: unhandled IO2 ST %04x %02x", addr, value));
-            }
+			else {
+				LOG(("MMC64: unhandled IO2 ST %04x %02x", addr, value));
+			}
 #endif
-            break;
+			break;
 
-        default:      /* Not for us */
-            return;
-  }
+		default:      /* Not for us */
+			return;
+	}
 }
 
 static void REGPARM2 mmc64_io1_store(WORD addr, BYTE value)
@@ -914,7 +914,6 @@ const char *mmc64_get_file_name(void)
 
 void mmc64_init(void)
 {
-    mmc64_log = log_open("MMC64");
 }
 
 void mmc64_config_setup(BYTE *rawcart)

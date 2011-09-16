@@ -33,7 +33,6 @@
 #include "c64gluelogic.h"
 #include "c64mem.h"
 #include "cmdline.h"
-#include "log.h"
 #include "maincpu.h"
 #include "resources.h"
 #include "snapshot.h"
@@ -50,11 +49,10 @@ static alarm_t *glue_alarm = NULL;
 
 static void perform_vbank_switch(int vbank)
 {
-    if (c64_256k_enabled) {
-        c64_256k_cia_set_vbank(vbank);
-    } else {
-        mem_set_vbank(vbank);
-    }
+	if (c64_256k_enabled)
+		c64_256k_cia_set_vbank(vbank);
+	else
+		mem_set_vbank(vbank);
 }
 
 static void glue_alarm_set(void)
@@ -65,55 +63,57 @@ static void glue_alarm_set(void)
 
 static void glue_alarm_unset(void)
 {
-    alarm_unset(glue_alarm);
-    glue_alarm_active = 0;
+	alarm_unset(glue_alarm);
+	glue_alarm_active = 0;
 }
 
 static void glue_alarm_handler(CLOCK offset, void *data)
 {
-    perform_vbank_switch(old_vbank);
-    glue_alarm_unset();
+	perform_vbank_switch(old_vbank);
+	glue_alarm_unset();
 }
 
 /* ------------------------------------------------------------------------- */
 
 void c64_glue_undump(int vbank)
 {
-    perform_vbank_switch(vbank);
-    old_vbank = vbank;
+	perform_vbank_switch(vbank);
+	old_vbank = vbank;
 }
 
 void c64_glue_set_vbank(int vbank, int ddr_flag)
 {
-    int new_vbank = vbank;
-    int update_now = 1;
+	int new_vbank = vbank;
+	int update_now = 1;
 
-    if (glue_logic_type == 1) {
-        if (((old_vbank ^ vbank) == 3) && ((vbank & (vbank - 1)) == 0) && (vbank != 0)) {
-            new_vbank = 3;
-            glue_alarm_set();
-        } else if (ddr_flag && (vbank < old_vbank) && ((old_vbank ^ vbank) != 3)) {
-            /* this is not quite accurate; the results flicker in some cases */
-            update_now = 0;
-            glue_alarm_set();
-        }
-    }
+	if (glue_logic_type == 1)
+	{
+		if (((old_vbank ^ vbank) == 3) && ((vbank & (vbank - 1)) == 0) && (vbank != 0))
+		{
+			new_vbank = 3;
+			glue_alarm_set();
+		}
+		else if (ddr_flag && (vbank < old_vbank) && ((old_vbank ^ vbank) != 3))
+		{
+			/* this is not quite accurate; the results flicker in some cases */
+			update_now = 0;
+			glue_alarm_set();
+		}
+	}
 
-    if (update_now) {
-        perform_vbank_switch(new_vbank);
-    }
+	if (update_now)
+		perform_vbank_switch(new_vbank);
 
-    old_vbank = vbank;
+	old_vbank = vbank;
 }
 
 void c64_glue_reset(void)
 {
-    if (glue_alarm_active) {
-        glue_alarm_unset();
-    }
+	if (glue_alarm_active)
+		glue_alarm_unset();
 
-    old_vbank = 0;
-    perform_vbank_switch(old_vbank);
+	old_vbank = 0;
+	perform_vbank_switch(old_vbank);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -162,80 +162,69 @@ static char snap_module_name[] = "GLUE";
 
 int c64_glue_snapshot_write_module(snapshot_t *s)
 {
-    snapshot_module_t *m;
+	snapshot_module_t *m;
 
-    m = snapshot_module_create(s, snap_module_name, SNAP_MAJOR, SNAP_MINOR);
-    if (m == NULL) {
-        return -1;
-    }
+	m = snapshot_module_create(s, snap_module_name, SNAP_MAJOR, SNAP_MINOR);
+	if (m == NULL)
+		return -1;
 
-    if (0
-        || SMW_B(m, (BYTE)glue_logic_type) < 0
-        || SMW_B(m, (BYTE)old_vbank) < 0
-        || SMW_B(m, (BYTE)glue_alarm_active) < 0) {
-        goto fail;
-    }
+	if (0 || SMW_B(m, (BYTE)glue_logic_type) < 0 || SMW_B(m, (BYTE)old_vbank) < 0 || SMW_B(m, (BYTE)glue_alarm_active) < 0)
+		goto fail;
 
-    return snapshot_module_close(m);
+	return snapshot_module_close(m);
 
 fail:
-    if (m != NULL) {
-        snapshot_module_close(m);
-    }
-    return -1;
+	if (m != NULL)
+		snapshot_module_close(m);
+	return -1;
 }
 
 int c64_glue_snapshot_read_module(snapshot_t *s)
 {
-    BYTE major_version, minor_version;
-    int snap_type, snap_alarm_active;
-    snapshot_module_t *m;
+	BYTE major_version, minor_version;
+	int snap_type, snap_alarm_active;
+	snapshot_module_t *m;
 
-    m = snapshot_module_open(s, snap_module_name,
-                             &major_version, &minor_version);
-    if (m == NULL) {
-        return -1;
-    }
+	m = snapshot_module_open(s, snap_module_name, &major_version, &minor_version);
 
-    if (major_version > SNAP_MAJOR || minor_version > SNAP_MINOR) {
-        log_error(LOG_ERR,
-                  "GlueLogic: Snapshot module version (%d.%d) newer than %d.%d.",
-                  major_version, minor_version,
-                  SNAP_MAJOR, SNAP_MINOR);
-        goto fail;
-    }
+	if (m == NULL)
+		return -1;
 
-    if (0
-        || SMR_B_INT(m, &snap_type) < 0
-        || SMR_B_INT(m, &old_vbank) < 0
-        || SMR_B_INT(m, &snap_alarm_active) < 0) {
-        goto fail;
-    }
+	if (major_version > SNAP_MAJOR || minor_version > SNAP_MINOR)
+	{
+#ifdef CELL_DEBUG
+		printf("WARNING: GlueLogic: Snapshot module version (%d.%d) newer than %d.%d.\n", major_version, minor_version, SNAP_MAJOR, SNAP_MINOR);
+#endif
+		goto fail;
+	}
 
-    if (snap_type != glue_logic_type) {
-        log_warning(LOG_DEFAULT,
-                    "GlueLogic: Snapshot type %i differs from selected type %i, changing.",
-                    snap_type, glue_logic_type);
-        glue_logic_type = snap_type;
-    }
+	if (0 || SMR_B_INT(m, &snap_type) < 0 || SMR_B_INT(m, &old_vbank) < 0 || SMR_B_INT(m, &snap_alarm_active) < 0)
+		goto fail;
 
-    if (glue_alarm_active) {
-        glue_alarm_unset();
-    }
+	if (snap_type != glue_logic_type)
+	{
+#ifdef CELL_DEBUG
+		printf("GlueLogic: Snapshot type %i differs from selected type %i, changing.\n", snap_type, glue_logic_type);
+#endif
+		glue_logic_type = snap_type;
+	}
 
-    glue_alarm_active = snap_alarm_active;
+	if (glue_alarm_active) {
+		glue_alarm_unset();
+	}
 
-    if (glue_alarm_active && (glue_logic_type == 1)) {
-        glue_alarm_set();
-    }
+	glue_alarm_active = snap_alarm_active;
 
-    snapshot_module_close(m);
-    return 0;
+	if (glue_alarm_active && (glue_logic_type == 1)) {
+		glue_alarm_set();
+	}
+
+	snapshot_module_close(m);
+	return 0;
 
 fail:
-    if (m != NULL) {
-        snapshot_module_close(m);
-    }
-    return -1;
+	if (m != NULL)
+		snapshot_module_close(m);
+	return -1;
 }
 

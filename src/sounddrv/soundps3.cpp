@@ -32,7 +32,6 @@
 
 extern "C" {
 #include "lib.h"
-#include "log.h"
 }
 #include "sound.h"
 
@@ -57,7 +56,7 @@ static int num_channels;
  */
 
 
-static int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fragnr, int *channels)
+int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fragnr, int *channels)
 {
 	#ifdef CELL_DEBUG
 	printf("PS3 Audio : ps3_audio_init called with speed=%d, fragsiz=%d, fragnr=%d, channels=%d\n", *speed, *fragsize, *fragnr, *channels);
@@ -106,7 +105,7 @@ static int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fra
 	return 0;
 }
 
-static int ps3_audio_write(SWORD *pbuf, size_t nr)
+int ps3_audio_write(SWORD *pbuf, size_t nr)
 {
 	SWORD *stereo_ptr; 
 	SWORD *mono_ptr; 
@@ -156,12 +155,12 @@ static int ps3_audio_write(SWORD *pbuf, size_t nr)
 	return 0;
 }
 
-static int ps3_audio_bufferspace(void)
+int ps3_audio_bufferspace(void)
 {
 	return CellAudio->write_avail();
 }
 
-static void ps3_audio_close(void)
+void ps3_audio_close(void)
 {
 	if (stereo_pbuf)
 	{

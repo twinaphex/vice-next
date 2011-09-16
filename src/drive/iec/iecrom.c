@@ -33,16 +33,11 @@
 #include "driverom.h"
 #include "drivetypes.h"
 #include "iecrom.h"
-#include "log.h"
 #include "resources.h"
 #include "sysfile.h"
 
 
 #define DRIVE_ROM1541_CHECKSUM      1991711
-
-
-/* Logging goes here.  */
-static log_t iecrom_log;
 
 static BYTE drive_rom1541[DRIVE_ROM1541_SIZE_EXPANDED];
 static BYTE drive_rom1541ii[DRIVE_ROM1541II_SIZE_EXPANDED];
@@ -91,129 +86,143 @@ static int iecrom_do_1541_checksum(void)
         i < DRIVE_ROM1541_SIZE_EXPANDED; i++)
         s += drive_rom1541[i];
 
+#ifdef CELL_DEBUG
     if (s != DRIVE_ROM1541_CHECKSUM)
-        log_warning(iecrom_log, "Unknown 1541 ROM image.  Sum: %lu.", s);
+        printf("ERROR: Unknown 1541 ROM image.  Sum: %lu.\n", s);
+#endif
 
     return 0;
 }
 
 int iecrom_load_1541(void)
 {
-    const char *rom_name = NULL;
-    int filesize;
+	const char *rom_name = NULL;
+	int filesize;
 
-    if (!drive_rom_load_ok)
-        return 0;
+	if (!drive_rom_load_ok)
+		return 0;
 
-    resources_get_string("DosName1541", &rom_name);
+	resources_get_string("DosName1541", &rom_name);
 
-    filesize = sysfile_load(rom_name, drive_rom1541, DRIVE_ROM1541_SIZE,
-                            DRIVE_ROM1541_SIZE_EXPANDED);
-    if (filesize < 0) {
-        log_error(iecrom_log,
-                  "1541 ROM image not found.  "
-                  "Hardware-level 1541 emulation is not available.");
-        drive_rom1541_size = 0;
-    } else {
-        rom1541_loaded = 1;
-        drive_rom1541_size = (unsigned int)filesize;
-        iecrom_do_1541_checksum();
-        iecrom_new_image_loaded(DRIVE_TYPE_1541);
-        return 0;
-    }
-    return -1;
+	filesize = sysfile_load(rom_name, drive_rom1541, DRIVE_ROM1541_SIZE,
+			DRIVE_ROM1541_SIZE_EXPANDED);
+	if (filesize < 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: 1541 ROM image not found.\nHardware-level 1541 emulation is not available.\n");
+		#endif
+		drive_rom1541_size = 0;
+	}
+	else
+	{
+		rom1541_loaded = 1;
+		drive_rom1541_size = (unsigned int)filesize;
+		iecrom_do_1541_checksum();
+		iecrom_new_image_loaded(DRIVE_TYPE_1541);
+		return 0;
+	}
+	return -1;
 }
 
 int iecrom_load_1541ii(void)
 {
-    const char *rom_name = NULL;
-    int filesize;
+	const char *rom_name = NULL;
+	int filesize;
 
-    if (!drive_rom_load_ok)
-        return 0;
+	if (!drive_rom_load_ok)
+		return 0;
 
-    resources_get_string("DosName1541ii", &rom_name);
+	resources_get_string("DosName1541ii", &rom_name);
 
-    filesize = sysfile_load(rom_name, drive_rom1541ii, DRIVE_ROM1541II_SIZE,
-                            DRIVE_ROM1541II_SIZE_EXPANDED);
-    if (filesize < 0) {
-        log_error(iecrom_log,
-                  "1541-II ROM image not found.  "
-                  "Hardware-level 1541-II emulation is not available.");
-        drive_rom1541ii_size = 0;
-    } else {
-        rom1541ii_loaded = 1;
-        drive_rom1541ii_size = (unsigned int)filesize;
-        iecrom_new_image_loaded(DRIVE_TYPE_1541II);
-        return 0;
-    }
-    return -1;
+	filesize = sysfile_load(rom_name, drive_rom1541ii, DRIVE_ROM1541II_SIZE,
+			DRIVE_ROM1541II_SIZE_EXPANDED);
+	if (filesize < 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: 1541-II ROM image not found.\nHardware-level 1541-II emulation is not available.\n");
+		#endif
+		drive_rom1541ii_size = 0;
+	}
+	else
+	{
+		rom1541ii_loaded = 1;
+		drive_rom1541ii_size = (unsigned int)filesize;
+		iecrom_new_image_loaded(DRIVE_TYPE_1541II);
+		return 0;
+	}
+	return -1;
 }
 
 int iecrom_load_1570(void)
 {
-    const char *rom_name = NULL;
+	const char *rom_name = NULL;
 
-    if (!drive_rom_load_ok)
-        return 0;
+	if (!drive_rom_load_ok)
+		return 0;
 
-    resources_get_string("DosName1570", &rom_name);
+	resources_get_string("DosName1570", &rom_name);
 
-    if (sysfile_load(rom_name, drive_rom1570, DRIVE_ROM1571_SIZE,
-                     DRIVE_ROM1571_SIZE) < 0) {
-        log_error(iecrom_log,
-                  "1570 ROM image not found.  "
-                  "Hardware-level 1570 emulation is not available.");
-    } else {
-        rom1570_loaded = 1;
-        iecrom_new_image_loaded(DRIVE_TYPE_1570);
-        return 0;
-    }
-    return -1;
+	if (sysfile_load(rom_name, drive_rom1570, DRIVE_ROM1571_SIZE, DRIVE_ROM1571_SIZE) < 0)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: 1570 ROM image not found.\n Hardware-level 1570 emulation is not available.\n");
+#endif
+	}
+	else
+	{
+		rom1570_loaded = 1;
+		iecrom_new_image_loaded(DRIVE_TYPE_1570);
+		return 0;
+	}
+	return -1;
 }
 
 int iecrom_load_1571(void)
 {
-    const char *rom_name = NULL;
+	const char *rom_name = NULL;
 
-    if (!drive_rom_load_ok)
-        return 0;
+	if (!drive_rom_load_ok)
+		return 0;
 
-    resources_get_string("DosName1571", &rom_name);
+	resources_get_string("DosName1571", &rom_name);
 
-    if (sysfile_load(rom_name, drive_rom1571, DRIVE_ROM1571_SIZE,
-                     DRIVE_ROM1571_SIZE) < 0) {
-        log_error(iecrom_log,
-                  "1571 ROM image not found.  "
-                  "Hardware-level 1571 emulation is not available.");
-    } else {
-        rom1571_loaded = 1;
-        iecrom_new_image_loaded(DRIVE_TYPE_1571);
-        return 0;
-    }
-    return -1;
+	if (sysfile_load(rom_name, drive_rom1571, DRIVE_ROM1571_SIZE, DRIVE_ROM1571_SIZE) < 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: 1571 ROM image not found.\nHardware-level 1571 emulation is not available.\n");
+		#endif
+	}
+	else
+	{
+		rom1571_loaded = 1;
+		iecrom_new_image_loaded(DRIVE_TYPE_1571);
+		return 0;
+	}
+	return -1;
 }
 
 int iecrom_load_1581(void)
 {
-    const char *rom_name = NULL;
+	const char *rom_name = NULL;
 
-    if (!drive_rom_load_ok)
-        return 0;
+	if (!drive_rom_load_ok)
+		return 0;
 
-    resources_get_string("DosName1581", &rom_name);
+	resources_get_string("DosName1581", &rom_name);
 
-    if (sysfile_load(rom_name, drive_rom1581, DRIVE_ROM1581_SIZE,
-                     DRIVE_ROM1581_SIZE) < 0) {
-        log_error(iecrom_log,
-                  "1581 ROM image not found.  "
-                  "Hardware-level 1581 emulation is not available.");
-    } else {
-        rom1581_loaded = 1;
-        iecrom_new_image_loaded(DRIVE_TYPE_1581);
-        return 0;
-    }
-    return -1;
+	if (sysfile_load(rom_name, drive_rom1581, DRIVE_ROM1581_SIZE, DRIVE_ROM1581_SIZE) < 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: 1581 ROM image not found.\nHardware-level 1581 emulation is not available.\n");
+		#endif
+	}
+	else
+	{
+		rom1581_loaded = 1;
+		iecrom_new_image_loaded(DRIVE_TYPE_1581);
+		return 0;
+	}
+	return -1;
 }
 
 void iecrom_setup_image(drive_t *drive)
@@ -327,6 +336,5 @@ void iecrom_do_checksum(drive_t *drive)
 
 void iecrom_init(void)
 {
-    iecrom_log = log_open("IECDriveROM");
 }
 

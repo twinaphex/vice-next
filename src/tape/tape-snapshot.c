@@ -32,7 +32,6 @@
 #include "archdep.h"
 #include "datasette.h"
 #include "lib.h"
-#include "log.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "t64.h"
@@ -40,10 +39,6 @@
 #include "tape-snapshot.h"
 #include "tape.h"
 #include "types.h"
-
-
-/* Logging.  */
-static log_t tape_snapshot_log = LOG_ERR;
 
 
 #define T64IMAGE_SNAP_MAJOR 1
@@ -82,7 +77,7 @@ static int tape_snapshot_write_tapimage_module(snapshot_t *s)
     /* get the file descriptor */
     ftap = ((tap_t*)tape_image_dev1->data)->fd;
     if (!ftap) {
-        log_error(tape_snapshot_log, "Cannot open tapfile for reading");
+        //log_error(tape_snapshot_log, "Cannot open tapfile for reading");
         return -1;
     }
 
@@ -91,19 +86,19 @@ static int tape_snapshot_write_tapimage_module(snapshot_t *s)
 
     /* move to end and get size of file */
     if (fseek(ftap, 0, SEEK_END) != 0) {
-        log_error(tape_snapshot_log, "Cannot move to end of tapfile");
+        //log_error(tape_snapshot_log, "Cannot move to end of tapfile");
         return -1;
     }
 
     tap_size = ftell(ftap);
     if (SMW_DW(m, tap_size)) {
         fseek(ftap, pos, SEEK_SET);
-        log_error(tape_snapshot_log, "Cannot write size of tap image");
+        //log_error(tape_snapshot_log, "Cannot write size of tap image");
     }
 
     /* move to beginning */
     if (fseek(ftap, 0, SEEK_SET) != 0) {
-        log_error(tape_snapshot_log, "Cannot move to beginning of tapfile");
+        //log_error(tape_snapshot_log, "Cannot move to beginning of tapfile");
         return -1;
     }
 
@@ -111,7 +106,7 @@ static int tape_snapshot_write_tapimage_module(snapshot_t *s)
     while (tap_size > 0) {
         i = (int)fread(buffer, 1, 256, ftap);
         if (SMW_BA(m, buffer, i) < 0) {
-            log_error(tape_snapshot_log, "Cannot write tap image");
+            //log_error(tape_snapshot_log, "Cannot write tap image");
             fseek(ftap, pos, SEEK_SET);
             return -1;
         }
@@ -130,60 +125,59 @@ static int tape_snapshot_write_tapimage_module(snapshot_t *s)
 
 static int tape_snapshot_read_tapimage_module(snapshot_t *s)
 {
-    BYTE major_version, minor_version;
-    snapshot_module_t *m;
-    char *filename = NULL;
-    FILE *ftap;
-    BYTE *buffer;
-    long tap_size;
+	BYTE major_version, minor_version;
+	snapshot_module_t *m;
+	char *filename = NULL;
+	FILE *ftap;
+	BYTE *buffer;
+	long tap_size;
 
-    m = snapshot_module_open(s, "TAPIMAGE",
-                             &major_version, &minor_version);
-    if (m == NULL)
-        return 0;
+	m = snapshot_module_open(s, "TAPIMAGE",
+			&major_version, &minor_version);
+	if (m == NULL)
+		return 0;
 
-    if (major_version > TAPIMAGE_SNAP_MAJOR
-        || minor_version > TAPIMAGE_SNAP_MINOR) {
-        log_error(tape_snapshot_log,
-                  "Snapshot module version (%d.%d) newer than %d.%d.",
-                  major_version, minor_version,
-                  TAPIMAGE_SNAP_MAJOR, TAPIMAGE_SNAP_MINOR);
-    }
+#if 0
+	if (major_version > TAPIMAGE_SNAP_MAJOR || minor_version > TAPIMAGE_SNAP_MINOR)
+	{
+		log_error(tape_snapshot_log, "Snapshot module version (%d.%d) newer than %d.%d.", major_version, minor_version, TAPIMAGE_SNAP_MAJOR, TAPIMAGE_SNAP_MINOR);
+	}
+#endif
 
-    /* create temporary file */
-    /* FIXME: Were is this file deleted? */
-    ftap = archdep_mkstemp_fd(&filename, MODE_WRITE);
+	/* create temporary file */
+	/* FIXME: Were is this file deleted? */
+	ftap = archdep_mkstemp_fd(&filename, MODE_WRITE);
 
-    if (ftap == NULL) {
-        log_error(tape_snapshot_log, "Could not create temporary file!");
-        snapshot_module_close(m);
-        goto fail;
-    }
+	if (ftap == NULL) {
+		//log_error(tape_snapshot_log, "Could not create temporary file!");
+		snapshot_module_close(m);
+		goto fail;
+	}
 
-    SMR_DW_UL(m, (unsigned long *)&tap_size);
+	SMR_DW_UL(m, (unsigned long *)&tap_size);
 
-    buffer = lib_malloc(tap_size);
+	buffer = lib_malloc(tap_size);
 
-    SMR_BA(m, buffer, tap_size);
+	SMR_BA(m, buffer, tap_size);
 
-    if (fwrite(buffer, tap_size, 1, ftap) != 1) {
-        log_error(tape_snapshot_log, "Could not create temporary file");
-        log_error(tape_snapshot_log, "filename=%s", filename);
-        snapshot_module_close(m);
-        fclose(ftap);
-        goto fail;
-    }
+	if (fwrite(buffer, tap_size, 1, ftap) != 1) {
+		//log_error(tape_snapshot_log, "Could not create temporary file");
+		//log_error(tape_snapshot_log, "filename=%s", filename);
+		snapshot_module_close(m);
+		fclose(ftap);
+		goto fail;
+	}
 
-    lib_free(buffer);
-    fclose(ftap);
-    tape_image_attach(1, filename);
-    lib_free(filename);
-    snapshot_module_close(m);
-    return 0;
+	lib_free(buffer);
+	fclose(ftap);
+	tape_image_attach(1, filename);
+	lib_free(filename);
+	snapshot_module_close(m);
+	return 0;
 
 fail:
-    lib_free(filename);
-    return -1;
+	lib_free(filename);
+	return -1;
 }
 
 
@@ -273,77 +267,79 @@ int tape_snapshot_write_module(snapshot_t *s, int save_image)
 
 int tape_snapshot_read_module(snapshot_t *s)
 {
-    BYTE major_version, minor_version;
-    snapshot_module_t *m;
-    unsigned int snap_type;
-    char snap_module_name[] = "TAPE";
-    tap_t *tap;
-    t64_t *t64;
+	BYTE major_version, minor_version;
+	snapshot_module_t *m;
+	unsigned int snap_type;
+	char snap_module_name[] = "TAPE";
+	tap_t *tap;
+	t64_t *t64;
 
 
-    if (tape_snapshot_read_tapimage_module(s) < 0
-        || tape_snapshot_read_t64image_module(s) < 0)
-        return -1;
+	if (tape_snapshot_read_tapimage_module(s) < 0
+			|| tape_snapshot_read_t64image_module(s) < 0)
+		return -1;
 
 
-    m = snapshot_module_open(s, snap_module_name,
-                             &major_version, &minor_version);
+	m = snapshot_module_open(s, snap_module_name,
+			&major_version, &minor_version);
 
-    if (m == NULL) {
-        /* no tape attached */
-        tape_image_detach_internal(1);
-        return 0;
-    }
+	if (m == NULL) {
+		/* no tape attached */
+		tape_image_detach_internal(1);
+		return 0;
+	}
 
-    if (0
-        || SMR_B_INT(m, (int *)&tape_image_dev1->read_only) < 0 
-        || SMR_B_INT(m, (int *)&snap_type) < 0) 
-    {
-        snapshot_module_close(m);
-        return -1;
-    }
+	if (0
+			|| SMR_B_INT(m, (int *)&tape_image_dev1->read_only) < 0 
+			|| SMR_B_INT(m, (int *)&snap_type) < 0) 
+	{
+		snapshot_module_close(m);
+		return -1;
+	}
 
-    if (snap_type != tape_image_dev1->type) {
-        /* attached image type is not correct */
-        log_error(tape_snapshot_log,
-            "No tape image attached or type not correct.");
-        snapshot_module_close(m);
-        return -1;
-    }
+	if (snap_type != tape_image_dev1->type)
+	{
+		/* attached image type is not correct */
+#ifdef CELL_DEBUG
+		printf("ERROR: No tape image attached or type not correct.\n");
+#endif
+		snapshot_module_close(m);
+		return -1;
+	}
 
-    switch (tape_image_dev1->type) {
-        case TAPE_TYPE_T64:
-            t64 = (t64_t*)tape_image_dev1->data;
-            break;
-        case TAPE_TYPE_TAP:
-            tap = (tap_t*)tape_image_dev1->data;
-            if (tap == NULL
-                || SMR_DW(m, (DWORD*)&tap->size) < 0
-                || SMR_B(m, &tap->version) < 0
-                || SMR_B(m, &tap->system) < 0
-                || SMR_DW(m, (DWORD*)&tap->current_file_seek_position) < 0
-                || SMR_DW(m, (DWORD*)&tap->offset) < 0
-                || SMR_DW(m, (DWORD*)&tap->cycle_counter) < 0
-                || SMR_DW(m, (DWORD*)&tap->cycle_counter_total) < 0
-                || SMR_DW(m, (DWORD*)&tap->counter) < 0
-                || SMR_DW(m, (DWORD*)&tap->mode) < 0
-                || SMR_DW(m, (DWORD*)&tap->read_only) < 0
-                || SMR_DW(m, (DWORD*)&tap->has_changed) < 0)
-            {
-                snapshot_module_close(m);
-                return -1;
-            }
+	switch (tape_image_dev1->type) {
+		case TAPE_TYPE_T64:
+			t64 = (t64_t*)tape_image_dev1->data;
+			break;
+		case TAPE_TYPE_TAP:
+			tap = (tap_t*)tape_image_dev1->data;
+			if (tap == NULL
+					|| SMR_DW(m, (DWORD*)&tap->size) < 0
+					|| SMR_B(m, &tap->version) < 0
+					|| SMR_B(m, &tap->system) < 0
+					|| SMR_DW(m, (DWORD*)&tap->current_file_seek_position) < 0
+					|| SMR_DW(m, (DWORD*)&tap->offset) < 0
+					|| SMR_DW(m, (DWORD*)&tap->cycle_counter) < 0
+					|| SMR_DW(m, (DWORD*)&tap->cycle_counter_total) < 0
+					|| SMR_DW(m, (DWORD*)&tap->counter) < 0
+					|| SMR_DW(m, (DWORD*)&tap->mode) < 0
+					|| SMR_DW(m, (DWORD*)&tap->read_only) < 0
+					|| SMR_DW(m, (DWORD*)&tap->has_changed) < 0)
+			{
+				snapshot_module_close(m);
+				return -1;
+			}
 
-            break;
-        default:
-            break;
-    }
+			break;
+		default:
+			break;
+	}
 
-    snapshot_module_close(m);
+	snapshot_module_close(m);
 
-    if (datasette_read_snapshot(s) < 0)
-        return -1;
+	if (datasette_read_snapshot(s) < 0)
+		return -1;
 
-    return 0;
+	return 0;
 }
 

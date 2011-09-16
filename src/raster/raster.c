@@ -35,7 +35,6 @@
 #include <string.h>
 
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "raster-cache.h"
 #include "raster-canvas.h"

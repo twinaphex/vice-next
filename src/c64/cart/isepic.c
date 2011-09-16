@@ -73,7 +73,6 @@
 #include "crt.h"
 #include "isepic.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "mem.h"
 #include "resources.h"

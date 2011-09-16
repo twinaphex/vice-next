@@ -31,7 +31,6 @@
 #include <stdio.h>
 
 #include "asm.h"
-#include "log.h"
 #include "mon_disassemble.h"
 #include "mon_util.h"
 #include "monitor.h"
@@ -384,29 +383,32 @@ unsigned mon_disassemble_instr(MON_ADDR addr)
 
 void mon_disassemble_lines(MON_ADDR start_addr, MON_ADDR end_addr)
 {
-    MEMSPACE mem;
-    unsigned end_loc;
-    long len, i, bytes;
+	MEMSPACE mem;
+	unsigned end_loc;
+	long len, i, bytes;
 
-    len = mon_evaluate_address_range(&start_addr, &end_addr, FALSE,
-                                     DEFAULT_DISASSEMBLY_SIZE);
+	len = mon_evaluate_address_range(&start_addr, &end_addr, FALSE,
+			DEFAULT_DISASSEMBLY_SIZE);
 
-    if (len < 0) {
-        log_error(LOG_ERR, "Invalid address range");
-        return;
-    }
+	if (len < 0)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Invalid address range\n");
+#endif
+		return;
+	}
 
-    mem = addr_memspace(start_addr);
-    dot_addr[mem] = start_addr;
-    end_loc = addr_location(end_addr);
+	mem = addr_memspace(start_addr);
+	dot_addr[mem] = start_addr;
+	end_loc = addr_location(end_addr);
 
-    i = 0;
-    while (i <= len) {
-        bytes = mon_disassemble_instr(dot_addr[mem]);
-        i += bytes;
-        mon_inc_addr_location(&(dot_addr[mem]), bytes);
-        if (mon_stop_output != 0)
-            break;
-    }
+	i = 0;
+	while (i <= len) {
+		bytes = mon_disassemble_instr(dot_addr[mem]);
+		i += bytes;
+		mon_inc_addr_location(&(dot_addr[mem]), bytes);
+		if (mon_stop_output != 0)
+			break;
+	}
 }
 

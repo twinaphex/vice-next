@@ -34,7 +34,6 @@
 #include "clkguard.h"
 #include "interrupt.h"
 #include "lib.h"
-#include "log.h"
 #include "snapshot.h"
 #include "types.h"
 #include "via.h"
@@ -872,7 +871,6 @@ void viacore_setup_context(via_context_t *via_context)
     via_context->read_clk = 0;
     via_context->read_offset = 0;
     via_context->last_read = 0;
-    via_context->log = LOG_ERR;
 
     via_context->my_module_name_alt1 = NULL;
     via_context->my_module_name_alt2 = NULL;
@@ -884,9 +882,6 @@ void viacore_init(via_context_t *via_context, alarm_context_t *alarm_context,
                   interrupt_cpu_status_t *int_status, clk_guard_t *clk_guard)
 {
     char *buffer;
-
-    if (via_context->log == LOG_ERR)
-        via_context->log = log_open(via_context->my_module_name);
 
     buffer = lib_msprintf("%sT1", via_context->myname);
     via_context->t1_alarm = alarm_new(alarm_context, buffer, viacore_intt1,
@@ -1029,9 +1024,7 @@ int viacore_snapshot_read_module(via_context_t *via_context, snapshot_t *s)
     }
 
     if (vmajor != VIA_DUMP_VER_MAJOR) {
-        log_error(via_context->log,
-                  "Snapshot module version (%d.%d) newer than %d.%d.",
-                  vmajor, vminor, VIA_DUMP_VER_MAJOR, VIA_DUMP_VER_MINOR);
+        //log_error(via_context->log, "Snapshot module version (%d.%d) newer than %d.%d.", vmajor, vminor, VIA_DUMP_VER_MAJOR, VIA_DUMP_VER_MINOR);
         snapshot_module_close(m);
         return -1;
     }

@@ -48,7 +48,6 @@
 #include "snapshot.h"
 #include "uiapi.h"
 #include "types.h"
-#include "log.h"
 #include "resources.h"
 
 #define JOYSTICK_RAND() (rand() % machine_get_cycles_per_frame())

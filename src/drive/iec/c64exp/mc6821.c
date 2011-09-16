@@ -35,7 +35,6 @@
 #include "drivemem.h"
 #include "drivetypes.h"
 #include "iecdrive.h"
-#include "log.h"
 #include "mc6821.h"
 
 

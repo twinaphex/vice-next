@@ -35,7 +35,6 @@
 
 #include "cmdline.h"
 #include "lib.h"
-#include "log.h"
 #include "monitor.h"
 #include "monitor_network.h"
 #include "resources.h"
@@ -76,163 +75,165 @@ static void monitor_network_quit(void)
 
 int monitor_network_receive(char * buffer, size_t buffer_length)
 {
-    int count = 0;
+	int count = 0;
 
-    do {
-        if ( ! connected_socket ) {
-            break;
-        }
+	do
+	{
+		if ( ! connected_socket )
+			break;
 
-        count = vice_network_receive(connected_socket, buffer, buffer_length, 0);
+		count = vice_network_receive(connected_socket, buffer, buffer_length, 0);
 
-        if (count < 0) {
-            log_message(LOG_DEFAULT, "monitor_network_receive(): vice_network_receive() returned -1, breaking connection");
-            monitor_network_quit();
-        }
+		if (count < 0)
+		{
+#ifdef CELL_DEBUG
+			printf("ERROR:monitor_network_receive(): vice_network_receive() returned -1, breaking connection\n");
+#endif
+			monitor_network_quit();
+		}
 
-    } while (0);
+	} while (0);
 
-    return count;
+	return count;
 }
 
 static int monitor_network_data_available(void)
 {
-    int available = 0;
+	int available = 0;
 
-    if (connected_socket != NULL) {
-        available = vice_network_select_poll_one(connected_socket);
-    }
-    else if (listen_socket!= NULL) {
-        /* we have no connection yet, allow for connection */
+	if (connected_socket != NULL)
+		available = vice_network_select_poll_one(connected_socket);
+	else if (listen_socket!= NULL)
+	{
+		/* we have no connection yet, allow for connection */
 
-        if (vice_network_select_poll_one(listen_socket)) {
-            connected_socket = vice_network_accept(listen_socket);
-        }
-    }
+		if (vice_network_select_poll_one(listen_socket))
+			connected_socket = vice_network_accept(listen_socket);
+	}
 
 
-    return available;
+	return available;
 }
 
 void monitor_check_remote(void)
 {
-    if (monitor_network_data_available())
-    {
-        monitor_startup_trap();
-    }
+	if (monitor_network_data_available())
+		monitor_startup_trap();
 }
 
 char * monitor_network_get_command_line(void)
 {
-    static char buffer[200] = { 0 };
-    static int bufferpos = 0;
+	static char buffer[200] = { 0 };
+	static int bufferpos = 0;
 
-    char * p = NULL;
-    char * cr_start = NULL;
-    char * cr_end = NULL;
+	char * p = NULL;
+	char * cr_start = NULL;
+	char * cr_end = NULL;
 
-    do {
-        if (monitor_network_data_available()) {
+	do {
+		if (monitor_network_data_available())
+		{
 
-            int n = monitor_network_receive(buffer + bufferpos, sizeof buffer - bufferpos - 1);
+			int n = monitor_network_receive(buffer + bufferpos, sizeof buffer - bufferpos - 1);
 
-            if (n > 0) {
-                bufferpos += n;
-            }
-            else if (n <= 0) {
-                monitor_network_quit();
-                break;
-            }
-        }
+			if (n > 0)
+				bufferpos += n;
+			else if (n <= 0)
+			{
+				monitor_network_quit();
+				break;
+			}
+		}
 
-        cr_start = strchr(buffer, '\n');
-        cr_end   = strchr(buffer, '\r');
+		cr_start = strchr(buffer, '\n');
+		cr_end   = strchr(buffer, '\r');
 
-        if (cr_start || cr_end) {
-            if (cr_start == NULL) {
-                cr_start = cr_end;
-            }
-            else if (cr_end == NULL) {
-                cr_end = cr_start;
-            }
-            else if (cr_end < cr_start) {
-                char * cr_temp = cr_end;
-                cr_end = cr_start;
-                cr_start = cr_temp;
-            }
+		if (cr_start || cr_end) {
+			if (cr_start == NULL) {
+				cr_start = cr_end;
+			}
+			else if (cr_end == NULL) {
+				cr_end = cr_start;
+			}
+			else if (cr_end < cr_start) {
+				char * cr_temp = cr_end;
+				cr_end = cr_start;
+				cr_start = cr_temp;
+			}
 
-            assert(cr_start != NULL);
-            assert(cr_end != NULL);
-        }
+			assert(cr_start != NULL);
+			assert(cr_end != NULL);
+		}
 
-        if (cr_start) {
-            assert(cr_end != NULL);
+		if (cr_start) {
+			assert(cr_end != NULL);
 
-            *cr_start = 0;
-            p = lib_stralloc(buffer);
+			*cr_start = 0;
+			p = lib_stralloc(buffer);
 
-            memmove(buffer, cr_end + 1, strlen(cr_end + 1) );
+			memmove(buffer, cr_end + 1, strlen(cr_end + 1) );
 
-            bufferpos -= (int) strlen(p) + (cr_end - cr_start) + 1;
-            buffer[bufferpos] = 0;
-            break;
-        }
-        else if (bufferpos >= sizeof buffer) {
-            /* we have a command that is too large: 
-             * process it anyway, so the sender knows something is wrong
-             */
-            p = lib_stralloc(buffer);
-            bufferpos = 0;
-            buffer[0] = 0;
-            break;
-        }
+			bufferpos -= (int) strlen(p) + (cr_end - cr_start) + 1;
+			buffer[bufferpos] = 0;
+			break;
+		}
+		else if (bufferpos >= sizeof buffer) {
+			/* we have a command that is too large: 
+			 * process it anyway, so the sender knows something is wrong
+			 */
+			p = lib_stralloc(buffer);
+			bufferpos = 0;
+			buffer[0] = 0;
+			break;
+		}
 
-        ui_dispatch_next_event();
+		ui_dispatch_next_event();
 
-    } while (1);
+	} while (1);
 
-    return p;
+	return p;
 }
 
 static int monitor_network_activate(void)
 {
-    vice_network_socket_address_t * server_addr = NULL;
-    int error = 1;
-   
-    do {
-        if ( ! monitor_server_address ) {
-            break;
-        }
+	vice_network_socket_address_t * server_addr = NULL;
+	int error = 1;
 
-        server_addr = vice_network_address_generate(monitor_server_address, 0);
-        if ( ! server_addr ) {
-            break;
-        }
+	do
+	{
+		if ( ! monitor_server_address ) {
+			break;
+		}
 
-        listen_socket = vice_network_server(server_addr);
-        if ( ! listen_socket ) {
-            break;
-        }
+		server_addr = vice_network_address_generate(monitor_server_address, 0);
+		if ( ! server_addr ) {
+			break;
+		}
 
-        error = 0;
+		listen_socket = vice_network_server(server_addr);
+		if ( ! listen_socket ) {
+			break;
+		}
 
-    } while (0);
+		error = 0;
 
-   if (server_addr) {
-       vice_network_address_close(server_addr);
-   }
+	} while (0);
 
-   return error;
+	if (server_addr)
+		vice_network_address_close(server_addr);
+
+	return error;
 }
 
 static int monitor_network_deactivate(void)
 {
-    if (listen_socket) {
-        vice_network_socket_close(listen_socket);
-        listen_socket = NULL;
-    }
+	if (listen_socket)
+	{
+		vice_network_socket_close(listen_socket);
+		listen_socket = NULL;
+	}
 
-    return 0;
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

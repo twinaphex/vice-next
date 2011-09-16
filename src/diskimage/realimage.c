@@ -27,14 +27,9 @@
 #include "vice.h"
 
 #include "diskimage.h"
-#include "log.h"
 #include "machine-bus.h"
 #include "realimage.h"
 #include "types.h"
-
-
-static log_t realimage_log = LOG_DEFAULT;
-
 
 void realimage_media_create(disk_image_t *image)
 {
@@ -76,6 +71,5 @@ int realimage_write_sector(disk_image_t *image, BYTE *buf, unsigned int track,
 
 void realimage_init(void)
 {
-    realimage_log = log_open("Real Image");
 }
 

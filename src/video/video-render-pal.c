@@ -30,7 +30,6 @@
 
 #include <stdio.h>
 
-#include "log.h"
 #include "machine.h"
 #include "render1x1.h"
 #include "render1x1pal.h"
@@ -217,7 +216,7 @@ static void video_render_pal_main(video_render_config_t *config,
             }
         }
     }
-    log_debug("video_render_pal_main unsupported rendermode (%d)\n", rendermode);
+    //log_debug("video_render_pal_main unsupported rendermode (%d)\n", rendermode);
 }
 
 void video_render_pal_init(void)

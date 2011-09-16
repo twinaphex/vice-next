@@ -29,38 +29,39 @@
 #include <stdlib.h>
 
 #include "lib.h"
-#include "log.h"
 #include "tape-internal.h"
 #include "tape.h"
 
 
 int tape_internal_close_tape_image(tape_image_t *tape_image)
 {
-    if (tape_image_close(tape_image) < 0)
-        return -1;
+	if (tape_image_close(tape_image) < 0)
+		return -1;
 
-    lib_free(tape_image);
+	lib_free(tape_image);
 
-    return 0;
+	return 0;
 }
 
 tape_image_t *tape_internal_open_tape_image(const char *name,
                                             unsigned int read_only)
 {
-    tape_image_t *image;
+	tape_image_t *image;
 
-    image = lib_malloc(sizeof(tape_image_t));
-    image->name = lib_stralloc(name);
-    image->read_only = read_only;
+	image = lib_malloc(sizeof(tape_image_t));
+	image->name = lib_stralloc(name);
+	image->read_only = read_only;
 
-    if (tape_image_open(image) < 0) {
-        lib_free(image->name);
-        lib_free(image);
-        log_error(LOG_DEFAULT, "Cannot open file `%s'", name);
-        return NULL;
-    }
+	if (tape_image_open(image) < 0) {
+		lib_free(image->name);
+		lib_free(image);
+		#ifdef CELL_DEBUG
+		printf("ERROR: Cannot open file `%s'\n", name);
+		#endif
+		return NULL;
+	}
 
-    return image;
+	return image;
 }
 
 void tape_internal_init(void)

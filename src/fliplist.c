@@ -36,7 +36,6 @@
 #include "cmdline.h"
 #include "fliplist.h"
 #include "lib.h"
-#include "log.h"
 #include "resources.h"
 #include "translate.h"
 #include "util.h"
@@ -181,7 +180,7 @@ void fliplist_add_image(unsigned int unit)
     n->image = lib_stralloc(current_image);
     unit = n->unit = current_drive;
 
-    log_message(LOG_DEFAULT, "Adding `%s' to fliplist[%d]", n->image, unit);
+    //log_message(LOG_DEFAULT, "Adding `%s' to fliplist[%d]", n->image, unit);
     if (fliplist[unit - 8]) {
         n->next = fliplist[unit - 8];
         n->prev = fliplist[unit - 8]->prev;
@@ -198,56 +197,53 @@ void fliplist_add_image(unsigned int unit)
 
 void fliplist_remove(unsigned int unit, const char *image)
 {
-    fliplist_t tmp;
+	fliplist_t tmp;
 
-    if (fliplist[unit - 8] ==  NULL)
-        return;
-    if (image == (char *) NULL) {
-        /* no image given, so remove the head */
-        if ((fliplist[unit - 8] == fliplist[unit - 8]->next) &&
-            (fliplist[unit - 8] == fliplist[unit - 8]->prev)) {
-            /* this is the last entry */
-            tmp = fliplist[unit - 8];
-            fliplist[unit - 8] = (fliplist_t) NULL;
-        } else {
-            fliplist[unit - 8]->next->prev = fliplist[unit - 8]->prev;
-            fliplist[unit - 8]->prev->next = fliplist[unit - 8]->next;
-            tmp = fliplist[unit - 8];
-            fliplist[unit - 8] = fliplist[unit - 8]->next;
-        }
-        log_message(LOG_DEFAULT, "Removing `%s' from fliplist[%d]",
-                    tmp->image, unit);
-        lib_free(tmp->image);
-        lib_free(tmp);
-        show_fliplist(unit);
-        return;
-    } else {
-        /* do a lookup and remove it */
-        fliplist_t it = fliplist[unit - 8];
+	if (fliplist[unit - 8] ==  NULL)
+		return;
+	if (image == (char *) NULL) {
+		/* no image given, so remove the head */
+		if ((fliplist[unit - 8] == fliplist[unit - 8]->next) &&
+				(fliplist[unit - 8] == fliplist[unit - 8]->prev)) {
+			/* this is the last entry */
+			tmp = fliplist[unit - 8];
+			fliplist[unit - 8] = (fliplist_t) NULL;
+		} else {
+			fliplist[unit - 8]->next->prev = fliplist[unit - 8]->prev;
+			fliplist[unit - 8]->prev->next = fliplist[unit - 8]->next;
+			tmp = fliplist[unit - 8];
+			fliplist[unit - 8] = fliplist[unit - 8]->next;
+		}
+		//log_message(LOG_DEFAULT, "Removing `%s' from fliplist[%d]", tmp->image, unit);
+		lib_free(tmp->image);
+		lib_free(tmp);
+		show_fliplist(unit);
+		return;
+	} else {
+		/* do a lookup and remove it */
+		fliplist_t it = fliplist[unit - 8];
 
-        if (strcmp(it->image, image) == 0) {
-            /* it's the head */
-            fliplist_remove(unit, NULL);
-            return;
-        }
-        it = it->next;
-        while ((strcmp(it->image, image) != 0) &&
-               (it != fliplist[unit - 8]))
-            it = it->next;
+		if (strcmp(it->image, image) == 0) {
+			/* it's the head */
+			fliplist_remove(unit, NULL);
+			return;
+		}
+		it = it->next;
+		while ((strcmp(it->image, image) != 0) &&
+				(it != fliplist[unit - 8]))
+			it = it->next;
 
-        if (it == fliplist[unit - 8]) {
-            log_message(LOG_DEFAULT,
-                        "Cannot remove `%s'; not found in fliplist[%d]",
-                        it->image, unit);
-            return;
-        }
+		if (it == fliplist[unit - 8]) {
+			//log_message(LOG_DEFAULT, "Cannot remove `%s'; not found in fliplist[%d]", it->image, unit);
+			return;
+		}
 
-        it->next->prev = it->prev;
-        it->prev->next = it->next;
-        lib_free(it->image);
-        lib_free(it);
-        show_fliplist(unit);
-    }
+		it->next->prev = it->prev;
+		it->prev->next = it->next;
+		lib_free(it->image);
+		lib_free(it);
+		show_fliplist(unit);
+	}
 }
 
 void fliplist_attach_head (unsigned int unit, int direction)
@@ -364,7 +360,7 @@ int fliplist_load_list(unsigned int unit, const char *filename, int autoattach)
     }
 
     if (strncmp(buffer, flip_file_header, strlen(flip_file_header)) != 0) {
-        log_message(LOG_DEFAULT, "File %s is not a fliplist file", filename);
+        //log_message(LOG_DEFAULT, "File %s is not a fliplist file", filename);
         fclose(fp);
         return -1;
     }
@@ -407,7 +403,7 @@ int fliplist_load_list(unsigned int unit, const char *filename, int autoattach)
             *b = '\0';
 
             if (unit == (unsigned int)-1) {
-                log_message(LOG_DEFAULT, "Fliplist has inconsistent view for unit, assuming 8.\n");
+                //log_message(LOG_DEFAULT, "Fliplist has inconsistent view for unit, assuming 8.\n");
                 unit = 8;
             }
 
@@ -450,18 +446,19 @@ int fliplist_load_list(unsigned int unit, const char *filename, int autoattach)
 
 static void show_fliplist(unsigned int unit)
 {
-    fliplist_t it = fliplist[unit - 8];
+	fliplist_t it = fliplist[unit - 8];
 
-    log_message(LOG_DEFAULT, "Fliplist[%d] contains:", unit);
+	//log_message(LOG_DEFAULT, "Fliplist[%d] contains:", unit);
 
-    if (it) {
-        do {
-            log_message(LOG_DEFAULT,
-                        "\tUnit %d %s (n: %s, p:%s)", it->unit, it->image,
-                        it->next->image, it->prev->image);
-            it = it->next;
-        } while (it != fliplist[unit - 8]);
-    } else
-        log_message(LOG_DEFAULT, "\tnothing");
+	if (it) {
+		do {
+			//log_message(LOG_DEFAULT, "\tUnit %d %s (n: %s, p:%s)", it->unit, it->image, it->next->image, it->prev->image);
+			it = it->next;
+		} while (it != fliplist[unit - 8]);
+	}
+	#if 0
+	else
+		log_message(LOG_DEFAULT, "\tnothing");
+	#endif
 }
 

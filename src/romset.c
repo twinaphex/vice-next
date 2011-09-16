@@ -38,7 +38,6 @@
 
 #include "archdep.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "resources.h"
 #include "romset.h"
@@ -46,8 +45,6 @@
 #include "types.h"
 #include "util.h"
 
-
-static log_t romset_log = LOG_DEFAULT;
 
 static int romset_source_file;
 
@@ -131,33 +128,28 @@ int romset_file_load(const char *filename)
     int err = 0;
 
     if (filename == NULL) {
-        log_error(romset_log, "ROM set filename is NULL!");
+        //log_error(romset_log, "ROM set filename is NULL!");
         return -1;
     }
 
     fp = sysfile_open(filename, NULL, MODE_READ_TEXT);
 
     if (fp == NULL) {
-        log_warning(romset_log, "Could not open file '%s' for reading (%s)!",
-                    filename, strerror(errno));
+        //log_warning(romset_log, "Could not open file '%s' for reading (%s)!", filename, strerror(errno));
         return -1;
     }
 
-    log_message(romset_log, "Loading ROM set from file '%s'", filename);
+    //log_message(romset_log, "Loading ROM set from file '%s'", filename);
 
     line_num = 0;
     do {
         retval = resources_read_item_from_file(fp);
         if (retval == -1) {
-            log_error(romset_log,
-                      "%s: Invalid resource specification at line %d.",
-                      filename, line_num);
+            //log_error(romset_log, "%s: Invalid resource specification at line %d.", filename, line_num);
             err = 1;
         } else {
             if (retval == -2) {
-                log_warning(romset_log,
-                            "%s: Unknown resource specification at line %d.",
-                            filename, line_num);
+                //log_warning(romset_log, "%s: Unknown resource specification at line %d.", filename, line_num);
             }
         }
         line_num++;
@@ -179,13 +171,12 @@ int romset_file_save(const char *filename, const char **resource_list)
     fp = fopen(newname, MODE_WRITE_TEXT);
 
     if (fp == NULL) {
-        log_warning(romset_log, "Could not open file '%s' for writing (%s)!",
-                    newname, strerror(errno));
+        //log_warning(romset_log, "Could not open file '%s' for writing (%s)!", newname, strerror(errno));
         lib_free(newname);
         return -1;
     }
 
-    log_message(romset_log, "Saving ROM set to file '%s'", newname);
+    //log_message(romset_log, "Saving ROM set to file '%s'", newname);
 
     s = *resource_list++;
 
@@ -258,12 +249,11 @@ int romset_archive_load(const char *filename, int autostart)
     string_link_t *autoset = NULL;
 
     if ((fp = fopen(filename, MODE_READ_TEXT)) == NULL) {
-        log_warning(romset_log,
-                    "Could not open file '%s' for reading!", filename);
+        //log_warning(romset_log, "Could not open file '%s' for reading!", filename);
         return -1;
     }
 
-    log_message(romset_log, "Loading ROM set archive from file '%s'", filename);
+    //log_message(romset_log, "Loading ROM set archive from file '%s'", filename);
 
     line_num = 0;
     while (!feof(fp)) {
@@ -306,7 +296,7 @@ int romset_archive_load(const char *filename, int autostart)
 
         READ_ROM_LINE
         if ((bptr == NULL) || (*b != '{')) {
-            log_warning(romset_log, "Parse error at line %d", line_num);
+            //log_warning(romset_log, "Parse error at line %d", line_num);
             fclose(fp);
             return -1;
         }
@@ -314,7 +304,7 @@ int romset_archive_load(const char *filename, int autostart)
         while (!feof(fp)) {
             READ_ROM_LINE
             if (bptr == NULL) {
-                log_warning(romset_log, "Parse error at line %d", line_num);
+                //log_warning(romset_log, "Parse error at line %d", line_num);
                 fclose(fp);
                 return -1;
             }
@@ -360,13 +350,12 @@ int romset_archive_save(const char *filename)
      */
 
     if ((fp = fopen(newname, MODE_WRITE)) == NULL) {
-        log_warning(romset_log,
-                    "Could not open file '%s' for writing!", newname);
+        //log_warning(romset_log, "Could not open file '%s' for writing!", newname);
         lib_free(newname);
         return -1;
     }
 
-    log_message(romset_log, "Saving ROM set archive to file '%s'", newname);
+    //log_message(romset_log, "Saving ROM set archive to file '%s'", newname);
 
     list = romset_archive_list();
     fputs(list, fp);
@@ -414,8 +403,7 @@ int romset_archive_item_save(const char *filename, const char *romset_name)
             FILE *fp;
 
             if ((fp = fopen(filename, MODE_WRITE_TEXT)) == NULL) {
-                log_warning(romset_log,
-                            "Could not open file '%s' for writing", filename);
+                //log_warning(romset_log, "Could not open file '%s' for writing", filename);
                 return -1;
             }
             item = romsets + i;
@@ -620,8 +608,6 @@ char *romset_archive_get_item(int number)
 
 void romset_init(void)
 {
-    romset_log = log_open("Romset");
-
     machine_romset_init();
 }
 

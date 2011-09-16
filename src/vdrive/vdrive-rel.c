@@ -35,7 +35,6 @@
 #include "cbmdos.h"
 #include "diskimage.h"
 #include "lib.h"
-#include "log.h"
 #include "vdrive-bam.h"
 #include "vdrive-command.h"
 #include "vdrive-dir.h"
@@ -61,79 +60,79 @@
 #define DIRTY_RECORD   2
 #define WRITTEN_RECORD 4
 
-static log_t vdrive_rel_log = LOG_ERR;
 
 static unsigned int vdrive_rel_record_max(vdrive_t *vdrive, unsigned int secondary);
 
 void vdrive_rel_init(void)
 {
-    vdrive_rel_log = log_open("VDriveREL");
 }
 
 static unsigned int vdrive_rel_has_super(vdrive_t *vdrive)
 {
-    unsigned int super = 0;
+	unsigned int super = 0;
 
-    switch (vdrive->image_format) {
-      case VDRIVE_IMAGE_FORMAT_2040:
-      case VDRIVE_IMAGE_FORMAT_1541:
-      case VDRIVE_IMAGE_FORMAT_1571:
-      case VDRIVE_IMAGE_FORMAT_8050:
-        /* no super side sector */
-        super = 0;
-        break;
-      case VDRIVE_IMAGE_FORMAT_1581:
-      case VDRIVE_IMAGE_FORMAT_8250:
-        /* has super side sector */
-        super = 1;
-        break;
-      default:
-        log_error(vdrive_rel_log,
-                  "Unknown disk type %i.  Cannot determine if it supports super side sectors.",
-                  vdrive->image_format);
-        break;
-    }
+	switch (vdrive->image_format)
+	{
+		case VDRIVE_IMAGE_FORMAT_2040:
+		case VDRIVE_IMAGE_FORMAT_1541:
+		case VDRIVE_IMAGE_FORMAT_1571:
+		case VDRIVE_IMAGE_FORMAT_8050:
+			/* no super side sector */
+			super = 0;
+			break;
+		case VDRIVE_IMAGE_FORMAT_1581:
+		case VDRIVE_IMAGE_FORMAT_8250:
+			/* has super side sector */
+			super = 1;
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown disk type %i.  Cannot determine if it supports super side sectors.\n", vdrive->image_format);
+#endif
+			break;
+	}
 
-    return super;
+	return super;
 }
 
 static unsigned int vdrive_rel_blocks_max(vdrive_t *vdrive)
 {
-    unsigned int maximum = 0;
+	unsigned int maximum = 0;
 
-    switch (vdrive->image_format) {
-      case VDRIVE_IMAGE_FORMAT_2040:
-      case VDRIVE_IMAGE_FORMAT_1541:
-      case VDRIVE_IMAGE_FORMAT_1571:
-        /* 700 blocks + 6 side sectors */
-        maximum = 700 + 6;
-        break;
-      case VDRIVE_IMAGE_FORMAT_1581:
-        /* 3000 blocks + 4 side sector groups + 1 side sector + super side
-           sector */
-        maximum = 3000 + 4*6 + 1 + 1;
-        break;
-      case VDRIVE_IMAGE_FORMAT_8050:
-        /* 720 blocks + 6 side sectors */ 
-        maximum = 720 + 6;
-        break;
-      case VDRIVE_IMAGE_FORMAT_8250:
-        /* SFD1001: 4089 blocks + 5 side sector groups + 5 side sector +
-           super side sector */
-        /* 8250: 4090 blocks + 5 side sector groups + 5 side sector +
-           super side sector */
-        /* The SFD cannot create a file with REL 4090 blocks, but it can
-           read it.  We will therefore use 4090 as our limit. */
-        maximum = 4090 + 5*6 + 5 + 1;
-        break;
-      default:
-        log_error(vdrive_rel_log,
-                  "Unknown disk type %i.  Cannot determine max REL size.",
-                  vdrive->image_format);
-        break;
-    }
+	switch (vdrive->image_format)
+	{
+		case VDRIVE_IMAGE_FORMAT_2040:
+		case VDRIVE_IMAGE_FORMAT_1541:
+		case VDRIVE_IMAGE_FORMAT_1571:
+			/* 700 blocks + 6 side sectors */
+			maximum = 700 + 6;
+			break;
+		case VDRIVE_IMAGE_FORMAT_1581:
+			/* 3000 blocks + 4 side sector groups + 1 side sector + super side
+			   sector */
+			maximum = 3000 + 4*6 + 1 + 1;
+			break;
+		case VDRIVE_IMAGE_FORMAT_8050:
+			/* 720 blocks + 6 side sectors */ 
+			maximum = 720 + 6;
+			break;
+		case VDRIVE_IMAGE_FORMAT_8250:
+			/* SFD1001: 4089 blocks + 5 side sector groups + 5 side sector +
+			   super side sector */
+			/* 8250: 4090 blocks + 5 side sector groups + 5 side sector +
+			   super side sector */
+			/* The SFD cannot create a file with REL 4090 blocks, but it can
+			   read it.  We will therefore use 4090 as our limit. */
+			maximum = 4090 + 5*6 + 5 + 1;
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown disk type %i.  Cannot determine max REL size.\n", vdrive->image_format);
+#endif
+			break;
+	}
 
-    return maximum;
+	return maximum;
 }
 
 static int vdrive_rel_add_sector(vdrive_t *vdrive, unsigned int secondary,
@@ -175,33 +174,6 @@ static int vdrive_rel_add_sector(vdrive_t *vdrive, unsigned int secondary,
         /* obtain the last byte of the sector according to the index */
         j = ( p->side_sector[256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_NEXT_SECTOR ]
              + 1 - OFFSET_POINTER ) / 2;
-
-    #if 0
-        /* Scan last side sector for a null track and sector pointer;
-            not guaranteed to be found. */
-        o = 256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_POINTER;
-        for (j = 0; j < SIDE_INDEX_MAX; j++, o+=2 ) {
-            if (p->side_sector[o] == 0)
-                break;
-        }
-
-        /* obtain the last byte of the sector according to the index */
-        o = 256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_NEXT_SECTOR;
-        k = p->side_sector[ o ];
-
-        /* generate a last byte index based on the actual sectors used */
-        l = OFFSET_POINTER + 2 * j - 1;
-
-        /* compare them */
-        if ( k!=l ) {
-            /* something is wrong with this rel file, try to fix it */
-            log_error(vdrive_rel_log,
-                "Relative file ending sector and side sectors don't match up.");
-            /* base the new value on the sector references, not the index. */
-            p->side_sector[ o ] = l;
-            p->side_sector_needsupdate[ i + side * SIDE_SECTORS_MAX ] = 1;
-        }
-    #endif
 
         /* Get the track and sector of the last REL block */
         o = 256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_POINTER + 2 * (j-1);
@@ -611,109 +583,118 @@ static int vdrive_rel_grow(vdrive_t *vdrive, unsigned int secondary,
 
 static int vdrive_rel_open_existing(vdrive_t *vdrive, unsigned int secondary)
 {
-    unsigned int track, sector, side, i, j, o;
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
-    BYTE *slot;
+	unsigned int track, sector, side, i, j, o;
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	BYTE *slot;
 
-    slot = p->slot;
+	slot = p->slot;
 
-    /* Create our own slot, since the one passed is static */
-    p->slot = lib_calloc(1, 32);
+	/* Create our own slot, since the one passed is static */
+	p->slot = lib_calloc(1, 32);
 
-    /* Copy the static on to the new one. */
-    memcpy(p->slot, slot, 32);
+	/* Copy the static on to the new one. */
+	memcpy(p->slot, slot, 32);
 
-    /* read super side sector, if it exists */
+	/* read super side sector, if it exists */
 
-    track = p->slot[SLOT_SIDE_TRACK];
-    sector = p->slot[SLOT_SIDE_SECTOR];
+	track = p->slot[SLOT_SIDE_TRACK];
+	sector = p->slot[SLOT_SIDE_SECTOR];
 
-    /* Allocate memory for super side sector */
-    p->super_side_sector = lib_malloc(256);
+	/* Allocate memory for super side sector */
+	p->super_side_sector = lib_malloc(256);
 
-    if (disk_image_read_sector(vdrive->image,
-        p->super_side_sector, track, sector) != 0) {
-        log_error(vdrive_rel_log, "Cannot read side sector.");
-        lib_free((char *)p->super_side_sector);
-        return -1;
-    }
+	if (disk_image_read_sector(vdrive->image, p->super_side_sector, track, sector) != 0)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Cannot read side sector.\n");
+#endif
+		lib_free((char *)p->super_side_sector);
+		return -1;
+	}
 
-    /* check to see if this is a super side sector.  If not, create an
-        imaginary one so we don't have to change all our code. */
-    if (p->super_side_sector[OFFSET_SUPER_254] != 254) {
-        /* clear out block */
-        memset(p->super_side_sector, 0, 256);
-        /* build valid super side sector block */
-        p->super_side_sector[OFFSET_NEXT_TRACK] = track;
-        p->super_side_sector[OFFSET_NEXT_SECTOR] = sector;
-        p->super_side_sector[OFFSET_SUPER_254] = 254;
-        p->super_side_sector[OFFSET_SUPER_POINTER] = track;
-        p->super_side_sector[OFFSET_SUPER_POINTER+1] = sector;
-        /* set track and sector to 0, i.e. no update */
-        p->super_side_sector_track = 0;
-        p->super_side_sector_sector = 0;
-    }
-    else {
-        /* set track and sector */
-        p->super_side_sector_track = track;
-        p->super_side_sector_sector = sector;
-    }
-    /* Clear dirty flag */
-    p->super_side_sector_needsupdate = 0;
+	/* check to see if this is a super side sector.  If not, create an
+	   imaginary one so we don't have to change all our code. */
+	if (p->super_side_sector[OFFSET_SUPER_254] != 254) {
+		/* clear out block */
+		memset(p->super_side_sector, 0, 256);
+		/* build valid super side sector block */
+		p->super_side_sector[OFFSET_NEXT_TRACK] = track;
+		p->super_side_sector[OFFSET_NEXT_SECTOR] = sector;
+		p->super_side_sector[OFFSET_SUPER_254] = 254;
+		p->super_side_sector[OFFSET_SUPER_POINTER] = track;
+		p->super_side_sector[OFFSET_SUPER_POINTER+1] = sector;
+		/* set track and sector to 0, i.e. no update */
+		p->super_side_sector_track = 0;
+		p->super_side_sector_sector = 0;
+	}
+	else {
+		/* set track and sector */
+		p->super_side_sector_track = track;
+		p->super_side_sector_sector = sector;
+	}
+	/* Clear dirty flag */
+	p->super_side_sector_needsupdate = 0;
 
-    /* find the number of side sector groups */
-    for (side = 0; p->super_side_sector[OFFSET_SUPER_POINTER + side * 2] != 0 ; side++ );
+	/* find the number of side sector groups */
+	for (side = 0; p->super_side_sector[OFFSET_SUPER_POINTER + side * 2] != 0 ; side++ );
 
-    /* allocate memory for side sectors */
-    p->side_sector = lib_malloc(side * SIDE_SECTORS_MAX * 256);
-    memset(p->side_sector, 0, side * SIDE_SECTORS_MAX * 256);
+	/* allocate memory for side sectors */
+	p->side_sector = lib_malloc(side * SIDE_SECTORS_MAX * 256);
+	memset(p->side_sector, 0, side * SIDE_SECTORS_MAX * 256);
 
-    /* Also clear out track and sectors locations and dirty flag of
-        each side sector */
-    p->side_sector_track = lib_malloc(side * SIDE_SECTORS_MAX);
-    p->side_sector_sector = lib_malloc(side * SIDE_SECTORS_MAX);
-    p->side_sector_needsupdate = lib_malloc(side * SIDE_SECTORS_MAX);
-    memset(p->side_sector_track, 0, side * SIDE_SECTORS_MAX);
-    memset(p->side_sector_sector, 0, side * SIDE_SECTORS_MAX);
-    memset(p->side_sector_needsupdate, 0, side * SIDE_SECTORS_MAX);
+	/* Also clear out track and sectors locations and dirty flag of
+	   each side sector */
+	p->side_sector_track = lib_malloc(side * SIDE_SECTORS_MAX);
+	p->side_sector_sector = lib_malloc(side * SIDE_SECTORS_MAX);
+	p->side_sector_needsupdate = lib_malloc(side * SIDE_SECTORS_MAX);
+	memset(p->side_sector_track, 0, side * SIDE_SECTORS_MAX);
+	memset(p->side_sector_sector, 0, side * SIDE_SECTORS_MAX);
+	memset(p->side_sector_needsupdate, 0, side * SIDE_SECTORS_MAX);
 
-    for (j = 0; j < side ; j++ ) {
-        track = p->super_side_sector[OFFSET_SUPER_POINTER + j * 2];
-        sector = p->super_side_sector[OFFSET_SUPER_POINTER + j * 2 + 1];
+	for (j = 0; j < side ; j++ )
+	{
+		track = p->super_side_sector[OFFSET_SUPER_POINTER + j * 2];
+		sector = p->super_side_sector[OFFSET_SUPER_POINTER + j * 2 + 1];
 
-        for (i = 0; i < SIDE_SECTORS_MAX; i++) {
-            o = i + j * SIDE_SECTORS_MAX;
-            /* Save the track and sector of each side sector so we can also write
-               and update REL files. */
-            p->side_sector_track[o] = track;
-            p->side_sector_sector[o] = sector;
+		for (i = 0; i < SIDE_SECTORS_MAX; i++)
+		{
+			o = i + j * SIDE_SECTORS_MAX;
+			/* Save the track and sector of each side sector so we can also write
+			   and update REL files. */
+			p->side_sector_track[o] = track;
+			p->side_sector_sector[o] = sector;
 
-            o*=256;
+			o*=256;
 
-            if (disk_image_read_sector(vdrive->image,
-                &(p->side_sector[o]), track, sector) != 0) {
-                log_error(vdrive_rel_log, "Cannot read side sector.");
-                return -1;
-            }
-            if (p->side_sector[o + OFFSET_SECTOR_NUM] != i) {
-                log_error(vdrive_rel_log, "Side sector number do not match.");
-                return -1;
-            }
+			if (disk_image_read_sector(vdrive->image, &(p->side_sector[o]), track, sector) != 0)
+			{
+				#ifdef CELL_DEBUG
+				printf("ERROR: Cannot read side sector.\n");
+				#endif
+				return -1;
+			}
+			if (p->side_sector[o + OFFSET_SECTOR_NUM] != i)
+			{
+				#ifdef CELL_DEBUG
+				printf("ERROR: Side sector number do not match.\n");
+				#endif
+				return -1;
+			}
 
-            track = p->side_sector[o + OFFSET_NEXT_TRACK];
-            sector = p->side_sector[o + OFFSET_NEXT_SECTOR];
+			track = p->side_sector[o + OFFSET_NEXT_TRACK];
+			sector = p->side_sector[o + OFFSET_NEXT_SECTOR];
 
-            if (track == 0)
-                break;
-        }
-    }
-    
-    /* Remember the directory information incase our REL file grows. */
-    p->dir_track = vdrive->Curr_track;
-    p->dir_sector = vdrive->Curr_sector;
-    p->dir_slot = vdrive->SlotNumber;
+			if (track == 0)
+				break;
+		}
+	}
 
-    return 0;
+	/* Remember the directory information incase our REL file grows. */
+	p->dir_track = vdrive->Curr_track;
+	p->dir_sector = vdrive->Curr_sector;
+	p->dir_slot = vdrive->SlotNumber;
+
+	return 0;
 }
 
 static int vdrive_rel_open_new(vdrive_t *vdrive, unsigned int secondary,
@@ -795,657 +776,643 @@ static int vdrive_rel_open_new(vdrive_t *vdrive, unsigned int secondary,
 int vdrive_rel_open(vdrive_t *vdrive, unsigned int secondary,
                     cbmdos_cmd_parse_t *cmd_parse, const BYTE *name)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
-    int newrelfile = 0;
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	int newrelfile = 0;
 
-    if (p->slot) {
-        log_debug(
-            "Open existing REL file '%s' with record length %i on channel %d.",
-            name, cmd_parse->recordlength, secondary);
-        /* Follow through to function. */
-        vdrive_rel_open_existing(vdrive, secondary);
-    } else {
-        log_debug(
-            "Open new REL file '%s' with record length %i on channel %d.",
-            name, cmd_parse->recordlength, secondary);
+	if (p->slot)
+	{
+		//log_debug("Open existing REL file '%s' with record length %i on channel %d.", name, cmd_parse->recordlength, secondary);
+		/* Follow through to function. */
+		vdrive_rel_open_existing(vdrive, secondary);
+	}
+	else
+	{
+		//log_debug("Open new REL file '%s' with record length %i on channel %d.", name, cmd_parse->recordlength, secondary);
 
-        /* abort if we are in read only mode */
-        if (vdrive->image->read_only) {
-            vdrive_command_set_error(vdrive, CBMDOS_IPE_WRITE_PROTECT_ON, 0, 0);
-            return SERIAL_ERROR;
-        }
+		/* abort if we are in read only mode */
+		if (vdrive->image->read_only) {
+			vdrive_command_set_error(vdrive, CBMDOS_IPE_WRITE_PROTECT_ON, 0, 0);
+			return SERIAL_ERROR;
+		}
 
-        /* Call function to open a new REL file, leave if error exists. */
-        if (vdrive_rel_open_new(vdrive, secondary, cmd_parse, name)) {
-            return SERIAL_ERROR;
-        }
-        /* set a flag so we can expand the rel file to 1 record later. */
-        newrelfile++;
-    }
+		/* Call function to open a new REL file, leave if error exists. */
+		if (vdrive_rel_open_new(vdrive, secondary, cmd_parse, name)) {
+			return SERIAL_ERROR;
+		}
+		/* set a flag so we can expand the rel file to 1 record later. */
+		newrelfile++;
+	}
 
-    /* Allocate dual buffers to improve performance */
-    p->mode = BUFFER_RELATIVE;
-    p->bufptr = 0;
-    p->buffer = lib_malloc(256);
-    p->record = 0;
-    p->track = 0;
-    p->sector = 0;
-    p->buffer_next = lib_malloc(256);
-    p->track_next = 0;
-    p->sector_next = 0;
+	/* Allocate dual buffers to improve performance */
+	p->mode = BUFFER_RELATIVE;
+	p->bufptr = 0;
+	p->buffer = lib_malloc(256);
+	p->record = 0;
+	p->track = 0;
+	p->sector = 0;
+	p->buffer_next = lib_malloc(256);
+	p->track_next = 0;
+	p->sector_next = 0;
 
-    /* Determine maximum record */
-    p->record_max = vdrive_rel_record_max(vdrive, secondary);
+	/* Determine maximum record */
+	p->record_max = vdrive_rel_record_max(vdrive, secondary);
 
-    /* If this is a new REL file, have atleast 1 record. */
-    if (newrelfile) {
-        vdrive_rel_grow(vdrive, secondary, 0);
-    }
+	/* If this is a new REL file, have atleast 1 record. */
+	if (newrelfile) {
+		vdrive_rel_grow(vdrive, secondary, 0);
+	}
 
-    /* Move to first record, no offset */
-    vdrive_rel_position(vdrive, secondary, 1, 0, 1);
+	/* Move to first record, no offset */
+	vdrive_rel_position(vdrive, secondary, 1, 0, 1);
 
-    return SERIAL_OK;
+	return SERIAL_OK;
 }
 
 void vdrive_rel_track_sector(vdrive_t *vdrive, unsigned int secondary,
                              unsigned int record, unsigned int *track,
                              unsigned int *sector, unsigned int *rec_start)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
-    unsigned int rec_long, side, offset, rec_len, super;
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	unsigned int rec_long, side, offset, rec_len, super;
 
-    /* find the record length from the first side sector */
-    rec_len = p->slot[SLOT_RECORD_LENGTH];
+	/* find the record length from the first side sector */
+	rec_len = p->slot[SLOT_RECORD_LENGTH];
 
-    /* compute the total byte offset */
-    rec_long = (record * rec_len);
+	/* compute the total byte offset */
+	rec_long = (record * rec_len);
 
-    /* find the sector offset */
-    *rec_start = rec_long % 254;
+	/* find the sector offset */
+	*rec_start = rec_long % 254;
 
-    /* find the super side sector (0 - 125) */
-    offset = (254 * SIDE_INDEX_MAX * SIDE_SECTORS_MAX);
-    super = rec_long / offset;
-    rec_long = rec_long % offset;
+	/* find the super side sector (0 - 125) */
+	offset = (254 * SIDE_INDEX_MAX * SIDE_SECTORS_MAX);
+	super = rec_long / offset;
+	rec_long = rec_long % offset;
 
-    /* find the side sector (0-5) */
-    offset = (254 * SIDE_INDEX_MAX);
-    side = rec_long / offset;
-    rec_long = rec_long % offset;
+	/* find the side sector (0-5) */
+	offset = (254 * SIDE_INDEX_MAX);
+	side = rec_long / offset;
+	rec_long = rec_long % offset;
 
-    /* find the offset into the side sector (0-120) */
-    offset = ( rec_long / 254 ) * 2;
+	/* find the offset into the side sector (0-120) */
+	offset = ( rec_long / 254 ) * 2;
 
-    /* add super, side sector and index offsets */
-    offset += ( super * SIDE_SECTORS_MAX + side ) * 256 + OFFSET_POINTER;
+	/* add super, side sector and index offsets */
+	offset += ( super * SIDE_SECTORS_MAX + side ) * 256 + OFFSET_POINTER;
 
-    *track = p->side_sector[ offset ];
-    *sector = p->side_sector[ offset + 1]; 
+	*track = p->side_sector[ offset ];
+	*sector = p->side_sector[ offset + 1]; 
 
-    return;
+	return;
 }
 
 static unsigned int vdrive_rel_record_max(vdrive_t *vdrive, unsigned int secondary)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
 
-    unsigned int i, j, k, l, side, o;
-    unsigned int track, sector;
+	unsigned int i, j, k, l, side, o;
+	unsigned int track, sector;
 
-    /* The original 1541 documentation states that there can only be 720
-        (6*120) records in a REL file - this is incorrect.  It is actually
-        blocks.  The side sectors point to each block in the REL file.  It is
-        up to the drive to determine the where the buffer pointer should be
-        when the record changes. */
+	/* The original 1541 documentation states that there can only be 720
+	   (6*120) records in a REL file - this is incorrect.  It is actually
+	   blocks.  The side sectors point to each block in the REL file.  It is
+	   up to the drive to determine the where the buffer pointer should be
+	   when the record changes. */
 
-    /* To find the maximum records we have to check the last block of the REL
-        file.  The last block is referenced in the last side sector group by
-        the OFFSET_NEXT_SECTOR byte.  The next sector pointer after this one
-        should be zero - we will check anyways to make sure.  Once the last
-        block is found, we can move to that sector and check the used bytes
-        there. */
+	/* To find the maximum records we have to check the last block of the REL
+	   file.  The last block is referenced in the last side sector group by
+	   the OFFSET_NEXT_SECTOR byte.  The next sector pointer after this one
+	   should be zero - we will check anyways to make sure.  Once the last
+	   block is found, we can move to that sector and check the used bytes
+	   there. */
 
-    /* The maximum REL file size for a 1541/1571 is 700 blocks, although it
-        is documented to be 720.  The 1581 is limited to 3000 blocks,
-        although it is documented to be 90720 (126*6*120).  You think they
-        would have allowed it to be atleast the maximum amount of disk
-        space. */
+	/* The maximum REL file size for a 1541/1571 is 700 blocks, although it
+	   is documented to be 720.  The 1581 is limited to 3000 blocks,
+	   although it is documented to be 90720 (126*6*120).  You think they
+	   would have allowed it to be atleast the maximum amount of disk
+	   space. */
 
-    /* find the number of side sector groups */
-    o = OFFSET_SUPER_POINTER;
-    for (side = 0; side < SIDE_SUPER_MAX && p->super_side_sector[o] != 0 ; side++, o+=2 );
+	/* find the number of side sector groups */
+	o = OFFSET_SUPER_POINTER;
+	for (side = 0; side < SIDE_SUPER_MAX && p->super_side_sector[o] != 0 ; side++, o+=2 );
 
-    /* check if this is a NEW rel file - no data in super side sector. */
-    if (!side) {
-        /* return a maximum of 0. */
-        return 0;
-    }
+	/* check if this is a NEW rel file - no data in super side sector. */
+	if (!side) {
+		/* return a maximum of 0. */
+		return 0;
+	}
 
-    side--;
+	side--;
 
-    /* Find last side sector; guaranteed find. */
-    o = 256 * ( side * SIDE_SECTORS_MAX ) + OFFSET_NEXT_TRACK;
-    for (i = 0; i < SIDE_SECTORS_MAX; i++, o+=256 ) {
-        if (p->side_sector[o] == 0)
-            break;
-    }
+	/* Find last side sector; guaranteed find. */
+	o = 256 * ( side * SIDE_SECTORS_MAX ) + OFFSET_NEXT_TRACK;
+	for (i = 0; i < SIDE_SECTORS_MAX; i++, o+=256 ) {
+		if (p->side_sector[o] == 0)
+			break;
+	}
 
-    /* obtain the last byte of the sector according to the index */
-    j = ( p->side_sector[256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_NEXT_SECTOR ]
-         + 1 - OFFSET_POINTER ) / 2;
+	/* obtain the last byte of the sector according to the index */
+	j = ( p->side_sector[256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_NEXT_SECTOR ] + 1 - OFFSET_POINTER ) / 2;
 
-#if 0
-    /* Scan last side sector for a null track and sector pointer;
-        not guaranteed to be found. */
-    o = 256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_POINTER;
-    for (j = 0; j < SIDE_INDEX_MAX; j++, o+=2 ) {
-        if (p->side_sector[o] == 0)
-            break;
-    }
+	/* Get the track and sector of the last block */
+	j--;
+	o = 256 * ( i + side * SIDE_SECTORS_MAX ) + OFFSET_POINTER + 2 * j;
+	track = p->side_sector[o];
+	sector = p->side_sector[o + 1];
 
-    /* obtain the last byte of the sector according to the index */
-    k = p->side_sector[256 * ( i + side * SIDE_SECTORS_MAX) + OFFSET_NEXT_SECTOR ];
+	/* read it in */
+	if (disk_image_read_sector(vdrive->image, p->buffer, track, sector) != 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Cannot read relative file data sector.\n");
+		#endif
+		vdrive_command_set_error(vdrive,  CBMDOS_IPE_ILLEGAL_TRACK_OR_SECTOR, track, sector);
+		return 0;
+	}
 
-    /* generate a last byte index based on the actual sectors used */
-    l = OFFSET_POINTER + 2 * j - 1;
+	/* calculate the total bytes based on the number of super side, side
+	   sectors, and last byte index */
+	k = ( ( side * SIDE_SECTORS_MAX + i ) * SIDE_INDEX_MAX + j )
+		* 254 + p->buffer[OFFSET_NEXT_SECTOR] - 1;
 
-    /* compare them */
-    if ( k!=l ) {
-        /* something is wrong with this rel file, it should be repaired */
-        log_error(vdrive_rel_log,
-            "Relative file ending sector and side sectors don't match up.");
-    }
-#endif
+	/* divide by the record length, and get the maximum records */
+	l = k / p->slot[SLOT_RECORD_LENGTH];
 
-    /* Get the track and sector of the last block */
-    j--;
-    o = 256 * ( i + side * SIDE_SECTORS_MAX ) + OFFSET_POINTER + 2 * j;
-    track = p->side_sector[o];
-    sector = p->side_sector[o + 1];
-
-    /* read it in */
-    if (disk_image_read_sector(vdrive->image,
-        p->buffer, track, sector) != 0) {
-        log_error(vdrive_rel_log,
-            "Cannot read relative file data sector.");
-        vdrive_command_set_error(vdrive, 
-            CBMDOS_IPE_ILLEGAL_TRACK_OR_SECTOR, track, sector);
-        return 0;
-    }
-
-    /* calculate the total bytes based on the number of super side, side
-        sectors, and last byte index */
-    k = ( ( side * SIDE_SECTORS_MAX + i ) * SIDE_INDEX_MAX + j )
-        * 254 + p->buffer[OFFSET_NEXT_SECTOR] - 1;
-
-    /* divide by the record length, and get the maximum records */
-    l = k / p->slot[SLOT_RECORD_LENGTH];
-
-    return l;
+	return l;
 }
 
 int vdrive_rel_position(vdrive_t *vdrive, unsigned int secondary,
                         unsigned int rec_lo, unsigned int rec_hi,
                         unsigned int position)
 {
-    unsigned int record, rec_start, rec_len;
-    unsigned int track, sector;
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	unsigned int record, rec_start, rec_len;
+	unsigned int track, sector;
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
 
-    /* find the record length from the first side sector */
-    rec_len = p->slot[SLOT_RECORD_LENGTH];
+	/* find the record length from the first side sector */
+	rec_len = p->slot[SLOT_RECORD_LENGTH];
 
-    /* position 0 and 1 are the same - the first */
-    position = (position == 0) ? 0 : position - 1;
+	/* position 0 and 1 are the same - the first */
+	position = (position == 0) ? 0 : position - 1;
 
-    /* generate error 51 if we point to a position greater than the record
-       length */
-    if (position >= rec_len) {
-        log_error(vdrive_rel_log, "Position larger than record!?");
-        return 51;
-    }
+	/* generate error 51 if we point to a position greater than the record
+	   length */
+	if (position >= rec_len)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Position larger than record!?\n");
+		#endif
+		return 51;
+	}
 
-    /* generate a 16 bit value for the record from the two 8-bit values */
-    record = rec_lo + (rec_hi << 8);
-    /* record 0 and 1 are the same - the first */
-    record = (record == 0) ? 0 : record - 1;
+	/* generate a 16 bit value for the record from the two 8-bit values */
+	record = rec_lo + (rec_hi << 8);
+	/* record 0 and 1 are the same - the first */
+	record = (record == 0) ? 0 : record - 1;
 
-    p->record = record;
-    /* if the record is greater then the maximum, return error 50, but
-       remember the record for growth */
-    if (record >= p->record_max) {
-        if (record > 0) {
-            return CBMDOS_IPE_NO_RECORD;
-        } else {
-            /* If the REL has just been created, report OK on record #1. */
-            return CBMDOS_IPE_OK;
-        }
-    }
+	p->record = record;
+	/* if the record is greater then the maximum, return error 50, but
+	   remember the record for growth */
+	if (record >= p->record_max) {
+		if (record > 0) {
+			return CBMDOS_IPE_NO_RECORD;
+		} else {
+			/* If the REL has just been created, report OK on record #1. */
+			return CBMDOS_IPE_OK;
+		}
+	}
 
-    /* Fill the rest of the currently written record. */
-    vdrive_rel_fillrecord(vdrive, secondary);
+	/* Fill the rest of the currently written record. */
+	vdrive_rel_fillrecord(vdrive, secondary);
 
-    log_debug("Requested position %d, %d on channel %d.",
-        record, position, secondary);
+	//log_debug("Requested position %d, %d on channel %d.", record, position, secondary);
 
-    /* locate the track, sector and sector offset of record */
-    vdrive_rel_track_sector(vdrive, secondary, record, &track, &sector, &rec_start);
+	/* locate the track, sector and sector offset of record */
+	vdrive_rel_track_sector(vdrive, secondary, record, &track, &sector, &rec_start);
 
-    /* Check to see if the next record is in the buffered sector */
-    if (p->track_next == track && p->sector_next == sector) {
-        BYTE *tmp;
+	/* Check to see if the next record is in the buffered sector */
+	if (p->track_next == track && p->sector_next == sector) {
+		BYTE *tmp;
 
-        /* Commit the buffers. */
-        vdrive_rel_commit(vdrive, p);
+		/* Commit the buffers. */
+		vdrive_rel_commit(vdrive, p);
 
-        /* Swap the two buffers */
-        tmp = p->buffer;
-        p->buffer = p->buffer_next;
-        p->buffer_next = tmp;
-        p->track_next = p->track;
-        p->sector_next = p->sector;
-        p->track = track;
-        p->sector = sector;
-    } else if (p->track != track || p->sector != sector ) {
-        /* Commit the buffers. */
-        vdrive_rel_commit(vdrive, p);
+		/* Swap the two buffers */
+		tmp = p->buffer;
+		p->buffer = p->buffer_next;
+		p->buffer_next = tmp;
+		p->track_next = p->track;
+		p->sector_next = p->sector;
+		p->track = track;
+		p->sector = sector;
+	} else if (p->track != track || p->sector != sector ) {
+		/* Commit the buffers. */
+		vdrive_rel_commit(vdrive, p);
 
-        /* load in the sector to memory */
-        if (disk_image_read_sector(vdrive->image, p->buffer, track, sector) != 0) {
-            log_error(vdrive_rel_log,
-                "Cannot read track %i sector %i.", track, sector);
-            return 66;
-        }
-        p->track=track;
-        p->sector=sector;
-        /* keep buffered sector where ever it is */
-        /* we won't read in the next sector unless we have to */
-    }
+		/* load in the sector to memory */
+		if (disk_image_read_sector(vdrive->image, p->buffer, track, sector) != 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("ERROR: Cannot read track %i sector %i.\n", track, sector);
+			#endif
+			return 66;
+		}
+		p->track=track;
+		p->sector=sector;
+		/* keep buffered sector where ever it is */
+		/* we won't read in the next sector unless we have to */
+	}
 
-    /* set the buffer pointer */
-    p->bufptr = rec_start + 2 + position;
-    /* compute the next pointer record */
-    p->record_next = p->bufptr - position + rec_len;
+	/* set the buffer pointer */
+	p->bufptr = rec_start + 2 + position;
+	/* compute the next pointer record */
+	p->record_next = p->bufptr - position + rec_len;
 
-    /* set the maximum record length */
-    p->length = p->record_next - 1;
+	/* set the maximum record length */
+	p->length = p->record_next - 1;
 
-    /* It appears that all Commodore drives have the same problems handling
-        REL files when it comes to using the position option of the record
-        command.  Normally when a record is selected, the drive firmware
-        scan from the end of the record to the beginning for when a non-NULL
-        byte is found.  When it finds it, this is considered the end of a
-        record (for a read).  The problem is: what happens when you position
-        the read pointer past this end point?  An overflow occurs in the
-        read of course!  Since the calculated record length is much larger
-        than it should be (but less than 256) the drive can read up to a
-        whole block of data    from the subsequent records.  Although this is
-        a bug (from my point of view), we have to try to emulate it.  Apon
-        analyzing the 1541 code (the 1571 and 1581 have the same behavior),
-        at $e170 (the subroutine for searching for the non-NULL is at $e1b5)
-        the    overflow may not occur under one specific instance.  This is
-        when the start of the record is in one block and the selected
-        position places it in another block.  In this case, only a length of
-        1 byte is set as the record length.  In all other cases, the length
-        is set to 255 - position. */
+	/* It appears that all Commodore drives have the same problems handling
+	   REL files when it comes to using the position option of the record
+	   command.  Normally when a record is selected, the drive firmware
+	   scan from the end of the record to the beginning for when a non-NULL
+	   byte is found.  When it finds it, this is considered the end of a
+	   record (for a read).  The problem is: what happens when you position
+	   the read pointer past this end point?  An overflow occurs in the
+	   read of course!  Since the calculated record length is much larger
+	   than it should be (but less than 256) the drive can read up to a
+	   whole block of data    from the subsequent records.  Although this is
+	   a bug (from my point of view), we have to try to emulate it.  Apon
+	   analyzing the 1541 code (the 1571 and 1581 have the same behavior),
+	   at $e170 (the subroutine for searching for the non-NULL is at $e1b5)
+	   the    overflow may not occur under one specific instance.  This is
+	   when the start of the record is in one block and the selected
+	   position places it in another block.  In this case, only a length of
+	   1 byte is set as the record length.  In all other cases, the length
+	   is set to 255 - position. */
 
-    /* Find the length of the record starting from the end until no zeros
-       are found */
-    if ( p->length < 256) {
-        /* If the maximum length of the record is in this sector, just
-           check for where the zeros end */
-        for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
+	/* Find the length of the record starting from the end until no zeros
+	   are found */
+	if ( p->length < 256) {
+		/* If the maximum length of the record is in this sector, just
+		   check for where the zeros end */
+		for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
 
-        /* Compensate for overflow length bug, set maximum length based on
-            the position requested */
-        if (p->bufptr > p->length && position > 0) {
-            p->length = p->bufptr + 254 - position;
-        }
-    }
-    else {
-        int status=1;
+		/* Compensate for overflow length bug, set maximum length based on
+		   the position requested */
+		if (p->bufptr > p->length && position > 0) {
+			p->length = p->bufptr + 254 - position;
+		}
+	}
+	else {
+		int status=1;
 
-        /* Get the next sector */
-        /* If it doesn't exist, we will use the max length calculated above */
-        if (p->buffer[0] != 0) {
-            /* Read in the sector if it has not been buffered */
-            if (p->buffer[0] != p->track_next || p->buffer[1] != p->sector_next)
-            {
-                status = disk_image_read_sector(vdrive->image, p->buffer_next, p->buffer[0],
-                    p->buffer[1]);
-            }
-            else {
-                status = 0;
-            }
-        }
-        /* If all is good, calculate the length now */
-        if (!status) {
-            /* update references, if the sector read in */
-            p->track_next = p->buffer[0];
-            p->sector_next = p->buffer[1];
-            /* Start looking in the buffered sector */
-            for (;p->length >= 256 && p->length >= p->bufptr && p->buffer_next[p->length-256+2] == 0 ; p->length-- );
+		/* Get the next sector */
+		/* If it doesn't exist, we will use the max length calculated above */
+		if (p->buffer[0] != 0) {
+			/* Read in the sector if it has not been buffered */
+			if (p->buffer[0] != p->track_next || p->buffer[1] != p->sector_next)
+			{
+				status = disk_image_read_sector(vdrive->image, p->buffer_next, p->buffer[0],
+						p->buffer[1]);
+			}
+			else {
+				status = 0;
+			}
+		}
+		/* If all is good, calculate the length now */
+		if (!status) {
+			/* update references, if the sector read in */
+			p->track_next = p->buffer[0];
+			p->sector_next = p->buffer[1];
+			/* Start looking in the buffered sector */
+			for (;p->length >= 256 && p->length >= p->bufptr && p->buffer_next[p->length-256+2] == 0 ; p->length-- );
 
-            /* If we crossed into the current sector, look there too, but
-                only if the position places us in the current sector.
-                Otherwise, the length will be 1 at this point. */
-            if (p->length < 256 && p->bufptr < 256) {
-                for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
+			/* If we crossed into the current sector, look there too, but
+			   only if the position places us in the current sector.
+			   Otherwise, the length will be 1 at this point. */
+			if (p->length < 256 && p->bufptr < 256) {
+				for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
 
-                /* Compensate for overflow length bug, set maximum length
-                    based on the position requested */
-                if (p->bufptr > p->length && position > 0 ) {
-                    p->length = p->bufptr + 254 - position;
-                }
-            }
-        }
-    }
+				/* Compensate for overflow length bug, set maximum length
+				   based on the position requested */
+				if (p->bufptr > p->length && position > 0 ) {
+					p->length = p->bufptr + 254 - position;
+				}
+			}
+		}
+	}
 
-    return CBMDOS_IPE_OK;
+	return CBMDOS_IPE_OK;
 
 }
 
 int vdrive_rel_read(vdrive_t *vdrive, BYTE *data, unsigned int secondary)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
 
-    /* Check if we are past the end of the REL file. */
-    if (p->record >= p->record_max) {
-        *data = 0x0d;
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_RECORD, 0, 0);
-        return SERIAL_EOF;
-    }
+	/* Check if we are past the end of the REL file. */
+	if (p->record >= p->record_max)
+	{
+		*data = 0x0d;
+		vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_RECORD, 0, 0);
+		return SERIAL_EOF;
+	}
 
-    /*
-     * Read next block if needed
-     */
-    if (p->buffer[0]) {
-        if (p->bufptr >= 256) {
-            int status = 0;
-            unsigned int track, sector;
+	/*
+	 * Read next block if needed
+	 */
+	if (p->buffer[0]) {
+		if (p->bufptr >= 256) {
+			int status = 0;
+			unsigned int track, sector;
 
-            track = (unsigned int)p->buffer[0];
-            sector = (unsigned int)p->buffer[1];
+			track = (unsigned int)p->buffer[0];
+			sector = (unsigned int)p->buffer[1];
 
-            /* Commit the buffers. */
-            vdrive_rel_commit(vdrive, p);
+			/* Commit the buffers. */
+			vdrive_rel_commit(vdrive, p);
 
-            /* Check to see if the next record is in the buffered sector */
-            if (p->track_next == track && p->sector_next == sector) {
-                /* Swap the two buffers */
-                BYTE *tmp;
-                tmp = p->buffer;
-                p->buffer = p->buffer_next;
-                p->buffer_next = tmp;
-                p->track_next = p->track;
-                p->sector_next = p->sector;
-                p->track = track;
-                p->sector = sector;
-                status = 0;
-            } else if (p->track!=track || p->sector != sector ) {
-                /* load in the sector to memory */
-                status = disk_image_read_sector(vdrive->image, p->buffer, track, sector);
-            }
+			/* Check to see if the next record is in the buffered sector */
+			if (p->track_next == track && p->sector_next == sector) {
+				/* Swap the two buffers */
+				BYTE *tmp;
+				tmp = p->buffer;
+				p->buffer = p->buffer_next;
+				p->buffer_next = tmp;
+				p->track_next = p->track;
+				p->sector_next = p->sector;
+				p->track = track;
+				p->sector = sector;
+				status = 0;
+			} else if (p->track!=track || p->sector != sector ) {
+				/* load in the sector to memory */
+				status = disk_image_read_sector(vdrive->image, p->buffer, track, sector);
+			}
 
-            if (status == 0) {
-                p->track = track;
-                p->sector = sector;
-                p->bufptr = p->bufptr - 254;
-                p->length = p->length - 254;
-                p->record_next = p->record_next - 254;
-                /* keep buffered sector where ever it is */
-                /* we won't read in the next sector unless we have to */
-            } else {
-                log_error(vdrive_rel_log,
-                    "Cannot read track %i sector %i.", track, sector);
-                *data = 0xc7;
-                return SERIAL_EOF;
-            }
-        }
-    } else {
-        if (p->bufptr >= (unsigned int)( p->buffer[1] + 2 ) ) {
-            /* check to see if we have the pointer overflow problem here. */
-            if (p->record_next > p->length)
-            {
-                *data = 0x0d;
-    #ifdef DEBUG_DRIVE
-                if (p->mode == BUFFER_COMMAND_CHANNEL)
-                    log_error(vdrive_rel_log,
-                        "Disk read  %d [%02d %02d] data %02x (%c).",
-                        p->mode, 0, 0, *data, (isprint(*data)
-                        ? *data : '.'));
-    #endif
-                vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_RECORD, 0, 0);
-                return SERIAL_EOF;
-            }
-            else {
-                /* Yes, just rotate though to this buffer. */
-                if (p->bufptr>=256) {
-                    p->bufptr = p->bufptr - 254;
-                    p->length = p->length - 254;
-                    p->record_next = p->record_next - 254;
-                }
-            }
-        }
-    }
+			if (status == 0)
+			{
+				p->track = track;
+				p->sector = sector;
+				p->bufptr = p->bufptr - 254;
+				p->length = p->length - 254;
+				p->record_next = p->record_next - 254;
+				/* keep buffered sector where ever it is */
+				/* we won't read in the next sector unless we have to */
+			}
+			else
+			{
+				#ifdef CELL_DEBUG
+				printf("ERROR: Cannot read track %i sector %i.\n", track, sector);
+				#endif
+				*data = 0xc7;
+				return SERIAL_EOF;
+			}
+		}
+	} else {
+		if (p->bufptr >= (unsigned int)( p->buffer[1] + 2 ))
+		{
+			/* check to see if we have the pointer overflow problem here. */
+			if (p->record_next > p->length)
+			{
+				*data = 0x0d;
+#ifdef DEBUG_DRIVE
+				if (p->mode == BUFFER_COMMAND_CHANNEL)
+					log_error(vdrive_rel_log,
+							"Disk read  %d [%02d %02d] data %02x (%c).",
+							p->mode, 0, 0, *data, (isprint(*data)
+								? *data : '.'));
+#endif
+				vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_RECORD, 0, 0);
+				return SERIAL_EOF;
+			}
+			else {
+				/* Yes, just rotate though to this buffer. */
+				if (p->bufptr>=256) {
+					p->bufptr = p->bufptr - 254;
+					p->length = p->length - 254;
+					p->record_next = p->record_next - 254;
+				}
+			}
+		}
+	}
 
-    *data = p->buffer[p->bufptr];
-    p->bufptr++;
+	*data = p->buffer[p->bufptr];
+	p->bufptr++;
 
-    if (p->bufptr > p->length) {
-        /* set up the buffer pointer to the next record */
-        p->bufptr = p->record_next;
-        /* add the record length to the next record pointer */
-        p->record_next += p->side_sector[OFFSET_RECORD_LEN];
-        /* calculate the maximum length (for read, for write we should use
-            record_next - 1 */
-        p->length = p->record_next - 1;
-        /* increment the record reference */
-        p->record++;
-        /* Exit if we have hit the end of the REL data. */
-        if (p->record >= p->record_max) {
-            return SERIAL_EOF;
-        }
-        /* Find the length of the record starting from the end until no zeros
-            are found */
-        if ( p->length < 256) {
-            /* If the maximum length of the record is in this sector, just
-            check for where the zeros end */
-            for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
-        }
-        else {
-            int status=1;
+	if (p->bufptr > p->length) {
+		/* set up the buffer pointer to the next record */
+		p->bufptr = p->record_next;
+		/* add the record length to the next record pointer */
+		p->record_next += p->side_sector[OFFSET_RECORD_LEN];
+		/* calculate the maximum length (for read, for write we should use
+		   record_next - 1 */
+		p->length = p->record_next - 1;
+		/* increment the record reference */
+		p->record++;
+		/* Exit if we have hit the end of the REL data. */
+		if (p->record >= p->record_max) {
+			return SERIAL_EOF;
+		}
+		/* Find the length of the record starting from the end until no zeros
+		   are found */
+		if ( p->length < 256) {
+			/* If the maximum length of the record is in this sector, just
+			   check for where the zeros end */
+			for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
+		}
+		else {
+			int status=1;
 
-            /* Get the next sector */
-            /* If it doesn't exist, we will use the max length calculated above */
-            if (p->buffer[0] != 0) {
-                /* Read in the sector if it has not been buffered */
-                if (p->buffer[0] != p->track_next || p->buffer[1] != p->sector_next) {
-                    status = disk_image_read_sector(vdrive->image, p->buffer_next, p->buffer[0],
-                    p->buffer[1]);
-                }
-                else {
-                    status = 0;
-                }
-            }
-            /* If all is good, calculate the length now */
-            if (!status) {
-                /* update references, if the sector read in */
-                p->track_next = p->buffer[0];
-                p->sector_next = p->buffer[1];
-                /* Start looking in the buffered sector */
-                for (;p->length >= 256 && p->buffer_next[p->length-256+2] == 0 ; p->length-- );
-                /* If we crossed into the current sector, look there too */
-                if (p->length<256) {
-                    for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
-                }
-            }
+			/* Get the next sector */
+			/* If it doesn't exist, we will use the max length calculated above */
+			if (p->buffer[0] != 0) {
+				/* Read in the sector if it has not been buffered */
+				if (p->buffer[0] != p->track_next || p->buffer[1] != p->sector_next) {
+					status = disk_image_read_sector(vdrive->image, p->buffer_next, p->buffer[0],
+							p->buffer[1]);
+				}
+				else {
+					status = 0;
+				}
+			}
+			/* If all is good, calculate the length now */
+			if (!status) {
+				/* update references, if the sector read in */
+				p->track_next = p->buffer[0];
+				p->sector_next = p->buffer[1];
+				/* Start looking in the buffered sector */
+				for (;p->length >= 256 && p->buffer_next[p->length-256+2] == 0 ; p->length-- );
+				/* If we crossed into the current sector, look there too */
+				if (p->length<256) {
+					for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
+				}
+			}
 
-        }
-        log_debug("Forced from read to position %d, 0 on channel %d.",
-            p->record, secondary);
+		}
+		//log_debug("Forced from read to position %d, 0 on channel %d.", p->record, secondary);
 
-        return SERIAL_EOF;
-    }
+		return SERIAL_EOF;
+	}
 
-    return SERIAL_OK;
+	return SERIAL_OK;
 }
 
 int vdrive_rel_write(vdrive_t *vdrive, BYTE data, unsigned int secondary)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
 
-    if (vdrive->image->read_only) {
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_WRITE_PROTECT_ON, 0, 0);
-        return SERIAL_ERROR;
-    }
+	if (vdrive->image->read_only)
+	{
+		vdrive_command_set_error(vdrive, CBMDOS_IPE_WRITE_PROTECT_ON, 0, 0);
+		return SERIAL_ERROR;
+	}
 
-    /* Check if we need to grow the REL file. */
-    if (p->record >= p->record_max) {
-        if (vdrive_rel_grow(vdrive, secondary, p->record) < 0)
-        {
-            /* Couldn't grow it, error generated in function. */
-            return SERIAL_OK;
-        }
-    }
+	/* Check if we need to grow the REL file. */
+	if (p->record >= p->record_max)
+	{
+		if (vdrive_rel_grow(vdrive, secondary, p->record) < 0)
+			return SERIAL_OK; /* Couldn't grow it, error generated in function. */
+	}
 
-    /*
-     * Read next block if needed
-     */
-    if (p->buffer[0]) {
-        if (p->bufptr >= 256) {
-            int status = 0;
-            unsigned int track, sector;
+	/*
+	 * Read next block if needed
+	 */
+	if (p->buffer[0]) {
+		if (p->bufptr >= 256) {
+			int status = 0;
+			unsigned int track, sector;
 
-            track = (unsigned int)p->buffer[0];
-            sector = (unsigned int)p->buffer[1];
+			track = (unsigned int)p->buffer[0];
+			sector = (unsigned int)p->buffer[1];
 
-            /* Commit the buffers. */
-            vdrive_rel_commit(vdrive, p);
+			/* Commit the buffers. */
+			vdrive_rel_commit(vdrive, p);
 
-            /* Check to see if the next record is in the buffered sector */
-            if (p->track_next == track && p->sector_next == sector) {
-                /* Swap the two buffers */
-                BYTE *tmp;
-                tmp = p->buffer;
-                p->buffer = p->buffer_next;
-                p->buffer_next = tmp;
-                p->track_next = p->track;
-                p->sector_next = p->sector;
-                p->track = track;
-                p->sector = sector;
-                status = 0;
-            } else if (p->track!=track || p->sector != sector ) {
-                /* load in the sector to memory */
-                status = disk_image_read_sector(vdrive->image, p->buffer, track, sector);
-            }
+			/* Check to see if the next record is in the buffered sector */
+			if (p->track_next == track && p->sector_next == sector) {
+				/* Swap the two buffers */
+				BYTE *tmp;
+				tmp = p->buffer;
+				p->buffer = p->buffer_next;
+				p->buffer_next = tmp;
+				p->track_next = p->track;
+				p->sector_next = p->sector;
+				p->track = track;
+				p->sector = sector;
+				status = 0;
+			} else if (p->track!=track || p->sector != sector ) {
+				/* load in the sector to memory */
+				status = disk_image_read_sector(vdrive->image, p->buffer, track, sector);
+			}
 
-            if (status == 0) {
-                p->track = track;
-                p->sector = sector;
-                p->bufptr = p->bufptr - 254;
-                p->length = p->length - 254;
-                p->record_next = p->record_next - 254;
-                /* keep buffered sector where ever it is */
-                /* we won't read in the next sector unless we have to */
-            } else {
-                log_error(vdrive_rel_log,
-                    "Cannot read track %i sector %i.", track, sector);
-                return SERIAL_EOF;
-            }
-        }
-    } else {
-        if (p->bufptr >= (unsigned int)( p->buffer[1] + 2 ) ) {
-#ifdef DEBUG_DRIVE
-            if (p->mode == BUFFER_COMMAND_CHANNEL)
-                log_error(vdrive_rel_log,
-                    "Disk read  %d [%02d %02d] data %02x (%c).",
-                    p->mode, 0, 0, data, (isprint(data)
-                    ? data : '.'));
+			if (status == 0) {
+				p->track = track;
+				p->sector = sector;
+				p->bufptr = p->bufptr - 254;
+				p->length = p->length - 254;
+				p->record_next = p->record_next - 254;
+				/* keep buffered sector where ever it is */
+				/* we won't read in the next sector unless we have to */
+			}
+			else
+			{
+#ifdef CELL_DEBUG
+				printf("ERROR: Cannot read track %i sector %i.\n", track, sector);
 #endif
-            if (vdrive_rel_grow(vdrive, secondary, p->record) < 0)
-            {
-                /* Couldn't grow it, error generated in function. */
-                return SERIAL_OK;
-            }
-        }
-    }
+				return SERIAL_EOF;
+			}
+		}
+	} else {
+		if (p->bufptr >= (unsigned int)( p->buffer[1] + 2 ) ) {
+#ifdef DEBUG_DRIVE
+			if (p->mode == BUFFER_COMMAND_CHANNEL)
+				log_error(vdrive_rel_log,
+						"Disk read  %d [%02d %02d] data %02x (%c).",
+						p->mode, 0, 0, data, (isprint(data)
+							? data : '.'));
+#endif
+			if (vdrive_rel_grow(vdrive, secondary, p->record) < 0)
+			{
+				/* Couldn't grow it, error generated in function. */
+				return SERIAL_OK;
+			}
+		}
+	}
 
-    if (p->bufptr >= p->record_next) {
-        /* We CANNOT write into the next record under any
-            circumstances, unlike the reads. */
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_OVERFLOW, 0, 0);
+	if (p->bufptr >= p->record_next) {
+		/* We CANNOT write into the next record under any
+		   circumstances, unlike the reads. */
+		vdrive_command_set_error(vdrive, CBMDOS_IPE_OVERFLOW, 0, 0);
 
-        /* But if we try, we still say it is okay, but with a DOS
-            error. */
-        return SERIAL_OK;
-    }
+		/* But if we try, we still say it is okay, but with a DOS
+		   error. */
+		return SERIAL_OK;
+	}
 
-    /* write the data to the buffer */
-    p->buffer[p->bufptr] = data;
-    /* increment the pointer */
-    p->bufptr++;
-    /* flag this sector as dirty and written */
-    p->needsupdate |= ( DIRTY_SECTOR | WRITTEN_RECORD ); 
+	/* write the data to the buffer */
+	p->buffer[p->bufptr] = data;
+	/* increment the pointer */
+	p->bufptr++;
+	/* flag this sector as dirty and written */
+	p->needsupdate |= ( DIRTY_SECTOR | WRITTEN_RECORD ); 
 
-    /* Mark this record as dirty only if we are still in it */
-    if (p->bufptr!=p->record_next) {
-        p->needsupdate |= DIRTY_RECORD;
-    } else {
-        p->needsupdate &= (~DIRTY_RECORD);
-    }
+	/* Mark this record as dirty only if we are still in it */
+	if (p->bufptr!=p->record_next) {
+		p->needsupdate |= DIRTY_RECORD;
+	} else {
+		p->needsupdate &= (~DIRTY_RECORD);
+	}
 
-    /* Any pointer overflow gets handled at the beginning of this
-        function. */
+	/* Any pointer overflow gets handled at the beginning of this
+	   function. */
 
-    return SERIAL_OK;
+	return SERIAL_OK;
 }
 
 int vdrive_rel_close(vdrive_t *vdrive, unsigned int secondary)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
 
-    log_debug("VDrive REL close channel %d.", secondary);
+	//log_debug("VDrive REL close channel %d.", secondary);
 
-    /* Fill the rest of the currently written record. */
-    vdrive_rel_fillrecord(vdrive, secondary);
+	/* Fill the rest of the currently written record. */
+	vdrive_rel_fillrecord(vdrive, secondary);
 
-    /* Commit the buffers. */
-    vdrive_rel_commit(vdrive, p);
+	/* Commit the buffers. */
+	vdrive_rel_commit(vdrive, p);
 
-    p->mode = BUFFER_NOT_IN_USE;
+	p->mode = BUFFER_NOT_IN_USE;
 
-    lib_free((char *)p->buffer);
-    p->buffer = NULL;
+	lib_free((char *)p->buffer);
+	p->buffer = NULL;
 
-    lib_free((char *)p->buffer_next);
-    p->buffer_next = NULL;
+	lib_free((char *)p->buffer_next);
+	p->buffer_next = NULL;
 
-    /* remove side sectors */
-    lib_free(p->side_sector);
-    p->side_sector = NULL;
+	/* remove side sectors */
+	lib_free(p->side_sector);
+	p->side_sector = NULL;
 
-    /* remove side sector tracks */
-    lib_free(p->side_sector_track);
-    p->side_sector_track = NULL;
+	/* remove side sector tracks */
+	lib_free(p->side_sector_track);
+	p->side_sector_track = NULL;
 
-    /* remove side sector sectors */
-    lib_free(p->side_sector_sector);
-    p->side_sector_sector = NULL;
+	/* remove side sector sectors */
+	lib_free(p->side_sector_sector);
+	p->side_sector_sector = NULL;
 
-    /* remove super side sector too */
-    lib_free(p->super_side_sector);
-    p->super_side_sector = NULL;
+	/* remove super side sector too */
+	lib_free(p->super_side_sector);
+	p->super_side_sector = NULL;
 
-    /* remove dirty flags */
-    lib_free(p->side_sector_needsupdate);
-    p->side_sector_needsupdate = NULL;
+	/* remove dirty flags */
+	lib_free(p->side_sector_needsupdate);
+	p->side_sector_needsupdate = NULL;
 
-    /* Free the slot */
-    lib_free(p->slot);
+	/* Free the slot */
+	lib_free(p->slot);
 
-    return SERIAL_OK;
+	return SERIAL_OK;
 }
 
 void vdrive_rel_listen(vdrive_t *vdrive, unsigned int secondary)
@@ -1453,55 +1420,54 @@ void vdrive_rel_listen(vdrive_t *vdrive, unsigned int secondary)
     bufferinfo_t *p = &(vdrive->buffers[secondary]);
 
     if (p->needsupdate & WRITTEN_RECORD) {
-        /* Fill the rest of the currently written record. */
-        vdrive_rel_fillrecord(vdrive, secondary);
+	    /* Fill the rest of the currently written record. */
+	    vdrive_rel_fillrecord(vdrive, secondary);
 
-        /* set up the buffer pointer to the next record */
-        p->bufptr = p->record_next;
-        /* add the record length to the next record pointer */
-        p->record_next += p->side_sector[OFFSET_RECORD_LEN];
-        /* calculate the maximum length (for read, for write we should use
-            record_next - 1 */
-        p->length = p->record_next - 1;
-        /* increment the record reference */
-        p->record++;
-        /* Find the length of the record starting from the end until no zeros
-            are found */
-        if ( p->length < 256) {
-            /* If the maximum length of the record is in this sector, just
-            check for where the zeros end */
-            for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
-        }
-        else {
-            int status=1;
+	    /* set up the buffer pointer to the next record */
+	    p->bufptr = p->record_next;
+	    /* add the record length to the next record pointer */
+	    p->record_next += p->side_sector[OFFSET_RECORD_LEN];
+	    /* calculate the maximum length (for read, for write we should use
+	       record_next - 1 */
+	    p->length = p->record_next - 1;
+	    /* increment the record reference */
+	    p->record++;
+	    /* Find the length of the record starting from the end until no zeros
+	       are found */
+	    if ( p->length < 256) {
+		    /* If the maximum length of the record is in this sector, just
+		       check for where the zeros end */
+		    for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
+	    }
+	    else {
+		    int status=1;
 
-            /* Get the next sector */
-            /* If it doesn't exist, we will use the max length calculated above */
-            if (p->buffer[0] != 0) {
-                /* Read in the sector if it has not been buffered */
-                if (p->buffer[0] != p->track_next || p->buffer[1] != p->sector_next) {
-                    status = disk_image_read_sector(vdrive->image, p->buffer_next, p->buffer[0],
-                    p->buffer[1]);
-                }
-                else {
-                    status = 0;
-                }
-            }
-            /* If all is good, calculate the length now */
-            if (!status) {
-                /* update references, if the sector read in */
-                p->track_next = p->buffer[0];
-                p->sector_next = p->buffer[1];
-                /* Start looking in the buffered sector */
-                for (;p->length >= 256 && p->buffer_next[p->length-256+2] == 0 ; p->length-- );
-                /* If we crossed into the current sector, look there too */
-                if (p->length<256) {
-                    for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
-                }
-            }
+		    /* Get the next sector */
+		    /* If it doesn't exist, we will use the max length calculated above */
+		    if (p->buffer[0] != 0) {
+			    /* Read in the sector if it has not been buffered */
+			    if (p->buffer[0] != p->track_next || p->buffer[1] != p->sector_next) {
+				    status = disk_image_read_sector(vdrive->image, p->buffer_next, p->buffer[0],
+						    p->buffer[1]);
+			    }
+			    else {
+				    status = 0;
+			    }
+		    }
+		    /* If all is good, calculate the length now */
+		    if (!status) {
+			    /* update references, if the sector read in */
+			    p->track_next = p->buffer[0];
+			    p->sector_next = p->buffer[1];
+			    /* Start looking in the buffered sector */
+			    for (;p->length >= 256 && p->buffer_next[p->length-256+2] == 0 ; p->length-- );
+			    /* If we crossed into the current sector, look there too */
+			    if (p->length<256) {
+				    for (;p->length >= p->bufptr && p->buffer[p->length] == 0 ; p->length-- );
+			    }
+		    }
 
-        }
-        log_debug("Forced from write to position %d, 0 on channel %d.",
-            p->record, secondary);
+	    }
+	    //log_debug("Forced from write to position %d, 0 on channel %d.", p->record, secondary);
     }
 }

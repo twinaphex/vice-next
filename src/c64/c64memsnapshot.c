@@ -38,7 +38,6 @@
 #include "c64pla.h"
 #include "c64rom.h"
 #include "cartridge.h"
-#include "log.h"
 #include "mem.h"
 #include "resources.h"
 #include "reu.h"
@@ -53,8 +52,6 @@
 
 #define SNAP_ROM_MAJOR 0
 #define SNAP_ROM_MINOR 0
-
-static log_t c64_snapshot_log = LOG_ERR;
 
 static const char snap_rom_module_name[] = "C64ROM";
 
@@ -123,8 +120,11 @@ static int c64_snapshot_read_rom_module(snapshot_t *s)
         return 0;
     }
 
-    if (major_version > SNAP_ROM_MAJOR || minor_version > SNAP_ROM_MINOR) {
-        log_error(c64_snapshot_log, "Snapshot module version (%d.%d) newer than %d.%d.", major_version, minor_version, SNAP_ROM_MAJOR, SNAP_ROM_MINOR);
+    if (major_version > SNAP_ROM_MAJOR || minor_version > SNAP_ROM_MINOR)
+    {
+    	#ifdef CELL_DEBUG
+	printf("ERROR: Snapshot module version (%d.%d) newer than %d.%d.\n", major_version, minor_version, SNAP_ROM_MAJOR, SNAP_ROM_MINOR);
+	#endif
         snapshot_module_close(m);
         return -1;
     }
@@ -229,8 +229,11 @@ int c64_snapshot_read_module(snapshot_t *s)
         return -1;
     }
 
-    if (major_version > SNAP_MAJOR || minor_version > SNAP_MINOR) {
-        log_error(c64_snapshot_log, "Snapshot module version (%d.%d) newer than %d.%d.", major_version, minor_version, SNAP_MAJOR, SNAP_MINOR);
+    if (major_version > SNAP_MAJOR || minor_version > SNAP_MINOR)
+    {
+    	#ifdef CELL_DEBUG
+        printf("ERROR: Snapshot module version (%d.%d) newer than %d.%d.\n", major_version, minor_version, SNAP_MAJOR, SNAP_MINOR);
+	#endif
         goto fail;
     }
 

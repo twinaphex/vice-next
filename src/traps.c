@@ -34,7 +34,6 @@
 
 #include "cmdline.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "machine-bus.h"
 #include "maincpu.h"
@@ -55,8 +54,6 @@ static traplist_t *traplist = NULL;
 
 static int install_trap(const trap_t *t);
 static int remove_trap(const trap_t *t);
-
-static log_t traps_log = LOG_ERR;
 
 /* ------------------------------------------------------------------------- */
 
@@ -128,7 +125,6 @@ int traps_cmdline_options_init(void)
 
 void traps_init(void)
 {
-    traps_log = log_open("Traps");
 }
 
 void traps_shutdown(void)
@@ -150,9 +146,7 @@ static int install_trap(const trap_t *t)
 
     for (i = 0; i < 3; i++) {
         if ((t->readfunc)((WORD)(t->address + i)) != t->check[i]) {
-            log_error(traps_log,
-                      "Incorrect checkbyte for trap `%s'.  Not installed.",
-                      t->name);
+            //log_error(traps_log, "Incorrect checkbyte for trap `%s'.  Not installed.", t->name);
             return -1;
         }
     }
@@ -180,7 +174,7 @@ int traps_add(const trap_t *trap)
 static int remove_trap(const trap_t *trap)
 {
     if ((trap->readfunc)(trap->address) != TRAP_OPCODE) {
-        log_error(traps_log, "No trap `%s' installed?", trap->name);
+        //log_error(traps_log, "No trap `%s' installed?", trap->name);
         return -1;
     }
 
@@ -200,7 +194,7 @@ int traps_remove(const trap_t *trap)
     }
 
     if (!p) {
-        log_error(traps_log, "Trap `%s' not found.", trap->name);
+        //log_error(traps_log, "Trap `%s' not found.", trap->name);
         return -1;
     }
 

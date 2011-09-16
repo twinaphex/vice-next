@@ -49,7 +49,6 @@
 #include "event.h"
 #include "ioutil.h"
 #include "lib.h"
-#include "log.h"
 #include "network.h"
 #include "resources.h"
 #include "util.h"
@@ -350,7 +349,7 @@ int resources_write_item_to_file(FILE *fp, const char *name)
         write_resource_item(fp, res - resources);
         return 0;
     }
-    log_warning(LOG_DEFAULT, "Trying to save unknown resource '%s'", name);
+    //log_warning(LOG_DEFAULT, "Trying to save unknown resource '%s'", name);
 
     return -1;
 }
@@ -362,7 +361,7 @@ char *resources_write_item_to_string(const char *name, const char *delim)
     if (res != NULL)
         return string_resource_item(res - resources, delim);
 
-    log_warning(LOG_DEFAULT, "Trying to save unknown resource '%s'", name);
+    //log_warning(LOG_DEFAULT, "Trying to save unknown resource '%s'", name);
 
     return NULL;
 }
@@ -449,9 +448,7 @@ int resources_set_value(const char *name, resource_value_t value)
     resource_ram_t *r = lookup(name);
 
     if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to assign value to unknown "
-                    "resource `%s'.", name);
+        //log_warning(LOG_DEFAULT, "Trying to assign value to unknown " "resource `%s'.", name);
         return -1;
     }
 
@@ -500,9 +497,7 @@ int resources_set_int(const char *name, int value)
 	resource_ram_t *r = lookup(name);
 
 	if (r == NULL) {
-		log_warning(LOG_DEFAULT,
-				"Trying to assign value to unknown "
-				"resource `%s'.", name);
+		//log_warning(LOG_DEFAULT, "Trying to assign value to unknown " "resource `%s'.", name);
 		return -1;
 	}
 
@@ -514,9 +509,7 @@ int resources_set_string(const char *name, const char *value)
 	resource_ram_t *r = lookup(name);
 
 	if (r == NULL) {
-		log_warning(LOG_DEFAULT,
-				"Trying to assign value to unknown "
-				"resource `%s'.", name);
+		//log_warning(LOG_DEFAULT, "Trying to assign value to unknown " "resource `%s'.", name);
 		return -1;
 	}
 
@@ -576,9 +569,7 @@ int resources_set_value_string(const char *name, const char *value)
     int status;
 
     if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to assign value to unknown "
-                    "resource `%s'.", name);
+        //log_warning(LOG_DEFAULT, "Trying to assign value to unknown " "resource `%s'.", name);
         return -1;
     }
 
@@ -601,7 +592,7 @@ int resources_set_value_string(const char *name, const char *value)
         status = (*r->set_func_string)(value, r->param);
         break;
       default:
-        log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
+        //log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
         status = -1;
         break;
     }
@@ -618,9 +609,7 @@ int resources_get_value(const char *name, void *value_return)
     resource_ram_t *r = lookup(name);
 
     if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to read value from unknown "
-                    "resource `%s'.", name);
+        //log_warning(LOG_DEFAULT, "Trying to read value from unknown " "resource `%s'.", name);
         return -1;
     }
 
@@ -632,7 +621,7 @@ int resources_get_value(const char *name, void *value_return)
         *(char **)value_return = *(char **)r->value_ptr;
         break;
       default:
-        log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
+        //log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
         return -1;
     }
 
@@ -644,9 +633,7 @@ int resources_get_int(const char *name, int *value_return)
     resource_ram_t *r = lookup(name);
 
     if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to read value from unknown "
-                    "resource `%s'.", name);
+        //log_warning(LOG_DEFAULT, "Trying to read value from unknown " "resource `%s'.", name);
         return -1;
     }
 
@@ -655,7 +642,7 @@ int resources_get_int(const char *name, int *value_return)
         *value_return = *(int *)r->value_ptr;
         break;
       default:
-        log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
+        //log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
         return -1;
     }
 
@@ -667,9 +654,7 @@ int resources_get_string(const char *name, const char **value_return)
     resource_ram_t *r = lookup(name);
 
     if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to read value from unknown "
-                    "resource `%s'.", name);
+        //log_warning(LOG_DEFAULT, "Trying to read value from unknown " "resource `%s'.", name);
         return -1;
     }
 
@@ -678,7 +663,7 @@ int resources_get_string(const char *name, const char **value_return)
         *value_return = *(const char **)r->value_ptr;
         break;
       default:
-        log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
+        //log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
         return -1;
     }
 
@@ -721,9 +706,7 @@ int resources_get_default_value(const char *name, void *value_return)
     resource_ram_t *r = lookup(name);
 
     if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to read value from unknown "
-                    "resource `%s'.", name);
+        //log_warning(LOG_DEFAULT, "Trying to read value from unknown " "resource `%s'.", name);
         return -1;
     }
 
@@ -735,7 +718,7 @@ int resources_get_default_value(const char *name, void *value_return)
         *(char **)value_return = (char *)(r->factory_value);
         break;
       default:
-        log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
+        //log_warning(LOG_DEFAULT, "Unknown resource type for `%s'", name);
         return -1;
     }
 
@@ -753,7 +736,7 @@ int resources_set_defaults(void)
             if ((*resources[i].set_func_int)(vice_ptr_to_int(resources[i].factory_value),
                 resources[i].param) < 0) {
                 /*printf("Cannot set resource %s", resources[i].name);*/
-                log_warning("Resources", "Cannot set resource %s", resources[i].name);
+                //log_warning("Resources", "Cannot set resource %s", resources[i].name);
                 return -1;
             }
             break;
@@ -761,7 +744,7 @@ int resources_set_defaults(void)
             if ((*resources[i].set_func_string)((const char *)(resources[i].factory_value),
                 resources[i].param) < 0) {
                 /*printf("Cannot set resource %s", resources[i].name);*/
-                log_warning("Resources", "Cannot set resource %s", resources[i].name);
+                //log_warning("Resources", "Cannot set resource %s", resources[i].name);
                 return -1;
             }
             break;
@@ -832,9 +815,7 @@ int resources_toggle(const char *name, int *new_value_return)
 	int value;
 
 	if (r == NULL) {
-		log_warning(LOG_DEFAULT,
-				"Trying to toggle boolean value of unknown "
-				"resource `%s'.", name);
+		//log_warning(LOG_DEFAULT, "Trying to toggle boolean value of unknown " "resource `%s'.", name);
 		return -1;
 	}
 
@@ -929,7 +910,7 @@ int resources_read_item_from_file(FILE *f)
 
         r = lookup(buf);
         if (r == NULL) {
-            log_error(LOG_DEFAULT, "Unknown resource `%s'.", buf);
+            //log_error(LOG_DEFAULT, "Unknown resource `%s'.", buf);
             return -2;
         }
 
@@ -941,15 +922,13 @@ int resources_read_item_from_file(FILE *f)
             result = (*r->set_func_string)(arg_ptr, r->param);
             break;
           default:
-            log_error(LOG_DEFAULT, "Unknown resource type for `%s'.",
-                      r->name);
+            //log_error(LOG_DEFAULT, "Unknown resource type for `%s'.", r->name);
             result = -1;
 	    break;
         }
 
         if (result < 0) {
-            log_error(LOG_DEFAULT, "Cannot assign value to resource `%s'.",
-                      r->name);
+            //log_error(LOG_DEFAULT, "Cannot assign value to resource `%s'.", r->name);
             return -1;
         }
 
@@ -981,13 +960,13 @@ int resources_load(const char *fname)
     f = fopen(fname, MODE_READ_TEXT);
 
     if (f == NULL) {
-	log_warning ("Resources", "Could not open configuration file : %s\n", fname);
+	//log_warning ("Resources", "Could not open configuration file : %s\n", fname);
 
         lib_free(default_name);
         return RESERR_FILE_NOT_FOUND;
     }
 
-    log_message(LOG_DEFAULT, "Reading configuration file `%s'.", fname);
+    //log_message(LOG_DEFAULT, "Reading configuration file `%s'.", fname);
 
     /* Find the start of the configuration section for this emulator.  */
     for (line_num = 1; ; line_num++) {
@@ -1008,15 +987,11 @@ int resources_load(const char *fname)
     do {
         retval = resources_read_item_from_file(f);
         if (retval == -1) {
-            log_error(LOG_DEFAULT,
-                      "%s: Invalid resource specification at line %d.",
-                      fname, line_num);
+            //log_error(LOG_DEFAULT, "%s: Invalid resource specification at line %d.", fname, line_num);
             err = 1;
         } else
         if (retval == -2) {
-            log_warning(LOG_DEFAULT,
-                      "%s: Unknown resource specification at line %d.",
-                      fname, line_num);
+            //log_warning(LOG_DEFAULT, "%s: Unknown resource specification at line %d.", fname, line_num);
         }
         line_num++;
     } while (retval != 0);
@@ -1052,8 +1027,7 @@ static char *string_resource_item(int num, const char *delim)
             line = lib_msprintf("%s=%s", resources[num].name, delim);
         break;
       default:
-        log_error(LOG_DEFAULT, "Unknown value type for resource `%s'.",
-                  resources[num].name);
+        //log_error(LOG_DEFAULT, "Unknown value type for resource `%s'.", resources[num].name);
         break;
     }
     return line;
@@ -1125,7 +1099,7 @@ int resources_save(const char *fname)
         return RESERR_CANNOT_RENAME_FILE;
     }
 
-    log_message(LOG_DEFAULT, "Writing configuration file `%s'.", fname);
+    //log_message(LOG_DEFAULT, "Writing configuration file `%s'.", fname);
 
     out_file = fopen(fname, MODE_WRITE_TEXT);
 

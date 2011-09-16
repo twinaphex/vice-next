@@ -60,7 +60,6 @@
 #include "archdep.h"
 #include "ioutil.h"
 #include "lib.h"
-#include "log.h"
 #include "util.h"
 #include "zfile.h"
 #include "zipcode.h"
@@ -107,8 +106,6 @@ typedef struct zfile_s zfile_t;
 
 static zfile_t *zfile_list = NULL;
 
-static log_t zlog = LOG_ERR;
-
 /* ------------------------------------------------------------------------- */
 
 static int zinit_done = 0;
@@ -132,8 +129,6 @@ static void zfile_list_destroy(void)
 
 static int zinit(void)
 {
-    zlog = log_open("ZFile");
-
     /* Free the `zfile_list' if not empty.  */
     zfile_list_destroy();
 
@@ -329,7 +324,7 @@ static char *try_uncompress_with_unzip(const char *name, int write_mode)
 
     if (filesize > MAX_BUFFER_SIZE)
     {
-        log_error(zlog, "filesize (%d) exceeds maximum buffer size.\n", filesize);
+        //log_error(zlog, "filesize (%d) exceeds maximum buffer size.\n", filesize);
         return NULL;
     }
 
@@ -1039,31 +1034,31 @@ static int zfile_compress(const char *src, const char *dest,
 
     /* This shouldn't happen */
     if (type == COMPR_ARCHIVE) {
-        log_error(zlog, "compress: trying to compress archive-file.");
+        //log_error(zlog, "compress: trying to compress archive-file.");
         return -1;
     }
 
     /* This shouldn't happen */
     if (type == COMPR_ZIPCODE) {
-        log_error(zlog, "compress: trying to compress zipcode-file.");
+        //log_error(zlog, "compress: trying to compress zipcode-file.");
         return -1;
     }
 
     /* This shouldn't happen */
     if (type == COMPR_LYNX) {
-        log_error(zlog, "compress: trying to compress lynx-file.");
+        //log_error(zlog, "compress: trying to compress lynx-file.");
         return -1;
     }
 
     /* This shouldn't happen */
     if (type == COMPR_TZX) {
-        log_error(zlog, "compress: trying to compress tzx-file.");
+        //log_error(zlog, "compress: trying to compress tzx-file.");
         return -1;
     }
 
     /* Check whether `compression_type' is a known one.  */
     if (type != COMPR_GZIP && type != COMPR_BZIP) {
-        log_error(zlog, "compress: unknown compression type");
+        //log_error(zlog, "compress: unknown compression type");
         return -1;
     }
 
@@ -1089,7 +1084,7 @@ static int zfile_compress(const char *src, const char *dest,
         if (dest_backup_name != NULL
             && ioutil_rename(dest, dest_backup_name) < 0) {
             ZDEBUG(("failed."));
-            log_error(zlog, "Could not make pre-compression backup.");
+            //log_error(zlog, "Could not make pre-compression backup.");
             return -1;
         } else {
             ZDEBUG(("OK."));
@@ -1116,14 +1111,13 @@ static int zfile_compress(const char *src, const char *dest,
 #endif
         if (dest_backup_name != NULL
             && ioutil_rename(dest_backup_name, dest) < 0) {
-            log_error(zlog,
-                "Could not restore backup file after failed compression.");
+            //log_error(zlog, "Could not restore backup file after failed compression.");
         }
     } else {
     /* Compression succeeded: remove backup file.  */
         if (dest_backup_name != NULL
             && ioutil_remove(dest_backup_name) < 0) {
-            log_error(zlog, "Warning: could not remove backup file.");
+            //log_error(zlog, "Warning: could not remove backup file.");
             /* Do not return an error anyway (no data is lost).  */
         }
     }
@@ -1207,8 +1201,7 @@ static int handle_close_action(zfile_t *ptr)
       */
       case ZFILE_DEL:
         if (ioutil_remove(ptr->orig_name) < 0)
-            log_error(zlog, "Cannot unlink `%s': %s",
-                ptr->orig_name, strerror(errno));
+            //log_error(zlog, "Cannot unlink `%s': %s", ptr->orig_name, strerror(errno));
         break;
     }
     return 0;
@@ -1217,44 +1210,45 @@ static int handle_close_action(zfile_t *ptr)
 /* Handle close of a (compressed file). `ptr' points to the zfile to close.  */
 static int handle_close(zfile_t *ptr)
 {
-    ZDEBUG(("handle_close: closing `%s' (`%s'), write_mode = %d",
-            ptr->tmp_name ? ptr->tmp_name : "(null)",
-            ptr->orig_name, ptr->write_mode));
+	ZDEBUG(("handle_close: closing `%s' (`%s'), write_mode = %d",
+				ptr->tmp_name ? ptr->tmp_name : "(null)",
+				ptr->orig_name, ptr->write_mode));
 
-    if (ptr->tmp_name) {
-        /* Recompress into the original file.  */
-        if (ptr->orig_name
-            && ptr->write_mode
-            && zfile_compress(ptr->tmp_name, ptr->orig_name, ptr->type))
-            return -1;
+	if (ptr->tmp_name) {
+		/* Recompress into the original file.  */
+		if (ptr->orig_name
+				&& ptr->write_mode
+				&& zfile_compress(ptr->tmp_name, ptr->orig_name, ptr->type))
+			return -1;
 
-        /* Remove temporary file.  */
-        if (ioutil_remove(ptr->tmp_name) < 0)
-            log_error(zlog, "Cannot unlink `%s': %s",
-                ptr->tmp_name, strerror(errno));
-    }
+		/* Remove temporary file.  */
+		if (ioutil_remove(ptr->tmp_name) < 0)
+		{
+			//log_error(zlog, "Cannot unlink `%s': %s", ptr->tmp_name, strerror(errno));
+		}
+	}
 
-    handle_close_action(ptr);
+	handle_close_action(ptr);
 
-    /* Remove item from list.  */
-    if (ptr->prev != NULL)
-        ptr->prev->next = ptr->next;
-    else
-        zfile_list = ptr->next;
+	/* Remove item from list.  */
+	if (ptr->prev != NULL)
+		ptr->prev->next = ptr->next;
+	else
+		zfile_list = ptr->next;
 
-    if (ptr->next != NULL)
-        ptr->next->prev = ptr->prev;
+	if (ptr->next != NULL)
+		ptr->next->prev = ptr->prev;
 
-    if (ptr->orig_name)
-        lib_free(ptr->orig_name);
-    if (ptr->tmp_name)
-        lib_free(ptr->tmp_name);
-    if (ptr->request_string)
-        lib_free(ptr->request_string);
+	if (ptr->orig_name)
+		lib_free(ptr->orig_name);
+	if (ptr->tmp_name)
+		lib_free(ptr->tmp_name);
+	if (ptr->request_string)
+		lib_free(ptr->request_string);
 
-    lib_free(ptr);
+	lib_free(ptr);
 
-    return 0;
+	return 0;
 }
 
 /* `fclose()' wrapper.  */

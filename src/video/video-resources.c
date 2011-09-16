@@ -37,7 +37,6 @@
 #include "videoarch.h"
 #include "viewport.h"
 #include "util.h"
-#include "log.h"
 
 video_resources_t video_resources =
 {
@@ -180,10 +179,11 @@ static int set_hwscale_enabled(int val, void *param)
 {
     video_canvas_t *canvas = (video_canvas_t *)param;
 
-    if (val
-        && !canvas->videoconfig->hwscale
-        && !hwscale_possible) {
-        log_message(LOG_DEFAULT, "HW scale not available, forcing to disabled");
+    if (val && !canvas->videoconfig->hwscale && !hwscale_possible)
+    {
+    	#ifdef CELL_DEBUG
+        printf("INFO - HW scale not available, forcing to disabled\n");
+	#endif
         return 0;
     }
 
@@ -304,10 +304,9 @@ static int set_fullscreen_device(const char *val, void *param)
     video_canvas_t *canvas = (video_canvas_t *)param;
     video_chip_cap_t *video_chip_cap = canvas->videoconfig->cap;
 
-    if (canvas->videoconfig->fullscreen_enabled) {
-        log_message(LOG_DEFAULT,
-            _("Fullscreen (%s) already active - disable first."),
-            canvas->videoconfig->fullscreen_device);
+    if (canvas->videoconfig->fullscreen_enabled)
+    {
+        //log_message(LOG_DEFAULT, _("Fullscreen (%s) already active - disable first."), canvas->videoconfig->fullscreen_device);
         return 0;
     }
 

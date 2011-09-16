@@ -33,7 +33,6 @@
 #include "c64io.h"
 #include "cartridge.h"
 #include "lib.h"
-#include "log.h"
 #include "monitor.h"
 #include "resources.h"
 #include "translate.h"
@@ -89,61 +88,69 @@ static void io_source_detach(io_source_detach_t *source)
 */
 static void io_source_msg_detach(WORD addr, int amount, io_source_list_t *start)
 {
-    io_source_detach_t *detach_list = lib_malloc(sizeof(io_source_detach_t) * amount);
-    io_source_list_t *current = start;
-    char *old_msg = NULL;
-    char *new_msg = NULL;
-    int found = 0;
-    int i = 0;
+	io_source_detach_t *detach_list = lib_malloc(sizeof(io_source_detach_t) * amount);
+	io_source_list_t *current = start;
+	char *old_msg = NULL;
+	char *new_msg = NULL;
+	int found = 0;
+	int i = 0;
 
-    current = current->next;
+	current = current->next;
 
-    DBG(("IO: check %d sources for addr %04x\n", amount, addr));
-    while (current) {
-        /* DBG(("IO: check '%s'\n", current->device->name)); */
-        if (current->device->io_source_valid) {
-            /* found a conflict */
-            detach_list[i].det_id = current->device->detach_id;
-            detach_list[i].det_name = current->device->resource_name;
-            detach_list[i].det_devname = current->device->name;
-            detach_list[i].det_cartid = current->device->cart_id;
-            DBG(("IO: found '%s'\n", current->device->name));
-            /* first part of the message "read collision at x from" */
-            if (found == 0) {
-                old_msg = lib_stralloc(translate_text(IDGS_IO_READ_COLL_AT_X_FROM));
-                new_msg = util_concat(old_msg, current->device->name, NULL);
-                lib_free(old_msg);
-            }
-            if ((found != amount - 1) && (found != 0)) {
-                old_msg = new_msg;
-                new_msg = util_concat(old_msg, ", ", current->device->name, NULL);
-                lib_free(old_msg);
-            }
-            if (found == amount - 1) {
-                old_msg = new_msg;
-                new_msg = util_concat(old_msg, translate_text(IDGS_AND), current->device->name, translate_text(IDGS_ALL_DEVICES_DETACHED), NULL);
-                lib_free(old_msg);
-            }
-            found++;
-            if (found == amount) {
-                break;
-            }
-        }
-        current = current->next;
-    }
+	DBG(("IO: check %d sources for addr %04x\n", amount, addr));
+	while (current) {
+		/* DBG(("IO: check '%s'\n", current->device->name)); */
+		if (current->device->io_source_valid) {
+			/* found a conflict */
+			detach_list[i].det_id = current->device->detach_id;
+			detach_list[i].det_name = current->device->resource_name;
+			detach_list[i].det_devname = current->device->name;
+			detach_list[i].det_cartid = current->device->cart_id;
+			DBG(("IO: found '%s'\n", current->device->name));
+			/* first part of the message "read collision at x from" */
+			if (found == 0) {
+				old_msg = lib_stralloc(translate_text(IDGS_IO_READ_COLL_AT_X_FROM));
+				new_msg = util_concat(old_msg, current->device->name, NULL);
+				lib_free(old_msg);
+			}
+			if ((found != amount - 1) && (found != 0)) {
+				old_msg = new_msg;
+				new_msg = util_concat(old_msg, ", ", current->device->name, NULL);
+				lib_free(old_msg);
+			}
+			if (found == amount - 1) {
+				old_msg = new_msg;
+				new_msg = util_concat(old_msg, translate_text(IDGS_AND), current->device->name, translate_text(IDGS_ALL_DEVICES_DETACHED), NULL);
+				lib_free(old_msg);
+			}
+			found++;
+			if (found == amount) {
+				break;
+			}
+		}
+		current = current->next;
+	}
 
-    if (found) {
-        log_message(LOG_DEFAULT, new_msg, addr);
-        ui_error(new_msg, addr);
-        lib_free(new_msg);
+	if (found)
+	{
+		#ifdef CELL_DEBUG
+		//log_message(LOG_DEFAULT, new_msg, addr);
+		#endif
+		ui_error(new_msg, addr);
+		lib_free(new_msg);
 
-        DBG(("IO: detaching %d\n", found));
-        for (i = 0; i < found; i++) {
-            DBG(("IO: detach id:%d name: %s\n", detach_list[i].det_cartid, detach_list[i].det_devname));
-            io_source_detach(&detach_list[i]);
-        }
-    }
-    lib_free(detach_list);
+		#ifdef CELL_DEBUG
+		printf("IO: detaching %d\n", found);
+		#endif
+		for (i = 0; i < found; i++)
+		{
+			#ifdef CELL_DEBUG
+			printf("IO: detach id:%d name: %s\n", detach_list[i].det_cartid, detach_list[i].det_devname);
+			#endif
+			io_source_detach(&detach_list[i]);
+		}
+	}
+	lib_free(detach_list);
 }
 
 static inline BYTE io_read(io_source_list_t *list, WORD addr)

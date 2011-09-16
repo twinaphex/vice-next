@@ -31,7 +31,6 @@
 
 #include <stdio.h>
 
-#include "log.h"
 #include "machine.h"
 #include "render1x1.h"
 #include "render1x1ntsc.h"

@@ -37,7 +37,6 @@
 #include "cartridge.h"
 #include "cmdline.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "mem.h"
 #include "plus256k.h"
@@ -60,8 +59,6 @@ BYTE c64_256k_PRB;
 BYTE c64_256k_CRB;
 
 int c64_256k_start;
-
-static log_t c64_256k_log = LOG_ERR;
 
 static int c64_256k_activate(void);
 static int c64_256k_deactivate(void);
@@ -224,30 +221,33 @@ static int set_c64_256k_filename(const char *name, void *param)
 
 static int set_c64_256k_base(int val, void *param)
 {
-    if (val == c64_256k_start) {
-        return 0;
-    }
+	if (val == c64_256k_start)
+		return 0;
 
-    switch (val) {
-        case 0xde00:
-        case 0xde80:
-        case 0xdf00:
-        case 0xdf80:
-            c64_256k_device.start_address = (WORD)val;
-            c64_256k_device.end_address = (WORD)(val + 0x7f);
-            break;
-        default:
-            log_message(c64_256k_log, "Unknown 256K base %X.", val);
-            return -1;
-    }
+	switch (val)
+	{
+		case 0xde00:
+		case 0xde80:
+		case 0xdf00:
+		case 0xdf80:
+			c64_256k_device.start_address = (WORD)val;
+			c64_256k_device.end_address = (WORD)(val + 0x7f);
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown 256K base %X.\n", val);
+#endif
+			return -1;
+	}
 
-    if (c64_256k_enabled) {
-        c64io_unregister(c64_256k_list_item);
-        c64_256k_list_item = c64io_register(&c64_256k_device);
-    }
-    c64_256k_start = val;
+	if (c64_256k_enabled)
+	{
+		c64io_unregister(c64_256k_list_item);
+		c64_256k_list_item = c64io_register(&c64_256k_device);
+	}
+	c64_256k_start = val;
 
-    return 0;
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/
@@ -316,7 +316,6 @@ int c64_256k_cmdline_options_init(void)
 
 void c64_256k_init(void)
 {
-    c64_256k_log = log_open("C64_256K");
 }
 
 void c64_256k_reset(void)
@@ -349,100 +348,114 @@ void c64_256k_cia_set_vbank(int ciabank)
 
 static int c64_256k_activate(void)
 {
-    c64_256k_ram = lib_realloc((void *)c64_256k_ram, (size_t)0x40000);
+	c64_256k_ram = lib_realloc((void *)c64_256k_ram, (size_t)0x40000);
 
-    log_message(c64_256k_log, "256K hack installed.");
+#ifdef CELL_DEBUG
+	printf("INFO: 256K hack installed.\n");
+#endif
 
-    if (!util_check_null_string(c64_256k_filename)) {
-        if (util_file_load(c64_256k_filename, c64_256k_ram, (size_t)0x40000, UTIL_FILE_LOAD_RAW) < 0) {
-            log_message(c64_256k_log, "Reading 256K image %s failed.", c64_256k_filename);
-            if (util_file_save(c64_256k_filename, c64_256k_ram, 0x40000) < 0) {
-                log_message(c64_256k_log, "Creating 256K image %s failed.", c64_256k_filename);
-                return -1;
-            }
-            log_message(c64_256k_log, "Creating 256K image %s.", c64_256k_filename);
-            return 0;
-        }
-        log_message(c64_256k_log, "Reading 256K image %s.", c64_256k_filename);
-    }
-    c64_256k_reset();
-    set_cpu_lines_lock(CPU_LINES_C64_256K, "C64 256K");
-    return 0;
+	if (!util_check_null_string(c64_256k_filename))
+	{
+		if (util_file_load(c64_256k_filename, c64_256k_ram, (size_t)0x40000, UTIL_FILE_LOAD_RAW) < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: Reading 256K image %s failed.\n", c64_256k_filename);
+			#endif
+			if (util_file_save(c64_256k_filename, c64_256k_ram, 0x40000) < 0)
+			{
+				#ifdef CELL_DEBUG
+				printf("INFO: Creating 256K image %s failed.\n", c64_256k_filename);
+				#endif
+				return -1;
+			}
+			#ifdef CELL_DEBUG
+			printf("INFO: Creating 256K image %s.\n", c64_256k_filename);
+			#endif
+			return 0;
+		}
+		#ifdef CELL_DEBUG
+		printf("INFO: Reading 256K image %s.\n", c64_256k_filename);
+		#endif
+	}
+	c64_256k_reset();
+	set_cpu_lines_lock(CPU_LINES_C64_256K, "C64 256K");
+	return 0;
 }
 
 static int c64_256k_deactivate(void)
 {
-    if (!util_check_null_string(c64_256k_filename)) {
-        if (util_file_save(c64_256k_filename, c64_256k_ram, 0x40000) < 0) {
-            log_message(c64_256k_log, "Writing 256K image %s failed.", c64_256k_filename);
-            return -1;
-        }
-        log_message(c64_256k_log, "Writing 256K image %s.", c64_256k_filename);
-    }
-    vicii_set_ram_base(mem_ram);
-    lib_free(c64_256k_ram);
-    c64_256k_ram = NULL;
-    remove_cpu_lines_lock();
-    return 0;
+	if (!util_check_null_string(c64_256k_filename))
+	{
+		if (util_file_save(c64_256k_filename, c64_256k_ram, 0x40000) < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: rriting 256K image %s failed.\n", c64_256k_filename);
+			#endif
+			return -1;
+		}
+		#ifdef CELL_DEBUG
+		printf("INFO: Writing 256K image %s.\n", c64_256k_filename);
+		#endif
+	}
+	vicii_set_ram_base(mem_ram);
+	lib_free(c64_256k_ram);
+	c64_256k_ram = NULL;
+	remove_cpu_lines_lock();
+	return 0;
 }
 
 void c64_256k_shutdown(void)
 {
-    if (c64_256k_enabled) {
-        c64_256k_deactivate();
-    }
+	if (c64_256k_enabled)
+		c64_256k_deactivate();
 }
 
 /* ------------------------------------------------------------------------- */
 
 void REGPARM2 c64_256k_ram_segment0_store(WORD addr, BYTE value)
 {
-    c64_256k_ram[(c64_256k_segment0 * 0x4000) + (addr & 0x3fff)] = value;
-    if (addr == 0xff00) {
-        reu_dma(-1);
-    }
+	c64_256k_ram[(c64_256k_segment0 * 0x4000) + (addr & 0x3fff)] = value;
+	if (addr == 0xff00)
+		reu_dma(-1);
 }
 
 void REGPARM2 c64_256k_ram_segment1_store(WORD addr, BYTE value)
 {
-    c64_256k_ram[(c64_256k_segment1 * 0x4000) + (addr & 0x3fff)] = value;
-    if (addr == 0xff00) {
-        reu_dma(-1);
-    }
+	c64_256k_ram[(c64_256k_segment1 * 0x4000) + (addr & 0x3fff)] = value;
+	if (addr == 0xff00)
+		reu_dma(-1);
 }
 
 void REGPARM2 c64_256k_ram_segment2_store(WORD addr, BYTE value)
 {
-    c64_256k_ram[(c64_256k_segment2 * 0x4000) + (addr & 0x3fff)] = value;
-    if (addr == 0xff00) {
-        reu_dma(-1);
-    }
+	c64_256k_ram[(c64_256k_segment2 * 0x4000) + (addr & 0x3fff)] = value;
+	if (addr == 0xff00)
+		reu_dma(-1);
 }
 
 void REGPARM2 c64_256k_ram_segment3_store(WORD addr, BYTE value)
 {
-    c64_256k_ram[(c64_256k_segment3 * 0x4000) + (addr & 0x3fff)] = value;
-    if (addr == 0xff00) {
-        reu_dma(-1);
-    }
+	c64_256k_ram[(c64_256k_segment3 * 0x4000) + (addr & 0x3fff)] = value;
+	if (addr == 0xff00)
+		reu_dma(-1);
 }
 
 BYTE REGPARM1 c64_256k_ram_segment0_read(WORD addr)
 {
-    return c64_256k_ram[(c64_256k_segment0 * 0x4000) + (addr & 0x3fff)];
+	return c64_256k_ram[(c64_256k_segment0 * 0x4000) + (addr & 0x3fff)];
 }
 
 BYTE REGPARM1 c64_256k_ram_segment1_read(WORD addr)
 {
-    return c64_256k_ram[(c64_256k_segment1 * 0x4000) + (addr & 0x3fff)];
+	return c64_256k_ram[(c64_256k_segment1 * 0x4000) + (addr & 0x3fff)];
 }
 
 BYTE REGPARM1 c64_256k_ram_segment2_read(WORD addr)
 {
-    return c64_256k_ram[(c64_256k_segment2 * 0x4000) + (addr & 0x3fff)];
+	return c64_256k_ram[(c64_256k_segment2 * 0x4000) + (addr & 0x3fff)];
 }
 
 BYTE REGPARM1 c64_256k_ram_segment3_read(WORD addr)
 {
-    return c64_256k_ram[(c64_256k_segment3 * 0x4000) + (addr & 0x3fff)];
+	return c64_256k_ram[(c64_256k_segment3 * 0x4000) + (addr & 0x3fff)];
 }

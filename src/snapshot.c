@@ -33,7 +33,6 @@
 #include "archdep.h"
 #include "lib.h"
 #include "ioutil.h"
-#include "log.h"
 #include "snapshot.h"
 #include "types.h"
 #include "vsync.h"
@@ -628,7 +627,7 @@ snapshot_t *snapshot_open(const char *filename,
     if (memcmp(read_name, snapshot_machine_name, machine_name_len) != 0
         || (machine_name_len != SNAPSHOT_MODULE_NAME_LEN
             && read_name[machine_name_len] != 0)) {
-        log_error(LOG_DEFAULT, "SNAPSHOT: Wrong machine type.");
+        //log_error(LOG_DEFAULT, "SNAPSHOT: Wrong machine type.");
         goto fail;
     }
 

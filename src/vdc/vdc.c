@@ -34,7 +34,6 @@
 
 #include "alarm.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "raster.h"
@@ -174,8 +173,11 @@ static int init_raster(void)
 
     vdc_set_geometry();
 
-    if (vdc_color_update_palette(vdc.raster.canvas) < 0) {
-        log_error(vdc.log, "Cannot load palette.");
+    if (vdc_color_update_palette(vdc.raster.canvas) < 0)
+    {
+    	#ifdef CELL_DEBUG
+        printf("ERROR: Cannot load palette.\n");
+	#endif
         return -1;
     }
 
@@ -208,8 +210,6 @@ raster_t *vdc_init(void)
 #if defined(GP2X) || defined(WIZ)
     vicii_setup_delay=1;
 #endif
-
-    vdc.log = log_open("VDC");
 
     vdc.raster_draw_alarm = alarm_new(maincpu_alarm_context, "VdcRasterDraw",
                                       vdc_raster_draw_alarm_handler, NULL);

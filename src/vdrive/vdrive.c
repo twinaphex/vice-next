@@ -49,7 +49,6 @@
 #include "diskimage.h"
 #include "fsdevice.h"
 #include "lib.h"
-#include "log.h"
 #include "types.h"
 #include "vdrive-bam.h"
 #include "vdrive-command.h"
@@ -60,16 +59,11 @@
 #include "vdrive-snapshot.h"
 #include "vdrive.h"
 
-
-static log_t vdrive_log = LOG_ERR;
-
 static void vdrive_set_disk_geometry(vdrive_t *vdrive);
 
 
 void vdrive_init(void)
 {
-    vdrive_log = log_open("VDrive");
-
     vdrive_command_init();
     vdrive_dir_init();
     vdrive_iec_init();
@@ -132,52 +126,55 @@ void vdrive_close_all_channels(vdrive_t *vdrive)
 
 int vdrive_calculate_disk_half(unsigned int type)
 {
-    /* Maximum distance from dir track to start/end of disk.  */
-    switch (type) {
-      case VDRIVE_IMAGE_FORMAT_1541:
-      case VDRIVE_IMAGE_FORMAT_2040:
-        return 17 + 5;
-      case VDRIVE_IMAGE_FORMAT_1571:
-        return 17 + 35;
-      case VDRIVE_IMAGE_FORMAT_1581:
-        return 40;
-      case VDRIVE_IMAGE_FORMAT_8050:
-      case VDRIVE_IMAGE_FORMAT_8250:
-        return 39;
-      default:
-        log_error(vdrive_log,
-                  "Unknown disk type %i.  Cannot calculate disk half.", type);
-    }
-    return -1;
+	/* Maximum distance from dir track to start/end of disk.  */
+	switch (type)
+	{
+		case VDRIVE_IMAGE_FORMAT_1541:
+		case VDRIVE_IMAGE_FORMAT_2040:
+			return 17 + 5;
+		case VDRIVE_IMAGE_FORMAT_1571:
+			return 17 + 35;
+		case VDRIVE_IMAGE_FORMAT_1581:
+			return 40;
+		case VDRIVE_IMAGE_FORMAT_8050:
+		case VDRIVE_IMAGE_FORMAT_8250:
+			return 39;
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown disk type %i.  Cannot calculate disk half.\n", type);
+#endif
+			break;
+	}
+	return -1;
 }
 
 int vdrive_get_max_sectors(unsigned int type, unsigned int track)
 {
-    switch (type) {
-      case VDRIVE_IMAGE_FORMAT_1541:
-        return disk_image_sector_per_track(DISK_IMAGE_TYPE_D64, track);
-      case VDRIVE_IMAGE_FORMAT_2040:
-        return disk_image_sector_per_track(DISK_IMAGE_TYPE_D67, track);
-      case VDRIVE_IMAGE_FORMAT_1571:
-        return disk_image_sector_per_track(DISK_IMAGE_TYPE_D71, track);
-      case VDRIVE_IMAGE_FORMAT_8050:
-        return disk_image_sector_per_track(DISK_IMAGE_TYPE_D80, track);
-      case VDRIVE_IMAGE_FORMAT_1581:
-        return 40;
-      case VDRIVE_IMAGE_FORMAT_8250:
-        if (track <= NUM_TRACKS_8250 / 2) {
-            return disk_image_sector_per_track(DISK_IMAGE_TYPE_D80, track);
-        } else {
-            return disk_image_sector_per_track(DISK_IMAGE_TYPE_D80, track
-                                               - (NUM_TRACKS_8250 / 2));
-        }
-      default:
-        log_message(vdrive_log,
-                    "Unknown disk type %i.  Cannot calculate max sectors",
-                    type);
+	switch (type)
+	{
+		case VDRIVE_IMAGE_FORMAT_1541:
+			return disk_image_sector_per_track(DISK_IMAGE_TYPE_D64, track);
+		case VDRIVE_IMAGE_FORMAT_2040:
+			return disk_image_sector_per_track(DISK_IMAGE_TYPE_D67, track);
+		case VDRIVE_IMAGE_FORMAT_1571:
+			return disk_image_sector_per_track(DISK_IMAGE_TYPE_D71, track);
+		case VDRIVE_IMAGE_FORMAT_8050:
+			return disk_image_sector_per_track(DISK_IMAGE_TYPE_D80, track);
+		case VDRIVE_IMAGE_FORMAT_1581:
+			return 40;
+		case VDRIVE_IMAGE_FORMAT_8250:
+			if (track <= NUM_TRACKS_8250 / 2)
+				return disk_image_sector_per_track(DISK_IMAGE_TYPE_D80, track);
+			else
+				return disk_image_sector_per_track(DISK_IMAGE_TYPE_D80, track - (NUM_TRACKS_8250 / 2));
+		default:
+			#ifdef CELL_DEBUG
+			printf("ERROR: Unknown disk type %i.  Cannot calculate max sectors\n", type);
+			#endif
+			break;
 
-    }
-    return -1;
+	}
+	return -1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -189,68 +186,71 @@ int vdrive_get_max_sectors(unsigned int type, unsigned int track)
 void vdrive_detach_image(disk_image_t *image, unsigned int unit,
                          vdrive_t *vdrive)
 {
-    if (image == NULL)
-        return;
+	if (image == NULL)
+		return;
 
-    disk_image_detach_log(image, vdrive_log, unit);
-    vdrive_close_all_channels(vdrive);
-    vdrive->image = NULL;
+	disk_image_detach_log(image, 0, unit);
+	vdrive_close_all_channels(vdrive);
+	vdrive->image = NULL;
 }
 
 int vdrive_attach_image(disk_image_t *image, unsigned int unit,
                         vdrive_t *vdrive)
 {
-    vdrive->unit = unit;
+	vdrive->unit = unit;
 
-    disk_image_attach_log(image, vdrive_log, unit);
+	disk_image_attach_log(image, 0, unit);
 
-    switch(image->type) {
-      case DISK_IMAGE_TYPE_D64:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_1541;
-        vdrive->num_tracks  = image->tracks;
-        break;
-      case DISK_IMAGE_TYPE_D67:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_2040;
-        vdrive->num_tracks  = image->tracks;
-        break;
-      case DISK_IMAGE_TYPE_D71:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_1571;
-        vdrive->num_tracks  = image->tracks;
-        break;
-      case DISK_IMAGE_TYPE_D81:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_1581;
-        vdrive->num_tracks  = image->tracks;
-        break;
-      case DISK_IMAGE_TYPE_D80:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_8050;
-        vdrive->num_tracks  = image->tracks;
-        break;
-      case DISK_IMAGE_TYPE_D82:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_8250;
-        vdrive->num_tracks = image->tracks;
-        break;
-      case DISK_IMAGE_TYPE_G64:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_1541;
-        vdrive->num_tracks = 35;
-        break;
-      case DISK_IMAGE_TYPE_X64:
-        vdrive->image_format = VDRIVE_IMAGE_FORMAT_1541;
-        vdrive->num_tracks = image->tracks;
-        break;
-      default:
-        return -1;
-    }
+	switch(image->type) {
+		case DISK_IMAGE_TYPE_D64:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_1541;
+			vdrive->num_tracks  = image->tracks;
+			break;
+		case DISK_IMAGE_TYPE_D67:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_2040;
+			vdrive->num_tracks  = image->tracks;
+			break;
+		case DISK_IMAGE_TYPE_D71:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_1571;
+			vdrive->num_tracks  = image->tracks;
+			break;
+		case DISK_IMAGE_TYPE_D81:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_1581;
+			vdrive->num_tracks  = image->tracks;
+			break;
+		case DISK_IMAGE_TYPE_D80:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_8050;
+			vdrive->num_tracks  = image->tracks;
+			break;
+		case DISK_IMAGE_TYPE_D82:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_8250;
+			vdrive->num_tracks = image->tracks;
+			break;
+		case DISK_IMAGE_TYPE_G64:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_1541;
+			vdrive->num_tracks = 35;
+			break;
+		case DISK_IMAGE_TYPE_X64:
+			vdrive->image_format = VDRIVE_IMAGE_FORMAT_1541;
+			vdrive->num_tracks = image->tracks;
+			break;
+		default:
+			return -1;
+	}
 
-    /* Initialise format constants */
-    vdrive_set_disk_geometry(vdrive);
+	/* Initialise format constants */
+	vdrive_set_disk_geometry(vdrive);
 
-    vdrive->image = image;
+	vdrive->image = image;
 
-    if (vdrive_bam_read_bam(vdrive)) {
-        log_error(vdrive_log, "Cannot access BAM.");
-        return -1;
-    }
-    return 0;
+	if (vdrive_bam_read_bam(vdrive))
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Cannot access BAM.\n");
+		#endif
+		return -1;
+	}
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -261,34 +261,36 @@ int vdrive_attach_image(disk_image_t *image, unsigned int unit,
 
 int vdrive_calc_num_blocks(unsigned int format, unsigned int tracks)
 {
-    int blocks = -1;
+	int blocks = -1;
 
-    switch (format) {
-      case VDRIVE_IMAGE_FORMAT_1541:
-        if (tracks > MAX_TRACKS_1541)
-            tracks = MAX_TRACKS_1541;
-        blocks = NUM_BLOCKS_1541 + (tracks - 35) * 17;
-        break;
-      case VDRIVE_IMAGE_FORMAT_1571:
-        if (tracks > MAX_TRACKS_1571)
-            tracks = MAX_TRACKS_1571;
-        blocks = NUM_BLOCKS_1571 + (tracks - 70) * 17;
-        break;
-      case VDRIVE_IMAGE_FORMAT_1581:
-        blocks = NUM_BLOCKS_1581;
-        break;
-      case VDRIVE_IMAGE_FORMAT_8050:
-        blocks = NUM_BLOCKS_8050;
-        break;
-      case VDRIVE_IMAGE_FORMAT_8250:
-        blocks = NUM_BLOCKS_8250;
-        break;
-      default:
-        log_error(vdrive_log,
-                  "Unknown disk type %i.  Cannot calculate number of blocks.",
-                  format);
-    }
-    return blocks;
+	switch (format)
+	{
+		case VDRIVE_IMAGE_FORMAT_1541:
+			if (tracks > MAX_TRACKS_1541)
+				tracks = MAX_TRACKS_1541;
+			blocks = NUM_BLOCKS_1541 + (tracks - 35) * 17;
+			break;
+		case VDRIVE_IMAGE_FORMAT_1571:
+			if (tracks > MAX_TRACKS_1571)
+				tracks = MAX_TRACKS_1571;
+			blocks = NUM_BLOCKS_1571 + (tracks - 70) * 17;
+			break;
+		case VDRIVE_IMAGE_FORMAT_1581:
+			blocks = NUM_BLOCKS_1581;
+			break;
+		case VDRIVE_IMAGE_FORMAT_8050:
+			blocks = NUM_BLOCKS_8050;
+			break;
+		case VDRIVE_IMAGE_FORMAT_8250:
+			blocks = NUM_BLOCKS_8250;
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown disk type %i.  Cannot calculate number of blocks.\n",format);
+#endif
+			break;
+	}
+	return blocks;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -299,60 +301,62 @@ int vdrive_calc_num_blocks(unsigned int format, unsigned int tracks)
 
 static void vdrive_set_disk_geometry(vdrive_t *vdrive)
 {
-    switch (vdrive->image_format) {
-      case VDRIVE_IMAGE_FORMAT_1541:
-        vdrive->Bam_Track  = BAM_TRACK_1541;
-        vdrive->Bam_Sector = BAM_SECTOR_1541;
-        vdrive->bam_name   = BAM_NAME_1541;
-        vdrive->bam_id     = BAM_ID_1541;
-        vdrive->Dir_Track  = DIR_TRACK_1541;
-        vdrive->Dir_Sector = DIR_SECTOR_1541;
-        break;
-      case VDRIVE_IMAGE_FORMAT_2040:
-        vdrive->Bam_Track  = BAM_TRACK_2040;
-        vdrive->Bam_Sector = BAM_SECTOR_2040;
-        vdrive->bam_name   = BAM_NAME_2040;
-        vdrive->bam_id     = BAM_ID_2040;
-        vdrive->Dir_Track  = DIR_TRACK_2040;
-        vdrive->Dir_Sector = DIR_SECTOR_2040;
-        break;
-      case VDRIVE_IMAGE_FORMAT_1571:
-        vdrive->Bam_Track  = BAM_TRACK_1571;
-        vdrive->Bam_Sector = BAM_SECTOR_1571;
-        vdrive->bam_name   = BAM_NAME_1571;
-        vdrive->bam_id     = BAM_ID_1571;
-        vdrive->Dir_Track  = DIR_TRACK_1571;
-        vdrive->Dir_Sector = DIR_SECTOR_1571;
-        break;
-      case VDRIVE_IMAGE_FORMAT_1581:
-        vdrive->Bam_Track  = BAM_TRACK_1581;
-        vdrive->Bam_Sector = BAM_SECTOR_1581;
-        vdrive->bam_name   = BAM_NAME_1581;
-        vdrive->bam_id     = BAM_ID_1581;
-        vdrive->Dir_Track  = DIR_TRACK_1581;
-        vdrive->Dir_Sector = DIR_SECTOR_1581;
-        break;
-      case VDRIVE_IMAGE_FORMAT_8050:
-        vdrive->Bam_Track  = BAM_TRACK_8050;
-        vdrive->Bam_Sector = BAM_SECTOR_8050;
-        vdrive->bam_name   = BAM_NAME_8050;
-        vdrive->bam_id     = BAM_ID_8050;
-        vdrive->Dir_Track  = DIR_TRACK_8050;
-        vdrive->Dir_Sector = DIR_SECTOR_8050;
-        break;
-      case VDRIVE_IMAGE_FORMAT_8250:
-        vdrive->Bam_Track  = BAM_TRACK_8250;
-        vdrive->Bam_Sector = BAM_SECTOR_8250;
-        vdrive->bam_name   = BAM_NAME_8250;
-        vdrive->bam_id     = BAM_ID_8250;
-        vdrive->Dir_Track  = DIR_TRACK_8250;
-        vdrive->Dir_Sector = DIR_SECTOR_8250;
-        break;
-      default:
-        log_error(vdrive_log,
-                  "Unknown disk type %i.  Cannot set disk geometry.",
-                  vdrive->image_format);
-    }
+	switch (vdrive->image_format)
+	{
+		case VDRIVE_IMAGE_FORMAT_1541:
+			vdrive->Bam_Track  = BAM_TRACK_1541;
+			vdrive->Bam_Sector = BAM_SECTOR_1541;
+			vdrive->bam_name   = BAM_NAME_1541;
+			vdrive->bam_id     = BAM_ID_1541;
+			vdrive->Dir_Track  = DIR_TRACK_1541;
+			vdrive->Dir_Sector = DIR_SECTOR_1541;
+			break;
+		case VDRIVE_IMAGE_FORMAT_2040:
+			vdrive->Bam_Track  = BAM_TRACK_2040;
+			vdrive->Bam_Sector = BAM_SECTOR_2040;
+			vdrive->bam_name   = BAM_NAME_2040;
+			vdrive->bam_id     = BAM_ID_2040;
+			vdrive->Dir_Track  = DIR_TRACK_2040;
+			vdrive->Dir_Sector = DIR_SECTOR_2040;
+			break;
+		case VDRIVE_IMAGE_FORMAT_1571:
+			vdrive->Bam_Track  = BAM_TRACK_1571;
+			vdrive->Bam_Sector = BAM_SECTOR_1571;
+			vdrive->bam_name   = BAM_NAME_1571;
+			vdrive->bam_id     = BAM_ID_1571;
+			vdrive->Dir_Track  = DIR_TRACK_1571;
+			vdrive->Dir_Sector = DIR_SECTOR_1571;
+			break;
+		case VDRIVE_IMAGE_FORMAT_1581:
+			vdrive->Bam_Track  = BAM_TRACK_1581;
+			vdrive->Bam_Sector = BAM_SECTOR_1581;
+			vdrive->bam_name   = BAM_NAME_1581;
+			vdrive->bam_id     = BAM_ID_1581;
+			vdrive->Dir_Track  = DIR_TRACK_1581;
+			vdrive->Dir_Sector = DIR_SECTOR_1581;
+			break;
+		case VDRIVE_IMAGE_FORMAT_8050:
+			vdrive->Bam_Track  = BAM_TRACK_8050;
+			vdrive->Bam_Sector = BAM_SECTOR_8050;
+			vdrive->bam_name   = BAM_NAME_8050;
+			vdrive->bam_id     = BAM_ID_8050;
+			vdrive->Dir_Track  = DIR_TRACK_8050;
+			vdrive->Dir_Sector = DIR_SECTOR_8050;
+			break;
+		case VDRIVE_IMAGE_FORMAT_8250:
+			vdrive->Bam_Track  = BAM_TRACK_8250;
+			vdrive->Bam_Sector = BAM_SECTOR_8250;
+			vdrive->bam_name   = BAM_NAME_8250;
+			vdrive->bam_id     = BAM_ID_8250;
+			vdrive->Dir_Track  = DIR_TRACK_8250;
+			vdrive->Dir_Sector = DIR_SECTOR_8250;
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("Unknown disk type %i.  Cannot set disk geometry.\n", vdrive->image_format);
+#endif
+			break;
+	}
 }
 
 /* ------------------------------------------------------------------------- */

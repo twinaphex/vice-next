@@ -34,7 +34,6 @@
 
 #include "charset.h"
 #include "lib.h"
-#include "log.h"
 #include "types.h"
 
 /*
@@ -91,7 +90,8 @@ BYTE *charset_petconvstring(BYTE *c, int dir)
         }
         break;
       default:
-        log_error(LOG_DEFAULT, "Unkown conversion rule.");
+        //log_error(LOG_DEFAULT, "Unkown conversion rule.");
+	break;
     }
 
     *d = 0;

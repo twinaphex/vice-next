@@ -36,7 +36,6 @@
 #include "c64io.h"
 #include "cartridge.h"
 #include "crt.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "resources.h"

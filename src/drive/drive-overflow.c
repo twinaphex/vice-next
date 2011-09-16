@@ -32,7 +32,6 @@
 #include "drive.h"
 #include "drivetypes.h"
 #include "interrupt.h"
-#include "log.h"
 #include "rotation.h"
 
 

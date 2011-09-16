@@ -33,7 +33,6 @@
 #include "archdep.h"
 #include "driver-select.h"
 #include "drv-nl10.h"
-#include "log.h"
 #include "output-select.h"
 #include "output.h"
 #include "palette.h"
@@ -101,9 +100,6 @@ typedef struct nl10_s
 
 
 static palette_t *palette = NULL;
-
-/* Logging goes here.  */
-static log_t drvnl10_log = LOG_ERR;
 
 #ifdef USE_EMBEDDED
 #include "printernl10cbm.h"
@@ -268,56 +264,62 @@ static void reset_hard(nl10_t *nl10)
 
 static int store_char(BYTE *dest, const BYTE *src)
 {
-  BYTE c, r;
-  int ret = 0, s = (src[0]>>4)&7, e = src[0]&15;
+	BYTE c, r;
+	int ret = 0, s = (src[0]>>4)&7, e = src[0]&15;
 
-  if ( s<0 || s>7 )
-    log_warning(drvnl10_log, "Illegal prop-start value: %u\n", s);
-  else if ( e<4 || e>11 )
-    log_warning(drvnl10_log, "Illegal prop-end value: %u\n", e);
-  else if ( (e-s)<4 )
-    log_warning(drvnl10_log, "Illegal character width: (s=%u, e=%u)\n", s, e);
-  else
-    ret = 1;
+	if ( s<0 || s>7 )
+	{
+		//log_warning(drvnl10_log, "Illegal prop-start value: %u\n", s);
+	}
+	else if ( e<4 || e>11 )
+	{
+		//log_warning(drvnl10_log, "Illegal prop-end value: %u\n", e);
+	}
+	else if ( (e-s)<4 )
+	{
+		//log_warning(drvnl10_log, "Illegal character width: (s=%u, e=%u)\n", s, e);
+	}
+	else
+		ret = 1;
 
-  dest[0] = ret ? src[0] : ((src[0] & 0x80) | 10);
-  for (c=0; c<11; c++)
-    {
-      dest[c+1] = src[c+1];
-      if ( c!=0 )
-        for (r=0; r<8; r++)
-          if ( (dest[c] & (1<<r)) && (dest[c+1] & (1<<r)) )
-            {
-              log_warning(drvnl10_log, "Illegal dot col=%u, row=%u\n", c+1, r+1);
-              dest[c+1] = dest[c+1] & ~(1<<r);
-              ret = 0;
-            }
-    }
+	dest[0] = ret ? src[0] : ((src[0] & 0x80) | 10);
+	for (c=0; c<11; c++)
+	{
+		dest[c+1] = src[c+1];
+		if ( c!=0 )
+			for (r=0; r<8; r++)
+				if ( (dest[c] & (1<<r)) && (dest[c+1] & (1<<r)) )
+				{
+					//log_warning(drvnl10_log, "Illegal dot col=%u, row=%u\n", c+1, r+1);
+					dest[c+1] = dest[c+1] & ~(1<<r);
+					ret = 0;
+				}
+	}
 
-  return ret;
+	return ret;
 }
 
 
 static int store_char_nlq(BYTE *dest, const BYTE *src)
 {
-  BYTE c, r;
-  int ret = 1;
+	BYTE c, r;
+	int ret = 1;
 
-  dest[0] = src[0];
-  for (c=0; c<46; c++)
-    {
-      dest[c+1] = src[c+1];
-      if ( c!=0 && c!=23 )
-        for (r=0; r<8; r++)
-          if ( (dest[c] & (1<<r)) && (dest[c+1] & (1<<r)) )
-            {
-              log_warning(drvnl10_log, "Illegal dot col=%u, row=%u\n", c+1, r+1);
-              dest[c+1] = dest[c+1] & ~(1<<r);
-              ret = 0;
-            }
-    }
+	dest[0] = src[0];
+	for (c=0; c<46; c++)
+	{
+		dest[c+1] = src[c+1];
+		if ( c!=0 && c!=23 )
+			for (r=0; r<8; r++)
+				if ( (dest[c] & (1<<r)) && (dest[c+1] & (1<<r)) )
+				{
+					//log_warning(drvnl10_log, "Illegal dot col=%u, row=%u\n", c+1, r+1);
+					dest[c+1] = dest[c+1] & ~(1<<r);
+					ret = 0;
+				}
+	}
 
-  return ret;
+	return ret;
 }
 
 
@@ -948,914 +950,907 @@ static void print_char(nl10_t *nl10, unsigned int prnr, const BYTE c)
 
 static int handle_control_sequence(nl10_t *nl10, unsigned int prnr, const BYTE c)
 {
-  if ( nl10->esc_ctr>=NL10_ESCBUF_SIZE )
-    {
-      /* We should never get here.  If we do then there is a bug 
-         in the ESC handling routine */
-      log_warning(drvnl10_log, "ESC counter overflow");
-      nl10->esc_ctr = 0;
-    }
+	if ( nl10->esc_ctr>=NL10_ESCBUF_SIZE )
+	{
+		/* We should never get here.  If we do then there is a bug 
+		   in the ESC handling routine */
+		//log_warning(drvnl10_log, "ESC counter overflow");
+		nl10->esc_ctr = 0;
+	}
 
-  nl10->esc[nl10->esc_ctr] = c;
-  switch( nl10->esc[0] )
-    {
-    case 0:
-      break;
+	nl10->esc[nl10->esc_ctr] = c;
+	switch( nl10->esc[0] )
+	{
+		case 0:
+			break;
 
-    case 7:
-      /* beep (NOT IMPLEMENTED) */
-      break;
+		case 7:
+			/* beep (NOT IMPLEMENTED) */
+			break;
 
-    case 8:
-      {
-	if ( is_mode(nl10, NL10_ASCII) )
-          {
-            /* ASCII: step back */
-            nl10->pos_x -= (int) get_char_width(nl10, ' ', 1);
-          }
-	else
-	  {
-            /* CBM: set single density graphics and line spacing 7/72" */
-	    nl10->gfx_mode  = NL10_GFX_SINGLE | NL10_GFX_7PIN; 
-	    nl10->linespace = 3*7;
-	  }  
-	break;
-      }
-      
-    case 9:
-      {
-	if ( is_mode(nl10, NL10_ASCII) )
-	  {
-            /* ASCII: horizontal tab */
-	    int i;
-	    double w = get_char_width(nl10, ' ', 1);
-	    for (i=0; nl10->htabs[i]>0; i++) 
-	      {
-		int p = nl10->marg_l + (int) (w * nl10->htabs[i]);
-		if ( (nl10->pos_x < p) && (p<nl10->marg_r) )
-		  {
-		    nl10->pos_x = p;
-		    break;
-		  }
-	      }
-	  }
-	else
-	  {
-            /* CBM: set double density graphics and line spacing 7/72" */
-	    nl10->gfx_mode = NL10_GFX_DOUBLE | NL10_GFX_7PIN; 
-	    nl10->linespace = 3*7;
-	  }
+		case 8:
+			{
+				if ( is_mode(nl10, NL10_ASCII) )
+				{
+					/* ASCII: step back */
+					nl10->pos_x -= (int) get_char_width(nl10, ' ', 1);
+				}
+				else
+				{
+					/* CBM: set single density graphics and line spacing 7/72" */
+					nl10->gfx_mode  = NL10_GFX_SINGLE | NL10_GFX_7PIN; 
+					nl10->linespace = 3*7;
+				}  
+				break;
+			}
 
-        break;
-      }
+		case 9:
+			{
+				if ( is_mode(nl10, NL10_ASCII) )
+				{
+					/* ASCII: horizontal tab */
+					int i;
+					double w = get_char_width(nl10, ' ', 1);
+					for (i=0; nl10->htabs[i]>0; i++) 
+					{
+						int p = nl10->marg_l + (int) (w * nl10->htabs[i]);
+						if ( (nl10->pos_x < p) && (p<nl10->marg_r) )
+						{
+							nl10->pos_x = p;
+							break;
+						}
+					}
+				}
+				else
+				{
+					/* CBM: set double density graphics and line spacing 7/72" */
+					nl10->gfx_mode = NL10_GFX_DOUBLE | NL10_GFX_7PIN; 
+					nl10->linespace = 3*7;
+				}
 
-    case 10:
-      /* linefeed */
-      linefeed(nl10, prnr);
-      break;
+				break;
+			}
 
-    case 11:
-      {
-        /* advance to next vertical tab position */
-        int i = 0;
-        while ( (nl10->line_nr >= nl10->vtabs[i]) && (i==0 || (nl10->vtabs[i]>nl10->vtabs[i-1])) )
-          i++;
+		case 10:
+			/* linefeed */
+			linefeed(nl10, prnr);
+			break;
 
-        if ( (nl10->vtabs[i] <= nl10->vtabs[i-1]) )
-          {
-            /* we're past the last tab. go to top of next page */
-            formfeed(nl10, prnr);
+		case 11:
+			{
+				/* advance to next vertical tab position */
+				int i = 0;
+				while ( (nl10->line_nr >= nl10->vtabs[i]) && (i==0 || (nl10->vtabs[i]>nl10->vtabs[i-1])) )
+					i++;
 
-            /* find the first tab greater than the top margin */
-            i=0;
-            while ( (nl10->marg_t >= nl10->vtabs[i]) && (i==0 || (nl10->vtabs[i]>nl10->vtabs[i-1])) )
-              i++;
+				if ( (nl10->vtabs[i] <= nl10->vtabs[i-1]) )
+				{
+					/* we're past the last tab. go to top of next page */
+					formfeed(nl10, prnr);
 
-            if ( nl10->vtabs[i] <= nl10->vtabs[i-1] )
-              {
-                /* past the last tab again => there is no valid tab */
-                i=-1;
-              }
-          }
+					/* find the first tab greater than the top margin */
+					i=0;
+					while ( (nl10->marg_t >= nl10->vtabs[i]) && (i==0 || (nl10->vtabs[i]>nl10->vtabs[i-1])) )
+						i++;
 
-        if ( i>=0 )
-          {
-            while ( nl10->line_nr < nl10->vtabs[i] )
-              linefeed(nl10, prnr);
-          }
-        break;
-      }
+					if ( nl10->vtabs[i] <= nl10->vtabs[i-1] )
+					{
+						/* past the last tab again => there is no valid tab */
+						i=-1;
+					}
+				}
 
-    case 12:
-      /* formfeed */
-      formfeed(nl10, prnr);
-      break;
+				if ( i>=0 )
+				{
+					while ( nl10->line_nr < nl10->vtabs[i] )
+						linefeed(nl10, prnr);
+				}
+				break;
+			}
 
-    case 13:
-      /* carriage return */
-      linefeed(nl10, prnr);
-      del_mode(nl10, NL10_QUOTED | NL10_EXPANDED_LINE);
-      nl10->pos_x = nl10->marg_l;
-      nl10->col_nr=0;
-      break;
+		case 12:
+			/* formfeed */
+			formfeed(nl10, prnr);
+			break;
 
-    case 14:
-      {
-	if ( is_mode(nl10, NL10_ASCII) )
-          /* ASCII: turn on expanded print for current line */
-          set_mode(nl10, NL10_EXPANDED_LINE);
-	else
-          {
-            /* CBM: turn on expanded print (and turn off graphics printing) */
-            set_mode(nl10, NL10_EXPANDED);
+		case 13:
+			/* carriage return */
+			linefeed(nl10, prnr);
+			del_mode(nl10, NL10_QUOTED | NL10_EXPANDED_LINE);
+			nl10->pos_x = nl10->marg_l;
+			nl10->col_nr=0;
+			break;
 
-	    if ( nl10->gfx_mode & NL10_GFX_7PIN )
-	      {
-		nl10->gfx_mode  = NL10_GFX_OFF;
-		nl10->linespace = 12*3;
-	      }
-          }
+		case 14:
+			{
+				if ( is_mode(nl10, NL10_ASCII) )
+					/* ASCII: turn on expanded print for current line */
+					set_mode(nl10, NL10_EXPANDED_LINE);
+				else
+				{
+					/* CBM: turn on expanded print (and turn off graphics printing) */
+					set_mode(nl10, NL10_EXPANDED);
 
-	break;
-      }
+					if ( nl10->gfx_mode & NL10_GFX_7PIN )
+					{
+						nl10->gfx_mode  = NL10_GFX_OFF;
+						nl10->linespace = 12*3;
+					}
+				}
 
-    case 15:
-      {
-	if ( is_mode(nl10, NL10_ASCII) )
-          /* ASCII: turn on condensed print */
-          set_mode(nl10, NL10_CONDENSED);
-	else
-          {
-            /* CBM: turn off expanded print (and turn off graphics printing) */
-            del_mode(nl10, NL10_EXPANDED);
+				break;
+			}
 
-	    if ( nl10->gfx_mode & NL10_GFX_7PIN )
-	      {
-		nl10->gfx_mode  = NL10_GFX_OFF;
-		nl10->linespace = 12*3;
-	      }
-          }
+		case 15:
+			{
+				if ( is_mode(nl10, NL10_ASCII) )
+					/* ASCII: turn on condensed print */
+					set_mode(nl10, NL10_CONDENSED);
+				else
+				{
+					/* CBM: turn off expanded print (and turn off graphics printing) */
+					del_mode(nl10, NL10_EXPANDED);
 
-	break;
-      }
+					if ( nl10->gfx_mode & NL10_GFX_7PIN )
+					{
+						nl10->gfx_mode  = NL10_GFX_OFF;
+						nl10->linespace = 12*3;
+					}
+				}
 
-    case 16:
-      {
-        /* skip to horizontal print position */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-	    int i = 0;
-	    if ( (nl10->esc[1] >= '0') && (nl10->esc[1] <= '9') ) i += 10 * (nl10->esc[1] - '0');
-	    if ( (nl10->esc[2] >= '0') && (nl10->esc[2] <= '9') ) i +=  1 * (nl10->esc[2] - '0');
-	    if ( i>79 ) i = 79;
-	    nl10->pos_x = BORDERX + 30 * i;
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
-      
-    case 17:
-      set_mode(nl10, NL10_CBMTEXT);
-      init_mapping(nl10, nl10->mapping_intl_id);
-      break;
+				break;
+			}
 
-    case 18:
-      {
-	if ( is_mode(nl10, NL10_ASCII) )
-          /* ASCII: Set 'elite' print mode */
-	  del_mode(nl10, NL10_ELITE);
-	else
-          /* CBM: Enable reverse print */
-	  set_mode(nl10, NL10_REVERSE);
-	break;
-      }
+		case 16:
+			{
+				/* skip to horizontal print position */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					int i = 0;
+					if ( (nl10->esc[1] >= '0') && (nl10->esc[1] <= '9') ) i += 10 * (nl10->esc[1] - '0');
+					if ( (nl10->esc[2] >= '0') && (nl10->esc[2] <= '9') ) i +=  1 * (nl10->esc[2] - '0');
+					if ( i>79 ) i = 79;
+					nl10->pos_x = BORDERX + 30 * i;
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 19:
-      {
-	if ( !is_mode(nl10, NL10_ASCII) )
-	  {
-            /* clear top/bottom margins (only CMD mode) */
-	    nl10->marg_t = 0;
-	    nl10->marg_b = 0;
-	  }
-	break;
-      }
+		case 17:
+			set_mode(nl10, NL10_CBMTEXT);
+			init_mapping(nl10, nl10->mapping_intl_id);
+			break;
 
-    case 20:
-      {
-	if ( is_mode(nl10, NL10_ASCII) )
-	  set_mode(nl10, NL10_EXPANDED | NL10_EXPANDED_LINE);
-	break;
-      }
+		case 18:
+			{
+				if ( is_mode(nl10, NL10_ASCII) )
+					/* ASCII: Set 'elite' print mode */
+					del_mode(nl10, NL10_ELITE);
+				else
+					/* CBM: Enable reverse print */
+					set_mode(nl10, NL10_REVERSE);
+				break;
+			}
 
-    case 26:
-      {
-	if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-	else
-	  {
-	    int i;
-	    if ( (nl10->gfx_mode & NL10_GFX_7PIN) && (nl10->esc[2] & 0x80) )
-	      for (i=0; i<nl10->esc[1]; i++) draw_graphics(nl10, nl10->esc[2]);
-	    nl10->esc_ctr = 0;
-	  }
-	break;
-      }
+		case 19:
+			{
+				if ( !is_mode(nl10, NL10_ASCII) )
+				{
+					/* clear top/bottom margins (only CMD mode) */
+					nl10->marg_t = 0;
+					nl10->marg_b = 0;
+				}
+				break;
+			}
 
-    case 27:
-      {
-        /* ESC sequence */
-        if ( nl10->esc_ctr<1 )
-          nl10->esc_ctr++;
-        else
-          return handle_esc_control_sequence(nl10, prnr, c);
-        break;
-      }
+		case 20:
+			{
+				if ( is_mode(nl10, NL10_ASCII) )
+					set_mode(nl10, NL10_EXPANDED | NL10_EXPANDED_LINE);
+				break;
+			}
 
-    case 145:
-      /* enable CBM text character mode */
-      del_mode(nl10, NL10_CBMTEXT);
-      init_mapping(nl10, nl10->mapping_intl_id);
-      break;
+		case 26:
+			{
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					int i;
+					if ( (nl10->gfx_mode & NL10_GFX_7PIN) && (nl10->esc[2] & 0x80) )
+						for (i=0; i<nl10->esc[1]; i++) draw_graphics(nl10, nl10->esc[2]);
+					nl10->esc_ctr = 0;
+				}
+				break;
+			}
 
-    case 146:
-      /* disable reverse printing */
-      del_mode(nl10, NL10_REVERSE);
-      break;
+		case 27:
+			{
+				/* ESC sequence */
+				if ( nl10->esc_ctr<1 )
+					nl10->esc_ctr++;
+				else
+					return handle_esc_control_sequence(nl10, prnr, c);
+				break;
+			}
 
-    case 147:
-      {
-	if ( !is_mode(nl10, NL10_ASCII) ) nl10->marg_b = 6;
-	break;
-      }
+		case 145:
+			/* enable CBM text character mode */
+			del_mode(nl10, NL10_CBMTEXT);
+			init_mapping(nl10, nl10->mapping_intl_id);
+			break;
 
-    default:
-      return 0;
-    }
+		case 146:
+			/* disable reverse printing */
+			del_mode(nl10, NL10_REVERSE);
+			break;
 
-  return 1;
+		case 147:
+			{
+				if ( !is_mode(nl10, NL10_ASCII) ) nl10->marg_b = 6;
+				break;
+			}
+
+		default:
+			return 0;
+	}
+
+	return 1;
 }
 
 
 static int handle_esc_control_sequence(nl10_t *nl10, unsigned int prnr, const BYTE c)
 {
-  switch( nl10->esc[1] )
-    {
-    case 10:
-      {
-        /* reverse paper one line (NOT IMPLEMENTED) */
-        log_warning(drvnl10_log, "Command 'reverse paper one line' (%i %i) not implemented.",
-                    nl10->esc[0], nl10->esc[1]);
-        nl10->esc_ctr=0;
-        break;
-      }
-        
-    case 12:
-      {
-        /* reverse paper to top of page (NOT IMPLEMENTED) */
-        log_warning(drvnl10_log, "Command 'reverse paper to top of page' (%i %i) not implemented.",
-                    nl10->esc[0], nl10->esc[1]);
-        nl10->esc_ctr=0;
-        break;
-      }
-        
-    case 15:
-      /* enable expanded print */
-      set_mode(nl10, NL10_EXPANDED);
-      break;
-      
-    case 16:
-      {
-        /* skip to horizontal point position */
-        if ( nl10->esc_ctr<3 )
-          nl10->esc_ctr++;
-        else
-          {
-	    int i = 256 * nl10->esc[2] + nl10->esc[3];
-	    if ( i>479 ) i = 479;
-	    nl10->pos_x = BORDERX + 5 * i;
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
-      
-    case 18:
-      {
-        /* CBM: enable single-density reverse graphics printing */
-        if ( !is_mode(nl10, NL10_ASCII) )
-          nl10->gfx_mode = NL10_GFX_SINGLE | NL10_GFX_REVERSE | NL10_GFX_7PIN; 
-        nl10->esc_ctr=0;
-        break;
-      }
+	switch( nl10->esc[1] )
+	{
+		case 10:
+			{
+				/* reverse paper one line (NOT IMPLEMENTED) */
+				//log_warning(drvnl10_log, "Command 'reverse paper one line' (%i %i) not implemented.", nl10->esc[0], nl10->esc[1]);
+				nl10->esc_ctr=0;
+				break;
+			}
 
-    case 25:
-      {
-        /* auto-feed mode control (NOT IMPLEMENTED) */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            log_warning(drvnl10_log, "Command 'auto-feed mode control' (%i %i %i) not implemented.",
-                        nl10->esc[0], nl10->esc[1], nl10->esc[2]);
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 12:
+			{
+				/* reverse paper to top of page (NOT IMPLEMENTED) */
+				//log_warning(drvnl10_log, "Command 'reverse paper to top of page' (%i %i) not implemented.", nl10->esc[0], nl10->esc[1]);
+				nl10->esc_ctr=0;
+				break;
+			}
 
-    case 33:
-      {
-        /* master command for print style changes */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            del_mode(nl10, NL10_ELITE | NL10_CONDENSED | NL10_EXPANDED | NL10_UNDERLINE);
-            if ( nl10->esc[2] &   1 ) set_mode(nl10, NL10_ELITE);
-            if ( nl10->esc[2] &   2 ) set_mode(nl10, NL10_PROP);
-            if ( nl10->esc[2] &   4 ) set_mode(nl10, NL10_CONDENSED);
-            if ( nl10->esc[2] &   8 ) set_mode(nl10, NL10_EMPHASIZE);
-            if ( nl10->esc[2] &  16 ) set_mode(nl10, NL10_BOLD);
-            if ( nl10->esc[2] &  32 ) set_mode(nl10, NL10_EXPANDED);
-            if ( nl10->esc[2] & 128 ) set_mode(nl10, NL10_UNDERLINE);
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 15:
+			/* enable expanded print */
+			set_mode(nl10, NL10_EXPANDED);
+			break;
 
-    case 37:
-      {
-        /* enable/disable use of character RAM */
-        if ( nl10->esc_ctr<3 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( (nl10->esc[2]=='1' || nl10->esc[2]==1) && nl10->esc[3]==0 )
-              set_mode(nl10, NL10_USERAM);
-            else if ( (nl10->esc[2]=='0' || nl10->esc[2]==0) && nl10->esc[3]==0 )
-              del_mode(nl10, NL10_USERAM);
+		case 16:
+			{
+				/* skip to horizontal point position */
+				if ( nl10->esc_ctr<3 )
+					nl10->esc_ctr++;
+				else
+				{
+					int i = 256 * nl10->esc[2] + nl10->esc[3];
+					if ( i>479 ) i = 479;
+					nl10->pos_x = BORDERX + 5 * i;
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-            nl10->esc_ctr = 0;
-          }
-        break;
-      }
+		case 18:
+			{
+				/* CBM: enable single-density reverse graphics printing */
+				if ( !is_mode(nl10, NL10_ASCII) )
+					nl10->gfx_mode = NL10_GFX_SINGLE | NL10_GFX_REVERSE | NL10_GFX_7PIN; 
+				nl10->esc_ctr=0;
+				break;
+			}
 
-    case 38:
-      {
-        /* download new character data to RAM */
-        if ( nl10->esc_ctr < 4 ||
-            nl10->esc_ctr < 4 + (is_mode(nl10, NL10_NLQ) ? 47 : 12) )
-          nl10->esc_ctr++;
-        else
-          {
-            int i;
+		case 25:
+			{
+				/* auto-feed mode control (NOT IMPLEMENTED) */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					//log_warning(drvnl10_log, "Command 'auto-feed mode control' (%i %i %i) not implemented.", nl10->esc[0], nl10->esc[1], nl10->esc[2]);
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-            i = nl10->esc[3];
-            if ( (i>=32) && (i<=127) )
-              {
-                if ( is_mode(nl10, NL10_NLQ) )
-                  store_char_nlq(nl10->char_ram_nlq+(i-32)*47, nl10->esc+5);
-                else 
-                  store_char(nl10->char_ram+(i-32)*12, nl10->esc+5);
-              }
+		case 33:
+			{
+				/* master command for print style changes */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					del_mode(nl10, NL10_ELITE | NL10_CONDENSED | NL10_EXPANDED | NL10_UNDERLINE);
+					if ( nl10->esc[2] &   1 ) set_mode(nl10, NL10_ELITE);
+					if ( nl10->esc[2] &   2 ) set_mode(nl10, NL10_PROP);
+					if ( nl10->esc[2] &   4 ) set_mode(nl10, NL10_CONDENSED);
+					if ( nl10->esc[2] &   8 ) set_mode(nl10, NL10_EMPHASIZE);
+					if ( nl10->esc[2] &  16 ) set_mode(nl10, NL10_BOLD);
+					if ( nl10->esc[2] &  32 ) set_mode(nl10, NL10_EXPANDED);
+					if ( nl10->esc[2] & 128 ) set_mode(nl10, NL10_UNDERLINE);
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-            nl10->esc[3]++;
-            nl10->esc_ctr = (nl10->esc[3] <= nl10->esc[4]) ? 5 : 0;
-          }
+		case 37:
+			{
+				/* enable/disable use of character RAM */
+				if ( nl10->esc_ctr<3 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( (nl10->esc[2]=='1' || nl10->esc[2]==1) && nl10->esc[3]==0 )
+						set_mode(nl10, NL10_USERAM);
+					else if ( (nl10->esc[2]=='0' || nl10->esc[2]==0) && nl10->esc[3]==0 )
+						del_mode(nl10, NL10_USERAM);
 
-        break;
-      }
+					nl10->esc_ctr = 0;
+				}
+				break;
+			}
 
-    case 42:
-      {
-        /* enter graphics mode */
-        if ( nl10->esc_ctr<4 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->gfx_mode  = NL10_GFX_OFF;                    
-            switch( nl10->esc[2] )
-              {
-              case 0: nl10->gfx_mode = NL10_GFX_SINGLE; break;
-              case 1: nl10->gfx_mode = NL10_GFX_DOUBLE; break;
-              case 2: nl10->gfx_mode = NL10_GFX_DOUBLE; break;
-              case 3: nl10->gfx_mode = NL10_GFX_QUAD;   break;
-              case 4: nl10->gfx_mode = NL10_GFX_CRT;    break;
-              case 5: nl10->gfx_mode = NL10_GFX_PLOT;   break;
-              case 6: nl10->gfx_mode = NL10_GFX_CRT2;   break;
-              }
+		case 38:
+			{
+				/* download new character data to RAM */
+				if ( nl10->esc_ctr < 4 ||
+						nl10->esc_ctr < 4 + (is_mode(nl10, NL10_NLQ) ? 47 : 12) )
+					nl10->esc_ctr++;
+				else
+				{
+					int i;
 
-            nl10->gfx_count = nl10->esc[3] + 256*nl10->esc[4];
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+					i = nl10->esc[3];
+					if ( (i>=32) && (i<=127) )
+					{
+						if ( is_mode(nl10, NL10_NLQ) )
+							store_char_nlq(nl10->char_ram_nlq+(i-32)*47, nl10->esc+5);
+						else 
+							store_char(nl10->char_ram+(i-32)*12, nl10->esc+5);
+					}
 
-    case 43:
-      {
-        /* macro commands */
-        if ( nl10->esc_ctr < 3 )
-          nl10->esc_ctr++;
-        else if ( nl10->esc[2]==1 )
-          {
-            /* execute macro */
-            BYTE i;
-            for (i=0; i<16; i++) 
-              {
-                if ( nl10->macro[i] == 30 )
-                  break;
-                else 
-                  print_char(nl10, prnr, nl10->macro[i]);
-              }
-            nl10->esc_ctr=0;
-          }
+					nl10->esc[3]++;
+					nl10->esc_ctr = (nl10->esc[3] <= nl10->esc[4]) ? 5 : 0;
+				}
 
-        else if ( nl10->esc_ctr<2+16 && nl10->esc[nl10->esc_ctr] != 30 )
-          nl10->esc_ctr++;
-        else
-          {
-            /* define macro */
-            BYTE i;
-            for (i=0; i<16; i++) nl10->macro[i] = nl10->esc[2+i];
-            nl10->esc_ctr=0;
-          }
+				break;
+			}
 
-        break;
-      }
+		case 42:
+			{
+				/* enter graphics mode */
+				if ( nl10->esc_ctr<4 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->gfx_mode  = NL10_GFX_OFF;                    
+					switch( nl10->esc[2] )
+					{
+						case 0: nl10->gfx_mode = NL10_GFX_SINGLE; break;
+						case 1: nl10->gfx_mode = NL10_GFX_DOUBLE; break;
+						case 2: nl10->gfx_mode = NL10_GFX_DOUBLE; break;
+						case 3: nl10->gfx_mode = NL10_GFX_QUAD;   break;
+						case 4: nl10->gfx_mode = NL10_GFX_CRT;    break;
+						case 5: nl10->gfx_mode = NL10_GFX_PLOT;   break;
+						case 6: nl10->gfx_mode = NL10_GFX_CRT2;   break;
+					}
 
-    case 45:
-      {
-        /* turn underline on/off */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
-              del_mode(nl10, NL10_UNDERLINE);
-            else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1) )
-              set_mode(nl10, NL10_UNDERLINE);
-                      
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+					nl10->gfx_count = nl10->esc[3] + 256*nl10->esc[4];
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 48:
-      /* line spacing 1/8" */
-      nl10->linespace = 3*9;
-      nl10->esc_ctr=0;
-      break;
+		case 43:
+			{
+				/* macro commands */
+				if ( nl10->esc_ctr < 3 )
+					nl10->esc_ctr++;
+				else if ( nl10->esc[2]==1 )
+				{
+					/* execute macro */
+					BYTE i;
+					for (i=0; i<16; i++) 
+					{
+						if ( nl10->macro[i] == 30 )
+							break;
+						else 
+							print_char(nl10, prnr, nl10->macro[i]);
+					}
+					nl10->esc_ctr=0;
+				}
 
-    case 49:
-      /* line spacing 7/72" */
-      nl10->linespace = 3*7;
-      nl10->esc_ctr=0;
-      break;
+				else if ( nl10->esc_ctr<2+16 && nl10->esc[nl10->esc_ctr] != 30 )
+					nl10->esc_ctr++;
+				else
+				{
+					/* define macro */
+					BYTE i;
+					for (i=0; i<16; i++) nl10->macro[i] = nl10->esc[2+i];
+					nl10->esc_ctr=0;
+				}
 
-    case 50:
-      /* line spacing 1/6" */
-      nl10->linespace = 3*12;
-      nl10->esc_ctr=0;
-      break;
+				break;
+			}
 
-    case 51:
-      {
-        /* set line spacing to n/216" */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->linespace = nl10->esc[2];
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 45:
+			{
+				/* turn underline on/off */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
+						del_mode(nl10, NL10_UNDERLINE);
+					else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1) )
+						set_mode(nl10, NL10_UNDERLINE);
 
-    case 52:
-      /* Selects italic characters */
-      set_mode(nl10, NL10_ITALIC);
-      nl10->esc_ctr=0;
-      break;
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 53:
-      /* Cancels italic characters */
-      del_mode(nl10, NL10_ITALIC);
-      nl10->esc_ctr=0;
-      break;
+		case 48:
+			/* line spacing 1/8" */
+			nl10->linespace = 3*9;
+			nl10->esc_ctr=0;
+			break;
 
-    case 58:
-      {
-        /* copy character set to RAM */
-        if ( nl10->esc_ctr<4 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( nl10->esc[2]==0 && nl10->esc[3]==0 && nl10->esc[4]==0 )
-              {
-                int c;
-                for ( c=0; c<96; c++ )
-                  {
-                    memcpy(nl10->char_ram     + c*12, drv_nl10_charset     + nl10->mapping[c+32] * 12, 12);
-                    memcpy(nl10->char_ram_nlq + c*47, drv_nl10_charset_nlq + nl10->mapping[c+32] * 47, 47);
-                  }
-              }
-            nl10->esc_ctr = 0;
-          }
+		case 49:
+			/* line spacing 7/72" */
+			nl10->linespace = 3*7;
+			nl10->esc_ctr=0;
+			break;
 
-        break;
-      }
+		case 50:
+			/* line spacing 1/6" */
+			nl10->linespace = 3*12;
+			nl10->esc_ctr=0;
+			break;
 
-    case 64:
-      /* (Soft) Reset printer */
-      reset(nl10);
-      nl10->esc_ctr=0;
-      break;
+		case 51:
+			{
+				/* set line spacing to n/216" */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->linespace = nl10->esc[2];
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 65:
-      {
-        /* line spacing n/72" */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->linespace = 3*nl10->esc[2];
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 52:
+			/* Selects italic characters */
+			set_mode(nl10, NL10_ITALIC);
+			nl10->esc_ctr=0;
+			break;
 
-    case 66:
-      {
-        /* set vertical tabs */
-        if ( nl10->esc_ctr<3 || (nl10->esc_ctr<42 && (nl10->esc[nl10->esc_ctr] > nl10->esc[nl10->esc_ctr-1]) ))
-          nl10->esc_ctr++;
-        else
-          {
-            int i;
-            for (i=2; i<nl10->esc_ctr; i++) nl10->vtabs[i-2] = nl10->esc[i];
-            nl10->vtabs[i-2] = 0;
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 53:
+			/* Cancels italic characters */
+			del_mode(nl10, NL10_ITALIC);
+			nl10->esc_ctr=0;
+			break;
 
-    case 67:
-      {
-        /* set page length */
-        if ( nl10->esc_ctr<2 || ((nl10->esc[2]==0) && nl10->esc_ctr<3) )
-          nl10->esc_ctr++;
-        else 
-          {
-            if ( nl10->esc[2]==0 )
-              {
-                /* set page length to n inches (NOT IMPLEMENTED) */
-                log_warning(drvnl10_log, "Command 'set page length to n inches' (%i %i %i %i) not implemented.",
-                            nl10->esc[0], nl10->esc[1], nl10->esc[2], nl10->esc[3]);
-                nl10->esc_ctr=0;
-              }
-            else
-              {
-                /* set page length to n lines (NOT IMPLEMENTED) */
-                log_warning(drvnl10_log, "Command 'set page length to n lines' (%i %i %i) not implemented.",
-                            nl10->esc[0], nl10->esc[1], nl10->esc[2]);
-                nl10->esc_ctr=0;
-              }
-          }
-        break;
-      }
+		case 58:
+			{
+				/* copy character set to RAM */
+				if ( nl10->esc_ctr<4 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( nl10->esc[2]==0 && nl10->esc[3]==0 && nl10->esc[4]==0 )
+					{
+						int c;
+						for ( c=0; c<96; c++ )
+						{
+							memcpy(nl10->char_ram     + c*12, drv_nl10_charset     + nl10->mapping[c+32] * 12, 12);
+							memcpy(nl10->char_ram_nlq + c*47, drv_nl10_charset_nlq + nl10->mapping[c+32] * 47, 47);
+						}
+					}
+					nl10->esc_ctr = 0;
+				}
 
-    case 68:
-      {
-        /* set horizontal tabs */
-        if ( nl10->esc_ctr<3 || (nl10->esc_ctr<42 && (nl10->esc[nl10->esc_ctr] > nl10->esc[nl10->esc_ctr-1])) )
-          nl10->esc_ctr++;
-        else
-          {
-            int i;
-            for (i=2; i<nl10->esc_ctr; i++) nl10->htabs[i-2] = nl10->esc[i];
-            nl10->htabs[i-2] = 0;
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+				break;
+			}
 
-    case 69:
-      /* Selects emphasized printing */
-      set_mode(nl10, NL10_EMPHASIZE);
-      nl10->esc_ctr=0;
-      break;
+		case 64:
+			/* (Soft) Reset printer */
+			reset(nl10);
+			nl10->esc_ctr=0;
+			break;
 
-    case 70:
-      /* Cancels emphasized printing */
-      del_mode(nl10, NL10_EMPHASIZE);
-      nl10->esc_ctr=0;
-      break;
+		case 65:
+			{
+				/* line spacing n/72" */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->linespace = 3*nl10->esc[2];
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 71:
-      /* Selects boldface printing */
-      set_mode(nl10, NL10_BOLD);
-      nl10->esc_ctr=0;
-      break;
+		case 66:
+			{
+				/* set vertical tabs */
+				if ( nl10->esc_ctr<3 || (nl10->esc_ctr<42 && (nl10->esc[nl10->esc_ctr] > nl10->esc[nl10->esc_ctr-1]) ))
+					nl10->esc_ctr++;
+				else
+				{
+					int i;
+					for (i=2; i<nl10->esc_ctr; i++) nl10->vtabs[i-2] = nl10->esc[i];
+					nl10->vtabs[i-2] = 0;
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 72:
-      /* Cancels boldface printing */
-      del_mode(nl10, NL10_BOLD);
-      nl10->esc_ctr=0;
-      break;
+		case 67:
+			{
+				/* set page length */
+				if ( nl10->esc_ctr<2 || ((nl10->esc[2]==0) && nl10->esc_ctr<3) )
+					nl10->esc_ctr++;
+				else 
+				{
+					if ( nl10->esc[2]==0 )
+					{
+						/* set page length to n inches (NOT IMPLEMENTED) */
+						//log_warning(drvnl10_log, "Command 'set page length to n inches' (%i %i %i %i) not implemented.", nl10->esc[0], nl10->esc[1], nl10->esc[2], nl10->esc[3]);
+						nl10->esc_ctr=0;
+					}
+					else
+					{
+						/* set page length to n lines (NOT IMPLEMENTED) */
+						//log_warning(drvnl10_log, "Command 'set page length to n lines' (%i %i %i) not implemented.", nl10->esc[0], nl10->esc[1], nl10->esc[2]);
+						nl10->esc_ctr=0;
+					}
+				}
+				break;
+			}
 
-    case 74:
-      {
-        /* one-time linefeed of n/216" */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            int tmp = nl10->linespace;
-            nl10->linespace = nl10->esc[2];
-            linefeed(nl10, prnr);
-            nl10->linespace = tmp;
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 68:
+			{
+				/* set horizontal tabs */
+				if ( nl10->esc_ctr<3 || (nl10->esc_ctr<42 && (nl10->esc[nl10->esc_ctr] > nl10->esc[nl10->esc_ctr-1])) )
+					nl10->esc_ctr++;
+				else
+				{
+					int i;
+					for (i=2; i<nl10->esc_ctr; i++) nl10->htabs[i-2] = nl10->esc[i];
+					nl10->htabs[i-2] = 0;
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 75: /* Prints normal density graphics */
-    case 76: /* Prints double density graphics */
-    case 89: /* Prints double density graphics (double speed) */
-    case 90: /* Prints quadruple density graphics */
-      {
-        if ( nl10->esc_ctr<3 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->gfx_mode = NL10_GFX_OFF;
-            switch( nl10->esc[1] )
-              {
-              case 'K': nl10->gfx_mode  = NL10_GFX_SINGLE; break;
-              case 'L': nl10->gfx_mode  = NL10_GFX_DOUBLE; break;
-              case 'Y': nl10->gfx_mode  = NL10_GFX_DOUBLE; break;
-              case 'Z': nl10->gfx_mode  = NL10_GFX_QUAD;   break;
-              }
+		case 69:
+			/* Selects emphasized printing */
+			set_mode(nl10, NL10_EMPHASIZE);
+			nl10->esc_ctr=0;
+			break;
 
-            nl10->gfx_count = nl10->esc[2] + 256*nl10->esc[3];
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 70:
+			/* Cancels emphasized printing */
+			del_mode(nl10, NL10_EMPHASIZE);
+			nl10->esc_ctr=0;
+			break;
 
-    case 77:
-      /* Sets print pitch to elite */
-      set_mode(nl10, NL10_ELITE);
-      nl10->esc_ctr=0;
-      break;
+		case 71:
+			/* Selects boldface printing */
+			set_mode(nl10, NL10_BOLD);
+			nl10->esc_ctr=0;
+			break;
 
-    case 78: 
-      {
-        /* set bottom margin to n lines */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->marg_b = nl10->esc[2];
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 72:
+			/* Cancels boldface printing */
+			del_mode(nl10, NL10_BOLD);
+			nl10->esc_ctr=0;
+			break;
 
-    case 79:
-      /* clear top/bottom margins */
-      nl10->marg_t  = 0;
-      nl10->marg_b  = 0;
-      nl10->esc_ctr = 0;
-      break;
+		case 74:
+			{
+				/* one-time linefeed of n/216" */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					int tmp = nl10->linespace;
+					nl10->linespace = nl10->esc[2];
+					linefeed(nl10, prnr);
+					nl10->linespace = tmp;
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 80:
-      /* Set print pitch to pica */
-      del_mode(nl10, NL10_ELITE);
-      nl10->esc_ctr=0;
-      break;
+		case 75: /* Prints normal density graphics */
+		case 76: /* Prints double density graphics */
+		case 89: /* Prints double density graphics (double speed) */
+		case 90: /* Prints quadruple density graphics */
+			{
+				if ( nl10->esc_ctr<3 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->gfx_mode = NL10_GFX_OFF;
+					switch( nl10->esc[1] )
+					{
+						case 'K': nl10->gfx_mode  = NL10_GFX_SINGLE; break;
+						case 'L': nl10->gfx_mode  = NL10_GFX_DOUBLE; break;
+						case 'Y': nl10->gfx_mode  = NL10_GFX_DOUBLE; break;
+						case 'Z': nl10->gfx_mode  = NL10_GFX_QUAD;   break;
+					}
 
-    case 81:
-      {
-        /* Set right margin */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->marg_r  = BORDERX + (int) (get_char_width(nl10, ' ', 1) * nl10->esc[2]);
-            if ( nl10->marg_r > MAX_COL-BORDERX ) nl10->marg_r = MAX_COL-BORDERX;
-            nl10->esc_ctr = 0;
-          }
-        break;
-      }
+					nl10->gfx_count = nl10->esc[2] + 256*nl10->esc[3];
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 82:
-      {
-        /* Select an international character set */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            init_mapping(nl10, nl10->esc[2]);
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 77:
+			/* Sets print pitch to elite */
+			set_mode(nl10, NL10_ELITE);
+			nl10->esc_ctr=0;
+			break;
 
-    case 83:
-      {
-        /* Select superscript or subscript */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
+		case 78: 
+			{
+				/* set bottom margin to n lines */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->marg_b = nl10->esc[2];
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-            if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
-              {
-                del_mode(nl10, NL10_SUBSCRIPT);
-                set_mode(nl10, NL10_SUPERSCRIPT);
-              }
-            else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1) )
-              {
-                set_mode(nl10, NL10_SUBSCRIPT);
-                del_mode(nl10, NL10_SUPERSCRIPT);
-              }
-                      
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 79:
+			/* clear top/bottom margins */
+			nl10->marg_t  = 0;
+			nl10->marg_b  = 0;
+			nl10->esc_ctr = 0;
+			break;
 
-    case 84:
-      {
-        /* Cancel superscript and subscript */
-        del_mode(nl10, NL10_SUPERSCRIPT | NL10_SUBSCRIPT);
-        nl10->esc_ctr=0;
-        break;
-      }
+		case 80:
+			/* Set print pitch to pica */
+			del_mode(nl10, NL10_ELITE);
+			nl10->esc_ctr=0;
+			break;
 
-    case 87:
-      {
-        /* Select/cancel expanded print */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
-              del_mode(nl10, NL10_EXPANDED);
-            else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
-              set_mode(nl10, NL10_EXPANDED);
-                      
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 81:
+			{
+				/* Set right margin */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->marg_r  = BORDERX + (int) (get_char_width(nl10, ' ', 1) * nl10->esc[2]);
+					if ( nl10->marg_r > MAX_COL-BORDERX ) nl10->marg_r = MAX_COL-BORDERX;
+					nl10->esc_ctr = 0;
+				}
+				break;
+			}
 
-    case 93:
-      {
-        /* 0=CBM mode, 1=ASCII mode */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
-              del_mode(nl10, NL10_ASCII);
-            else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
-              set_mode(nl10, NL10_ASCII);
-                      
-            init_mapping(nl10, nl10->mapping_intl_id);
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 82:
+			{
+				/* Select an international character set */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					init_mapping(nl10, nl10->esc[2]);
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 97: 
-      {
-        /* set horizontal alignment (NOT IMPLEMENTED) */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            log_warning(drvnl10_log, "Command 'set horizontal alignment' (%i %i %i) not implemented.",
-                        nl10->esc[0], nl10->esc[1], nl10->esc[2]);
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 83:
+			{
+				/* Select superscript or subscript */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
 
-    case 104:
-      {
-        /* Select double/quadruple sized printing */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            switch( nl10->esc[2] )
-              {
-              case 0: nl10->expand = 1; nl10->expand_half = 0; break;
-              case 1: nl10->expand = 2; nl10->expand_half = 0; break;
-              case 2: nl10->expand = 4; nl10->expand_half = 0; break;
-              case 3: nl10->expand = 2; nl10->expand_half = 1; break;
-              case 4: nl10->expand = 4; nl10->expand_half = 1; break;
-              case 5: nl10->expand = 2; nl10->expand_half = 2; break;
-              case 6: nl10->expand = 4; nl10->expand_half = 2; break;
-              }
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+					if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
+					{
+						del_mode(nl10, NL10_SUBSCRIPT);
+						set_mode(nl10, NL10_SUPERSCRIPT);
+					}
+					else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1) )
+					{
+						set_mode(nl10, NL10_SUBSCRIPT);
+						del_mode(nl10, NL10_SUPERSCRIPT);
+					}
 
-    case 108:
-      {
-        /* Set left margin */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->marg_l  = BORDERX + (int) (get_char_width(nl10, ' ', 1) * nl10->esc[2]);
-            nl10->esc_ctr = 0;
-          }
-        break;
-      }
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-    case 112:
-      {
-        /* Select/cancel proportional print */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
-              del_mode(nl10, NL10_PROP);
-            else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
-              set_mode(nl10, NL10_PROP);
-                      
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 84:
+			{
+				/* Cancel superscript and subscript */
+				del_mode(nl10, NL10_SUPERSCRIPT | NL10_SUBSCRIPT);
+				nl10->esc_ctr=0;
+				break;
+			}
 
-    case 114: 
-      {
-        /* set top margin to n lines */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            nl10->marg_t = nl10->esc[2];
-            nl10->esc_ctr=0;
-          }
-        break;
-      }
+		case 87:
+			{
+				/* Select/cancel expanded print */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
+						del_mode(nl10, NL10_EXPANDED);
+					else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
+						set_mode(nl10, NL10_EXPANDED);
 
-    case 120:
-      {
-        /* Select/cancel NLQ mode */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
-              del_mode(nl10, NL10_NLQ);
-            else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
-              set_mode(nl10, NL10_NLQ);
-                      
-            nl10->esc_ctr=0;
-          }
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-        break;
-      }
+		case 93:
+			{
+				/* 0=CBM mode, 1=ASCII mode */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
+						del_mode(nl10, NL10_ASCII);
+					else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
+						set_mode(nl10, NL10_ASCII);
 
-    case 126:
-      {
-        /* print 0 with/without slash */
-        if ( nl10->esc_ctr<2 )
-          nl10->esc_ctr++;
-        else
-          {
-            if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
-              del_mode(nl10, NL10_ZERO_CROSSED);
-            else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
-              set_mode(nl10, NL10_ZERO_CROSSED);
-                      
-            init_mapping(nl10, nl10->mapping_intl_id);
-            nl10->esc_ctr=0;
-          }
+					init_mapping(nl10, nl10->mapping_intl_id);
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
 
-        break;
-      }
-	      
-    default:
-      {
-        log_warning(drvnl10_log, "Unsupported escape-sequence: %i %i", 
-                    nl10->esc[0], nl10->esc[1]);
-        nl10->esc_ctr=0;
-        return 1;
-      }
-    }
-  
-  return 1;
+		case 97: 
+			{
+				/* set horizontal alignment (NOT IMPLEMENTED) */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					//log_warning(drvnl10_log, "Command 'set horizontal alignment' (%i %i %i) not implemented.", nl10->esc[0], nl10->esc[1], nl10->esc[2]);
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
+
+		case 104:
+			{
+				/* Select double/quadruple sized printing */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					switch( nl10->esc[2] )
+					{
+						case 0: nl10->expand = 1; nl10->expand_half = 0; break;
+						case 1: nl10->expand = 2; nl10->expand_half = 0; break;
+						case 2: nl10->expand = 4; nl10->expand_half = 0; break;
+						case 3: nl10->expand = 2; nl10->expand_half = 1; break;
+						case 4: nl10->expand = 4; nl10->expand_half = 1; break;
+						case 5: nl10->expand = 2; nl10->expand_half = 2; break;
+						case 6: nl10->expand = 4; nl10->expand_half = 2; break;
+					}
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
+
+		case 108:
+			{
+				/* Set left margin */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->marg_l  = BORDERX + (int) (get_char_width(nl10, ' ', 1) * nl10->esc[2]);
+					nl10->esc_ctr = 0;
+				}
+				break;
+			}
+
+		case 112:
+			{
+				/* Select/cancel proportional print */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
+						del_mode(nl10, NL10_PROP);
+					else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
+						set_mode(nl10, NL10_PROP);
+
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
+
+		case 114: 
+			{
+				/* set top margin to n lines */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					nl10->marg_t = nl10->esc[2];
+					nl10->esc_ctr=0;
+				}
+				break;
+			}
+
+		case 120:
+			{
+				/* Select/cancel NLQ mode */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
+						del_mode(nl10, NL10_NLQ);
+					else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
+						set_mode(nl10, NL10_NLQ);
+
+					nl10->esc_ctr=0;
+				}
+
+				break;
+			}
+
+		case 126:
+			{
+				/* print 0 with/without slash */
+				if ( nl10->esc_ctr<2 )
+					nl10->esc_ctr++;
+				else
+				{
+					if ( (nl10->esc[2]=='0') || (nl10->esc[2]==0) )
+						del_mode(nl10, NL10_ZERO_CROSSED);
+					else if ( (nl10->esc[2]=='1') || (nl10->esc[2]==1))
+						set_mode(nl10, NL10_ZERO_CROSSED);
+
+					init_mapping(nl10, nl10->mapping_intl_id);
+					nl10->esc_ctr=0;
+				}
+
+				break;
+			}
+
+		default:
+			{
+				//log_warning(drvnl10_log, "Unsupported escape-sequence: %i %i",  nl10->esc[0], nl10->esc[1]);
+				nl10->esc_ctr=0;
+				return 1;
+			}
+	}
+
+	return 1;
 }
 
 
@@ -1945,39 +1940,39 @@ int drv_nl10_init_resources(void)
 
 int drv_nl10_init(void)
 {
-    int i;
-    static const char *color_names[2] =
-    {
-      "Black", "White"
-    };
+	int i;
+	static const char *color_names[2] =
+	{
+		"Black", "White"
+	};
 
-    drvnl10_log = log_open("NL10");
+	for (i=0; i<2; i++)
+	{
+		drv_nl10[i].char_ram     = lib_malloc(96*12);
+		drv_nl10[i].char_ram_nlq = lib_malloc(96*47);
+		reset_hard(&(drv_nl10[i]));
+		drv_nl10[i].isopen = 0;
+	}
 
-    for (i=0; i<2; i++)
-      {
-        drv_nl10[i].char_ram     = lib_malloc(96*12);
-        drv_nl10[i].char_ram_nlq = lib_malloc(96*47);
-	reset_hard(&(drv_nl10[i]));
-	drv_nl10[i].isopen = 0;
-      }
+	if ( drv_nl10_init_charset() < 0 )
+		return -1;
 
-    if ( drv_nl10_init_charset() < 0 )
-      return -1;
+	palette = palette_create(2, color_names);
 
-    palette = palette_create(2, color_names);
+	if (palette == NULL)
+		return -1;
 
-    if (palette == NULL)
-        return -1;
+	if (palette_load("mps803" FSDEV_EXT_SEP_STR "vpl", palette) < 0)
+	{
+#ifdef CELL_DEBUG
+		printf("Cannot load palette file `%s'.\n", FSDEV_EXT_SEP_STR "vpl");
+#endif
+		return -1;
+	}
 
-    if (palette_load("mps803" FSDEV_EXT_SEP_STR "vpl", palette) < 0) {
-      log_error(drvnl10_log, "Cannot load palette file `%s'.",
-                "mps803" FSDEV_EXT_SEP_STR "vpl");
-      return -1;
-    }
+	//log_message(drvnl10_log, "Printer driver initialized.");
 
-    log_message(drvnl10_log, "Printer driver initialized.");
-
-    return 0;
+	return 0;
 }
 
 void drv_nl10_shutdown(void)
@@ -2159,56 +2154,58 @@ static const BYTE drv_nl10_charset_mapping[3][256] =
 
 static int drv_nl10_init_charset(void)
 {
-  char *name = "nl10-cbm";
-  int i,j;
+	char *name = "nl10-cbm";
+	int i,j;
 
-  memset(drv_nl10_charset_nlq, 0, CHARSET_SIZE*47);
-  memset(drv_nl10_charset_nlq_italic, 0, CHARSET_SIZE*47);
+	memset(drv_nl10_charset_nlq, 0, CHARSET_SIZE*47);
+	memset(drv_nl10_charset_nlq_italic, 0, CHARSET_SIZE*47);
 
-  /* load nl-10 rom file */
-  if ( sysfile_load(name, drv_nl10_rom, NL10_ROM_SIZE, NL10_ROM_SIZE) < 0 ) 
-    {
-      memset(drv_nl10_rom, 0, NL10_ROM_SIZE);
-      log_error(drvnl10_log, "Could not load NL-10 ROM file '%s'.", name);
-      return -1;
-    }
-
-  /* check version string */
-  if ( memcmp(drv_nl10_rom + 0x3c7c, "STAR NL-10C VER 1.1\xff", 20) != 0 )
-    log_warning(drvnl10_log, "Invalid NL-10 ROM file.");
-
-  /* init NLQ characters */
-  for (i=0; i<129; i++)
-    {
-      /* roman */
-      memcpy(drv_nl10_charset_nlq + (i*47) +  0, drv_nl10_rom + 0x0960 + i*24, 24);
-      memcpy(drv_nl10_charset_nlq + (i*47) + 24, drv_nl10_rom + 0x2191 + i*24, 23);
-
-      /* italic */
-      memcpy(drv_nl10_charset_nlq_italic + (i*47) +  0, drv_nl10_rom + 0x1578 + i*24, 24);
-      memcpy(drv_nl10_charset_nlq_italic + (i*47) + 24, drv_nl10_rom + 0x2da9 + i*24, 23);
-    }
-
-  /* construct nlq cbm-graphic characters from draft cbm-graphic characters */
-  for (i=129; i<CHARSET_SIZE; i++)
-    {
-      drv_nl10_charset_nlq[i*47]        = drv_nl10_charset[i*12] & 128 ? 255 : 0;
-      drv_nl10_charset_nlq_italic[i*47] = drv_nl10_charset[i*12] & 128 ? 255 : 0;
-
-      for (j=0; j<6; j++)
+	/* load nl-10 rom file */
+	if ( sysfile_load(name, drv_nl10_rom, NL10_ROM_SIZE, NL10_ROM_SIZE) < 0 ) 
 	{
-	  BYTE b = drv_nl10_charset[i*12+j*2+1];
-	  drv_nl10_charset_nlq[i*47 + j*4 +  1] = b;
-	  drv_nl10_charset_nlq[i*47 + j*4 +  3] = b;
-	  drv_nl10_charset_nlq[i*47 + j*4 + 24] = b;
-	  drv_nl10_charset_nlq[i*47 + j*4 + 26] = b;
-
-	  drv_nl10_charset_nlq_italic[i*47 + j*4 +  1] = b;
-	  drv_nl10_charset_nlq_italic[i*47 + j*4 +  3] = b;
-	  drv_nl10_charset_nlq_italic[i*47 + j*4 + 24] = b;
-	  drv_nl10_charset_nlq_italic[i*47 + j*4 + 26] = b;
+		memset(drv_nl10_rom, 0, NL10_ROM_SIZE);
+		//log_error(drvnl10_log, "Could not load NL-10 ROM file '%s'.", name);
+		return -1;
 	}
-    }
 
-  return 0;
+	/* check version string */
+#if 0
+	if ( memcmp(drv_nl10_rom + 0x3c7c, "STAR NL-10C VER 1.1\xff", 20) != 0 )
+		log_warning(drvnl10_log, "Invalid NL-10 ROM file.");
+#endif
+
+	/* init NLQ characters */
+	for (i=0; i<129; i++)
+	{
+		/* roman */
+		memcpy(drv_nl10_charset_nlq + (i*47) +  0, drv_nl10_rom + 0x0960 + i*24, 24);
+		memcpy(drv_nl10_charset_nlq + (i*47) + 24, drv_nl10_rom + 0x2191 + i*24, 23);
+
+		/* italic */
+		memcpy(drv_nl10_charset_nlq_italic + (i*47) +  0, drv_nl10_rom + 0x1578 + i*24, 24);
+		memcpy(drv_nl10_charset_nlq_italic + (i*47) + 24, drv_nl10_rom + 0x2da9 + i*24, 23);
+	}
+
+	/* construct nlq cbm-graphic characters from draft cbm-graphic characters */
+	for (i=129; i<CHARSET_SIZE; i++)
+	{
+		drv_nl10_charset_nlq[i*47]        = drv_nl10_charset[i*12] & 128 ? 255 : 0;
+		drv_nl10_charset_nlq_italic[i*47] = drv_nl10_charset[i*12] & 128 ? 255 : 0;
+
+		for (j=0; j<6; j++)
+		{
+			BYTE b = drv_nl10_charset[i*12+j*2+1];
+			drv_nl10_charset_nlq[i*47 + j*4 +  1] = b;
+			drv_nl10_charset_nlq[i*47 + j*4 +  3] = b;
+			drv_nl10_charset_nlq[i*47 + j*4 + 24] = b;
+			drv_nl10_charset_nlq[i*47 + j*4 + 26] = b;
+
+			drv_nl10_charset_nlq_italic[i*47 + j*4 +  1] = b;
+			drv_nl10_charset_nlq_italic[i*47 + j*4 +  3] = b;
+			drv_nl10_charset_nlq_italic[i*47 + j*4 + 24] = b;
+			drv_nl10_charset_nlq_italic[i*47 + j*4 + 26] = b;
+		}
+	}
+
+	return 0;
 }

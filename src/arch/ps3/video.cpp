@@ -32,7 +32,6 @@
 #include <sys/sys_time.h>
 
 #include "cmdline.h"
-#include "log.h"
 #include "palette.h"
 #include "ui.h"
 #include "emu-ps3.hpp"

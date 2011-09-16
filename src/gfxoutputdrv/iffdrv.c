@@ -33,7 +33,6 @@
 #include "archdep.h"
 #include "iffdrv.h"
 #include "lib.h"
-#include "log.h"
 #include "gfxoutput.h"
 #include "palette.h"
 #include "screenshot.h"
@@ -124,56 +123,58 @@ static int iffdrv_write_file_header(screenshot_t *screenshot)
 
 static int iffdrv_open(screenshot_t *screenshot, const char *filename)
 {
-  gfxoutputdrv_data_t *sdata;
+	gfxoutputdrv_data_t *sdata;
 
-  if (screenshot->palette->num_entries > 256)
-  {
-    log_error(LOG_DEFAULT, "Max 256 colors supported.");
-    return -1;
-  }
+	if (screenshot->palette->num_entries > 256)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Max 256 colors supported.");
+#endif
+		return -1;
+	}
 
-  sdata = lib_malloc(sizeof(gfxoutputdrv_data_t));
-  screenshot->gfxoutputdrv_data = sdata;
-  sdata->line = 0;
-  sdata->ext_filename=util_add_extension_const(filename, iff_drv.default_extension);
-  sdata->fd = fopen(sdata->ext_filename, "wb");
+	sdata = lib_malloc(sizeof(gfxoutputdrv_data_t));
+	screenshot->gfxoutputdrv_data = sdata;
+	sdata->line = 0;
+	sdata->ext_filename=util_add_extension_const(filename, iff_drv.default_extension);
+	sdata->fd = fopen(sdata->ext_filename, "wb");
 
-  if (sdata->fd==NULL)
-  {
-    lib_free(sdata->ext_filename);
-    lib_free(sdata);
-    return -1;
-  }
+	if (sdata->fd==NULL)
+	{
+		lib_free(sdata->ext_filename);
+		lib_free(sdata);
+		return -1;
+	}
 
-  if (iffdrv_write_file_header(screenshot)<0)
-  {
-    fclose(sdata->fd);
-    lib_free(sdata->ext_filename);
-    lib_free(sdata);
-    return -1;
-  }
+	if (iffdrv_write_file_header(screenshot)<0)
+	{
+		fclose(sdata->fd);
+		lib_free(sdata->ext_filename);
+		lib_free(sdata);
+		return -1;
+	}
 
-  sdata->data = lib_malloc(sdata->iff_rowbytes*8);
-  sdata->iff_data = lib_malloc(sdata->iff_rowbytes);
+	sdata->data = lib_malloc(sdata->iff_rowbytes*8);
+	sdata->iff_data = lib_malloc(sdata->iff_rowbytes);
 
-  return 0;
+	return 0;
 }
 
 static void iff_c2p(BYTE *chunky, BYTE *planar, int amount, int plane)
 {
-  int i;
+	int i;
 
-  for (i=0; i<amount; i++)
-  {
-    planar[i]=((chunky[i*8]&powers[plane])/powers[plane]*128)+
-              ((chunky[(i*8)+1]&powers[plane])/powers[plane]*64)+
-              ((chunky[(i*8)+2]&powers[plane])/powers[plane]*32)+
-              ((chunky[(i*8)+3]&powers[plane])/powers[plane]*16)+
-              ((chunky[(i*8)+4]&powers[plane])/powers[plane]*8)+
-              ((chunky[(i*8)+5]&powers[plane])/powers[plane]*4)+
-              ((chunky[(i*8)+6]&powers[plane])/powers[plane]*2)+
-              (chunky[(i*8)+7]&powers[plane])/powers[plane];
-  }
+	for (i=0; i<amount; i++)
+	{
+		planar[i]=((chunky[i*8]&powers[plane])/powers[plane]*128)+
+			((chunky[(i*8)+1]&powers[plane])/powers[plane]*64)+
+			((chunky[(i*8)+2]&powers[plane])/powers[plane]*32)+
+			((chunky[(i*8)+3]&powers[plane])/powers[plane]*16)+
+			((chunky[(i*8)+4]&powers[plane])/powers[plane]*8)+
+			((chunky[(i*8)+5]&powers[plane])/powers[plane]*4)+
+			((chunky[(i*8)+6]&powers[plane])/powers[plane]*2)+
+			(chunky[(i*8)+7]&powers[plane])/powers[plane];
+	}
 }
 
 static int iffdrv_write(screenshot_t *screenshot)

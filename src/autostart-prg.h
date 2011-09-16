@@ -28,7 +28,6 @@
 #define VICE_AUTOSTART_PRG_H
 
 #include "types.h"
-#include "log.h"
 #include "fileio.h"
 
 struct autostart_prg_s {
@@ -47,13 +46,13 @@ extern void autostart_prg_init(void);
 extern void autostart_prg_shutdown(void);
 
 extern int autostart_prg_with_virtual_fs(const char *file_name,
-                                         fileio_info_t *fh, log_t log);
+                                         fileio_info_t *fh);
 extern int autostart_prg_with_ram_injection(const char *file_name,
-                                            fileio_info_t *fh, log_t log);
+                                            fileio_info_t *fh);
 extern int autostart_prg_with_disk_image(const char *file_name,
-                                         fileio_info_t *fh, log_t log,
+                                         fileio_info_t *fh,
                                          const char *image_name);
 
-extern int autostart_prg_perform_injection(log_t log);
+extern int autostart_prg_perform_injection();
 
 #endif

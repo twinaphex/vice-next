@@ -34,7 +34,6 @@
 #include <string.h>
 
 #include "lib.h"
-#include "log.h"
 #include "mon_register.h"
 #include "mon_util.h"
 #include "montypes.h"
@@ -45,219 +44,229 @@
 
 static unsigned int mon_register_get_val(int mem, int reg_id)
 {
-    mos6510dtv_regs_t *reg_ptr;
+	mos6510dtv_regs_t *reg_ptr;
 
-    if (monitor_diskspace_dnr(mem) >= 0)
-        if (!check_drive_emu_level_ok(monitor_diskspace_dnr(mem) + 8))
-            return 0;
+	if (monitor_diskspace_dnr(mem) >= 0)
+		if (!check_drive_emu_level_ok(monitor_diskspace_dnr(mem) + 8))
+			return 0;
 
-    reg_ptr = mon_interfaces[mem]->dtv_cpu_regs;
+	reg_ptr = mon_interfaces[mem]->dtv_cpu_regs;
 
-    switch(reg_id) {
-      case e_A:
-        return MOS6510DTV_REGS_GET_A(reg_ptr);
-      case e_X:
-        return MOS6510DTV_REGS_GET_X(reg_ptr);
-      case e_Y:
-        return MOS6510DTV_REGS_GET_Y(reg_ptr);
-      case e_PC:
-        return MOS6510DTV_REGS_GET_PC(reg_ptr);
-      case e_SP:
-        return MOS6510DTV_REGS_GET_SP(reg_ptr);
-      case e_FLAGS:
-          return MOS6510DTV_REGS_GET_FLAGS(reg_ptr)
-              | MOS6510DTV_REGS_GET_SIGN(reg_ptr)
-              | (MOS6510DTV_REGS_GET_ZERO(reg_ptr) << 1);
-      case e_R3:
-        return MOS6510DTV_REGS_GET_R3(reg_ptr);
-      case e_R4:
-        return MOS6510DTV_REGS_GET_R4(reg_ptr);
-      case e_R5:
-        return MOS6510DTV_REGS_GET_R5(reg_ptr);
-      case e_R6:
-        return MOS6510DTV_REGS_GET_R6(reg_ptr);
-      case e_R7:
-        return MOS6510DTV_REGS_GET_R7(reg_ptr);
-      case e_R8:
-        return MOS6510DTV_REGS_GET_R8(reg_ptr);
-      case e_R9:
-        return MOS6510DTV_REGS_GET_R9(reg_ptr);
-      case e_R10:
-        return MOS6510DTV_REGS_GET_R10(reg_ptr);
-      case e_R11:
-        return MOS6510DTV_REGS_GET_R11(reg_ptr);
-      case e_R12:
-        return MOS6510DTV_REGS_GET_R12(reg_ptr);
-      case e_R13:
-        return MOS6510DTV_REGS_GET_R13(reg_ptr);
-      case e_R14:
-        return MOS6510DTV_REGS_GET_R14(reg_ptr);
-      case e_R15:
-        return MOS6510DTV_REGS_GET_R15(reg_ptr);
-      case e_ACM:
-        return MOS6510DTV_REGS_GET_ACM(reg_ptr);
-      case e_YXM:
-        return MOS6510DTV_REGS_GET_YXM(reg_ptr);
-      default:
-        log_error(LOG_ERR, "Unknown register!");
-    }
-    return 0;
+	switch(reg_id) {
+		case e_A:
+			return MOS6510DTV_REGS_GET_A(reg_ptr);
+		case e_X:
+			return MOS6510DTV_REGS_GET_X(reg_ptr);
+		case e_Y:
+			return MOS6510DTV_REGS_GET_Y(reg_ptr);
+		case e_PC:
+			return MOS6510DTV_REGS_GET_PC(reg_ptr);
+		case e_SP:
+			return MOS6510DTV_REGS_GET_SP(reg_ptr);
+		case e_FLAGS:
+			return MOS6510DTV_REGS_GET_FLAGS(reg_ptr)
+				| MOS6510DTV_REGS_GET_SIGN(reg_ptr)
+				| (MOS6510DTV_REGS_GET_ZERO(reg_ptr) << 1);
+		case e_R3:
+			return MOS6510DTV_REGS_GET_R3(reg_ptr);
+		case e_R4:
+			return MOS6510DTV_REGS_GET_R4(reg_ptr);
+		case e_R5:
+			return MOS6510DTV_REGS_GET_R5(reg_ptr);
+		case e_R6:
+			return MOS6510DTV_REGS_GET_R6(reg_ptr);
+		case e_R7:
+			return MOS6510DTV_REGS_GET_R7(reg_ptr);
+		case e_R8:
+			return MOS6510DTV_REGS_GET_R8(reg_ptr);
+		case e_R9:
+			return MOS6510DTV_REGS_GET_R9(reg_ptr);
+		case e_R10:
+			return MOS6510DTV_REGS_GET_R10(reg_ptr);
+		case e_R11:
+			return MOS6510DTV_REGS_GET_R11(reg_ptr);
+		case e_R12:
+			return MOS6510DTV_REGS_GET_R12(reg_ptr);
+		case e_R13:
+			return MOS6510DTV_REGS_GET_R13(reg_ptr);
+		case e_R14:
+			return MOS6510DTV_REGS_GET_R14(reg_ptr);
+		case e_R15:
+			return MOS6510DTV_REGS_GET_R15(reg_ptr);
+		case e_ACM:
+			return MOS6510DTV_REGS_GET_ACM(reg_ptr);
+		case e_YXM:
+			return MOS6510DTV_REGS_GET_YXM(reg_ptr);
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown register!\n");
+#endif
+			break;
+	}
+	return 0;
 }
 
 static void mon_register_set_val(int mem, int reg_id, WORD val)
 {
-    mos6510dtv_regs_t *reg_ptr;
+	mos6510dtv_regs_t *reg_ptr;
 
-    if (monitor_diskspace_dnr(mem) >= 0)
-        if (!check_drive_emu_level_ok(monitor_diskspace_dnr(mem) + 8))
-            return;
+	if (monitor_diskspace_dnr(mem) >= 0)
+		if (!check_drive_emu_level_ok(monitor_diskspace_dnr(mem) + 8))
+			return;
 
-    reg_ptr = mon_interfaces[mem]->dtv_cpu_regs;
+	reg_ptr = mon_interfaces[mem]->dtv_cpu_regs;
 
-    switch(reg_id) {
-      case e_A:
-        MOS6510DTV_REGS_SET_A(reg_ptr, (BYTE)val);
-        break;
-      case e_X:
-        MOS6510DTV_REGS_SET_X(reg_ptr, (BYTE)val);
-        break;
-      case e_Y:
-        MOS6510DTV_REGS_SET_Y(reg_ptr, (BYTE)val);
-        break;
-      case e_PC:
-        MOS6510DTV_REGS_SET_PC(reg_ptr, val);
-        if (monitor_diskspace_dnr(mem) >= 0)
-            mon_interfaces[mem]->set_bank_base(mon_interfaces[mem]->context);
-        break;
-      case e_SP:
-        MOS6510DTV_REGS_SET_SP(reg_ptr, (BYTE)val);
-        break;
-      case e_FLAGS:
-        MOS6510DTV_REGS_SET_STATUS(reg_ptr, (BYTE)val);
-        break;
-      case e_R3:
-        MOS6510DTV_REGS_SET_R3(reg_ptr, (BYTE)val);
-        break;
-      case e_R4:
-        MOS6510DTV_REGS_SET_R4(reg_ptr, (BYTE)val);
-        break;
-      case e_R5:
-        MOS6510DTV_REGS_SET_R5(reg_ptr, (BYTE)val);
-        break;
-      case e_R6:
-        MOS6510DTV_REGS_SET_R6(reg_ptr, (BYTE)val);
-        break;
-      case e_R7:
-        MOS6510DTV_REGS_SET_R7(reg_ptr, (BYTE)val);
-        break;
-      case e_R8:
-        MOS6510DTV_REGS_SET_R8(reg_ptr, (BYTE)val);
-        break;
-      case e_R9:
-        MOS6510DTV_REGS_SET_R9(reg_ptr, (BYTE)val);
-        break;
-      case e_R10:
-        MOS6510DTV_REGS_SET_R10(reg_ptr, (BYTE)val);
-        break;
-      case e_R11:
-        MOS6510DTV_REGS_SET_R11(reg_ptr, (BYTE)val);
-        break;
-      case e_R12:
-        MOS6510DTV_REGS_SET_R12(reg_ptr, (BYTE)val);
-        break;
-      case e_R13:
-        MOS6510DTV_REGS_SET_R13(reg_ptr, (BYTE)val);
-        break;
-      case e_R14:
-        MOS6510DTV_REGS_SET_R14(reg_ptr, (BYTE)val);
-        break;
-      case e_R15:
-        MOS6510DTV_REGS_SET_R15(reg_ptr, (BYTE)val);
-        break;
-      case e_ACM:
-        MOS6510DTV_REGS_SET_ACM(reg_ptr, (BYTE)val);
-        break;
-      case e_YXM:
-        MOS6510DTV_REGS_SET_YXM(reg_ptr, (BYTE)val);
-        break;
-      default:
-        log_error(LOG_ERR, "Unknown register!");
-        return;
-    }
-    force_array[mem] = 1;
+	switch(reg_id) {
+		case e_A:
+			MOS6510DTV_REGS_SET_A(reg_ptr, (BYTE)val);
+			break;
+		case e_X:
+			MOS6510DTV_REGS_SET_X(reg_ptr, (BYTE)val);
+			break;
+		case e_Y:
+			MOS6510DTV_REGS_SET_Y(reg_ptr, (BYTE)val);
+			break;
+		case e_PC:
+			MOS6510DTV_REGS_SET_PC(reg_ptr, val);
+			if (monitor_diskspace_dnr(mem) >= 0)
+				mon_interfaces[mem]->set_bank_base(mon_interfaces[mem]->context);
+			break;
+		case e_SP:
+			MOS6510DTV_REGS_SET_SP(reg_ptr, (BYTE)val);
+			break;
+		case e_FLAGS:
+			MOS6510DTV_REGS_SET_STATUS(reg_ptr, (BYTE)val);
+			break;
+		case e_R3:
+			MOS6510DTV_REGS_SET_R3(reg_ptr, (BYTE)val);
+			break;
+		case e_R4:
+			MOS6510DTV_REGS_SET_R4(reg_ptr, (BYTE)val);
+			break;
+		case e_R5:
+			MOS6510DTV_REGS_SET_R5(reg_ptr, (BYTE)val);
+			break;
+		case e_R6:
+			MOS6510DTV_REGS_SET_R6(reg_ptr, (BYTE)val);
+			break;
+		case e_R7:
+			MOS6510DTV_REGS_SET_R7(reg_ptr, (BYTE)val);
+			break;
+		case e_R8:
+			MOS6510DTV_REGS_SET_R8(reg_ptr, (BYTE)val);
+			break;
+		case e_R9:
+			MOS6510DTV_REGS_SET_R9(reg_ptr, (BYTE)val);
+			break;
+		case e_R10:
+			MOS6510DTV_REGS_SET_R10(reg_ptr, (BYTE)val);
+			break;
+		case e_R11:
+			MOS6510DTV_REGS_SET_R11(reg_ptr, (BYTE)val);
+			break;
+		case e_R12:
+			MOS6510DTV_REGS_SET_R12(reg_ptr, (BYTE)val);
+			break;
+		case e_R13:
+			MOS6510DTV_REGS_SET_R13(reg_ptr, (BYTE)val);
+			break;
+		case e_R14:
+			MOS6510DTV_REGS_SET_R14(reg_ptr, (BYTE)val);
+			break;
+		case e_R15:
+			MOS6510DTV_REGS_SET_R15(reg_ptr, (BYTE)val);
+			break;
+		case e_ACM:
+			MOS6510DTV_REGS_SET_ACM(reg_ptr, (BYTE)val);
+			break;
+		case e_YXM:
+			MOS6510DTV_REGS_SET_YXM(reg_ptr, (BYTE)val);
+			break;
+		default:
+			#ifdef CELL_DEBUG
+			printf("ERROR: Unknown register!\n");
+			#endif
+			return;
+	}
+	force_array[mem] = 1;
 }
 
 static void mon_register_print(int mem)
 {
-    mos6510dtv_regs_t *regs;
+	mos6510dtv_regs_t *regs;
 
-    if (monitor_diskspace_dnr(mem) >= 0) {
-        if (!check_drive_emu_level_ok(monitor_diskspace_dnr(mem) + 8))
-            return;
-    } else if (mem != e_comp_space) {
-        log_error(LOG_ERR, "Unknown memory space!");
-        return;
-    }
+	if (monitor_diskspace_dnr(mem) >= 0)
+	{
+		if (!check_drive_emu_level_ok(monitor_diskspace_dnr(mem) + 8))
+			return;
+	}
+	else if (mem != e_comp_space)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Unknown memory space!\n");
+#endif
+		return;
+	}
 
-    regs = mon_interfaces[mem]->dtv_cpu_regs;
+	regs = mon_interfaces[mem]->dtv_cpu_regs;
 
-    mon_out("  ADDR AC XR YR SP 00 01 NV-BDIZC");
+	mon_out("  ADDR AC XR YR SP 00 01 NV-BDIZC");
 
-    if (mem == e_comp_space && mon_interfaces[mem]->get_line_cycle != NULL)
-        mon_out(" LIN CYC\n");
-    else
-        mon_out("\n");
+	if (mem == e_comp_space && mon_interfaces[mem]->get_line_cycle != NULL)
+		mon_out(" LIN CYC\n");
+	else
+		mon_out("\n");
 
-    mon_out(".;%04x %02x %02x %02x %02x %02x %02x %d%d%c%d%d%d%d%d",
-              addr_location(mon_register_get_val(mem, e_PC)),
-              mon_register_get_val(mem, e_A),
-              mon_register_get_val(mem, e_X),
-              mon_register_get_val(mem, e_Y),
-              mon_register_get_val(mem, e_SP),
-              mon_get_mem_val(mem, 0),
-              mon_get_mem_val(mem, 1),
-              TEST(MOS6510DTV_REGS_GET_SIGN(regs)),
-              TEST(MOS6510DTV_REGS_GET_OVERFLOW(regs)),
-              '1',
-              TEST(MOS6510DTV_REGS_GET_BREAK(regs)),
-              TEST(MOS6510DTV_REGS_GET_DECIMAL(regs)),
-              TEST(MOS6510DTV_REGS_GET_INTERRUPT(regs)),
-              TEST(MOS6510DTV_REGS_GET_ZERO(regs)),
-              TEST(MOS6510DTV_REGS_GET_CARRY(regs)));
+	mon_out(".;%04x %02x %02x %02x %02x %02x %02x %d%d%c%d%d%d%d%d",
+			addr_location(mon_register_get_val(mem, e_PC)),
+			mon_register_get_val(mem, e_A),
+			mon_register_get_val(mem, e_X),
+			mon_register_get_val(mem, e_Y),
+			mon_register_get_val(mem, e_SP),
+			mon_get_mem_val(mem, 0),
+			mon_get_mem_val(mem, 1),
+			TEST(MOS6510DTV_REGS_GET_SIGN(regs)),
+			TEST(MOS6510DTV_REGS_GET_OVERFLOW(regs)),
+			'1',
+			TEST(MOS6510DTV_REGS_GET_BREAK(regs)),
+			TEST(MOS6510DTV_REGS_GET_DECIMAL(regs)),
+			TEST(MOS6510DTV_REGS_GET_INTERRUPT(regs)),
+			TEST(MOS6510DTV_REGS_GET_ZERO(regs)),
+			TEST(MOS6510DTV_REGS_GET_CARRY(regs)));
 
-    if (mem == e_comp_space && mon_interfaces[mem]->get_line_cycle != NULL) {
-        unsigned int line, cycle;
-        int half_cycle;
+	if (mem == e_comp_space && mon_interfaces[mem]->get_line_cycle != NULL) {
+		unsigned int line, cycle;
+		int half_cycle;
 
-        mon_interfaces[mem]->get_line_cycle(&line, &cycle, &half_cycle);
+		mon_interfaces[mem]->get_line_cycle(&line, &cycle, &half_cycle);
 
-        if (half_cycle==-1)
-          mon_out(" %03i %03i\n", line, cycle);
-        else
-          mon_out(" %03i %03i %i\n", line, cycle, half_cycle);
-    } else {
-        mon_out("\n");
-    }
+		if (half_cycle==-1)
+			mon_out(" %03i %03i\n", line, cycle);
+		else
+			mon_out(" %03i %03i %i\n", line, cycle, half_cycle);
+	} else {
+		mon_out("\n");
+	}
 
-    if (mem == e_comp_space) {
-        mon_out("R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 ACM YXM\n");
-        mon_out("%02x %02x %02x %02x %02x %02x %02x %02x  %02x  %02x  %02x  %02x  %02x  %02x  %02x\n",
-                  mon_register_get_val(mem, e_R3),
-                  mon_register_get_val(mem, e_R4),
-                  mon_register_get_val(mem, e_R5),
-                  mon_register_get_val(mem, e_R6),
-                  mon_register_get_val(mem, e_R7),
-                  mon_register_get_val(mem, e_R8),
-                  mon_register_get_val(mem, e_R9),
-                  mon_register_get_val(mem, e_R10),
-                  mon_register_get_val(mem, e_R11),
-                  mon_register_get_val(mem, e_R12),
-                  mon_register_get_val(mem, e_R13),
-                  mon_register_get_val(mem, e_R14),
-                  mon_register_get_val(mem, e_R15),
-                  mon_register_get_val(mem, e_ACM),
-                  mon_register_get_val(mem, e_YXM));
-    }
+	if (mem == e_comp_space) {
+		mon_out("R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 ACM YXM\n");
+		mon_out("%02x %02x %02x %02x %02x %02x %02x %02x  %02x  %02x  %02x  %02x  %02x  %02x  %02x\n",
+				mon_register_get_val(mem, e_R3),
+				mon_register_get_val(mem, e_R4),
+				mon_register_get_val(mem, e_R5),
+				mon_register_get_val(mem, e_R6),
+				mon_register_get_val(mem, e_R7),
+				mon_register_get_val(mem, e_R8),
+				mon_register_get_val(mem, e_R9),
+				mon_register_get_val(mem, e_R10),
+				mon_register_get_val(mem, e_R11),
+				mon_register_get_val(mem, e_R12),
+				mon_register_get_val(mem, e_R13),
+				mon_register_get_val(mem, e_R14),
+				mon_register_get_val(mem, e_R15),
+				mon_register_get_val(mem, e_ACM),
+				mon_register_get_val(mem, e_YXM));
+	}
 }
 
 static mon_reg_list_t *mon_register_list_get6502dtv(int mem)

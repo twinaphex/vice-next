@@ -40,7 +40,6 @@
 #include "initcmdline.h"
 #include "ioutil.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "resources.h"
 #include "tape.h"
@@ -278,8 +277,7 @@ int initcmdline_check_psid(void)
     if (vsid_mode) {
         if (autostart_string != NULL
             && machine_autodetect_psid(autostart_string) == -1) {
-            log_error(LOG_DEFAULT, "`%s' is not a valid PSID file.",
-                      autostart_string);
+            //log_error(LOG_DEFAULT, "`%s' is not a valid PSID file.", autostart_string);
             return -1;
         }
     }
@@ -419,19 +417,18 @@ void initcmdline_check_attach(void)
             int i;
 
             for (i = 0; i < 4; i++) {
-                if (startup_disk_images[i] != NULL
-                    && file_system_attach_disk(i + 8, startup_disk_images[i])
-                    < 0)
-                    log_error(LOG_DEFAULT,
-                              "Cannot attach disk image `%s' to unit %d.",
-                              startup_disk_images[i], i + 8);
+                if (startup_disk_images[i] != NULL && file_system_attach_disk(i + 8, startup_disk_images[i]) < 0)
+		{
+                    //log_error(LOG_DEFAULT, "Cannot attach disk image `%s' to unit %d.", startup_disk_images[i], i + 8);
+		}
             }
         }
 
         /* `-1': Attach specified tape image.  */
         if (startup_tape_image && tape_image_attach(1, startup_tape_image) < 0)
-            log_error(LOG_DEFAULT, "Cannot attach tape image `%s'.",
-                      startup_tape_image);
+	{
+            //log_error(LOG_DEFAULT, "Cannot attach tape image `%s'.", startup_tape_image);
+	}
 
     }
 

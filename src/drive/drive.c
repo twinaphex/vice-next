@@ -59,7 +59,6 @@
 #include "iecbus.h"
 #include "iecdrive.h"
 #include "lib.h"
-#include "log.h"
 #include "machine-drive.h"
 #include "machine.h"
 #include "maincpu.h"
@@ -70,9 +69,6 @@
 
 
 drive_context_t *drive_context[DRIVE_NUM];
-
-/* Generic drive logging goes here.  */
-static log_t drive_log = LOG_ERR;
 
 /* If nonzero, at least one vaild drive ROM has already been loaded.  */
 int rom_loaded = 0;
@@ -135,106 +131,107 @@ CLOCK drive_clk[DRIVE_NUM];
    once before anything else).  Return 0 on success, -1 on error.  */
 int drive_init(void)
 {
-    unsigned int dnr;
-    drive_t *drive;
+	unsigned int dnr;
+	drive_t *drive;
 
-    if (rom_loaded)
-        return 0;
+	if (rom_loaded)
+		return 0;
 
-    driverom_init();
-    drive_image_init();
+	driverom_init();
+	drive_image_init();
 
-    drive_log = log_open("Drive");
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++)
+	{
+		char *logname;
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        char *logname;
+		drive = drive_context[dnr]->drive;
+		logname = lib_msprintf("Drive %i", dnr + 8);
+		lib_free(logname);
 
-        drive = drive_context[dnr]->drive;
-        logname = lib_msprintf("Drive %i", dnr + 8);
-        drive->log = log_open(logname);
-        lib_free(logname);
+		drive_clk[dnr] = 0L;
+		drive->clk = &drive_clk[dnr];
+		drive->mynumber = dnr;
+	}
 
-        drive_clk[dnr] = 0L;
-        drive->clk = &drive_clk[dnr];
-        drive->mynumber = dnr;
-    }
+	if (driverom_load_images() < 0) {
+		resources_set_int("Drive8Type", DRIVE_TYPE_NONE);
+		resources_set_int("Drive9Type", DRIVE_TYPE_NONE);
+		return -1;
+	}
 
-    if (driverom_load_images() < 0) {
-        resources_set_int("Drive8Type", DRIVE_TYPE_NONE);
-        resources_set_int("Drive9Type", DRIVE_TYPE_NONE);
-        return -1;
-    }
+#ifdef CELL_DEBUG
+	printf("INFO: Finished loading ROM images.\n");
+#endif
 
-    log_message(drive_log, "Finished loading ROM images.");
-    rom_loaded = 1;
+	rom_loaded = 1;
 
-    drive_overflow_init();
+	drive_overflow_init();
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        drive = drive_context[dnr]->drive;
-        drive->drive_ram_expand2 = NULL;
-        drive->drive_ram_expand4 = NULL;
-        drive->drive_ram_expand6 = NULL;
-        drive->drive_ram_expand8 = NULL;
-        drive->drive_ram_expanda = NULL;
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
+		drive = drive_context[dnr]->drive;
+		drive->drive_ram_expand2 = NULL;
+		drive->drive_ram_expand4 = NULL;
+		drive->drive_ram_expand6 = NULL;
+		drive->drive_ram_expand8 = NULL;
+		drive->drive_ram_expanda = NULL;
 
-        machine_drive_port_default(drive_context[dnr]);
+		machine_drive_port_default(drive_context[dnr]);
 
-        if (drive_check_type(drive->type, dnr) < 1)
-            resources_set_int_sprintf("Drive%iType", DRIVE_TYPE_NONE, dnr + 8);
+		if (drive_check_type(drive->type, dnr) < 1)
+			resources_set_int_sprintf("Drive%iType", DRIVE_TYPE_NONE, dnr + 8);
 
-        machine_drive_rom_setup_image(dnr);
-    }
+		machine_drive_rom_setup_image(dnr);
+	}
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        drive = drive_context[dnr]->drive;
-        drive->gcr = gcr_create_image();
-        drive->byte_ready_level = 1;
-        drive->byte_ready_edge = 1;
-        drive->GCR_dirty_track = 0;
-        drive->GCR_write_value = 0x55;
-        drive->GCR_track_start_ptr = drive->gcr->data;
-        drive->GCR_current_track_size = 0;
-        drive->attach_clk = (CLOCK)0;
-        drive->detach_clk = (CLOCK)0;
-        drive->attach_detach_clk = (CLOCK)0;
-        drive->old_led_status = 0;
-        drive->old_half_track = 0;
-        drive->side = 0;
-        drive->GCR_image_loaded = 0;
-        drive->read_only = 0;
-        drive->clock_frequency = 1;
-        drive->led_last_change_clk = *(drive->clk);
-        drive->led_last_uiupdate_clk = *(drive->clk);
-        drive->led_active_ticks = 0;
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
+		drive = drive_context[dnr]->drive;
+		drive->gcr = gcr_create_image();
+		drive->byte_ready_level = 1;
+		drive->byte_ready_edge = 1;
+		drive->GCR_dirty_track = 0;
+		drive->GCR_write_value = 0x55;
+		drive->GCR_track_start_ptr = drive->gcr->data;
+		drive->GCR_current_track_size = 0;
+		drive->attach_clk = (CLOCK)0;
+		drive->detach_clk = (CLOCK)0;
+		drive->attach_detach_clk = (CLOCK)0;
+		drive->old_led_status = 0;
+		drive->old_half_track = 0;
+		drive->side = 0;
+		drive->GCR_image_loaded = 0;
+		drive->read_only = 0;
+		drive->clock_frequency = 1;
+		drive->led_last_change_clk = *(drive->clk);
+		drive->led_last_uiupdate_clk = *(drive->clk);
+		drive->led_active_ticks = 0;
 
-        rotation_reset(drive);
-        drive_image_init_track_size_d64(drive);
+		rotation_reset(drive);
+		drive_image_init_track_size_d64(drive);
 
-        /* Position the R/W head on the directory track.  */
-        drive_set_half_track(36, drive);
-        drive_led_color[dnr] = DRIVE_ACTIVE_RED;
-    }
+		/* Position the R/W head on the directory track.  */
+		drive_set_half_track(36, drive);
+		drive_led_color[dnr] = DRIVE_ACTIVE_RED;
+	}
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        drive = drive_context[dnr]->drive;
-        driverom_initialize_traps(drive);
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
+		drive = drive_context[dnr]->drive;
+		driverom_initialize_traps(drive);
 
-        drivesync_clock_frequency(drive->type, drive);
+		drivesync_clock_frequency(drive->type, drive);
 
-        rotation_init((drive->clock_frequency == 2) ? 1 : 0, dnr);
+		rotation_init((drive->clock_frequency == 2) ? 1 : 0, dnr);
 
-        drivecpu_init(drive_context[dnr], drive->type);
+		drivecpu_init(drive_context[dnr], drive->type);
 
-        /* Make sure the sync factor is acknowledged correctly.  */
-        drivesync_factor(drive_context[dnr]);
+		/* Make sure the sync factor is acknowledged correctly.  */
+		drivesync_factor(drive_context[dnr]);
 
-        /* Make sure the traps are moved as needed.  */
-        if (drive->enable)
-            drive_enable(drive_context[dnr]);
-    }
+		/* Make sure the traps are moved as needed.  */
+		if (drive->enable)
+			drive_enable(drive_context[dnr]);
+	}
 
-    return 0;
+	return 0;
 }
 
 void drive_shutdown(void)
@@ -490,279 +487,290 @@ void drive_move_head(int step, drive_t *drive)
 
 /* Hack... otherwise you get internal compiler errors when optimizing on
     gcc2.7.2 on RISC OS */
-static void gcr_data_writeback2(BYTE *buffer, BYTE *offset, unsigned int track,
-                                unsigned int sector, drive_t *drive)
+static void gcr_data_writeback2(BYTE *buffer, BYTE *offset, unsigned int track, unsigned int sector, drive_t *drive)
 {
-    int rc;
+	int rc;
 
-    gcr_convert_GCR_to_sector(buffer, offset,
-                              drive->GCR_track_start_ptr,
-                              drive->GCR_current_track_size);
-    if (buffer[0] != 0x7) {
-        log_error(drive->log,
-                  "Could not find data block id of T:%d S:%d.",
-                  track, sector);
-    } else {
-        rc = disk_image_write_sector(drive->image, buffer + 1, track, sector);
-        if (rc < 0)
-            log_error(drive->log,
-                      "Could not update T:%d S:%d.", track, sector);
-    }
+	gcr_convert_GCR_to_sector(buffer, offset,
+			drive->GCR_track_start_ptr,
+			drive->GCR_current_track_size);
+
+	if (buffer[0] != 0x7)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Could not find data block id of T:%d S:%d.\n", track, sector);
+		#endif
+	}
+	else
+	{
+		rc = disk_image_write_sector(drive->image, buffer + 1, track, sector);
+
+		#ifdef CELL_DEBUG
+		if (rc < 0)
+			printf("ERROR: Could not update T:%d S:%d.\n", track, sector);
+		#endif
+	}
 }
 
 void drive_gcr_data_writeback(drive_t *drive)
 {
-    int extend;
-    unsigned int track, sector, max_sector = 0;
-    BYTE buffer[260], *offset;
+	int extend;
+	unsigned int track, sector, max_sector = 0;
+	BYTE buffer[260], *offset;
 
-    if (drive->image == NULL)
-        return;
+	if (drive->image == NULL)
+		return;
 
-    track = drive->current_half_track / 2;
+	track = drive->current_half_track / 2;
 
-    if (!(drive->GCR_dirty_track))
-        return;
+	if (!(drive->GCR_dirty_track))
+		return;
 
-    if (drive->image->type == DISK_IMAGE_TYPE_G64) {
-        BYTE *gcr_track_start_ptr;
-        unsigned int gcr_current_track_size;
+	if (drive->image->type == DISK_IMAGE_TYPE_G64)
+	{
+		BYTE *gcr_track_start_ptr;
+		unsigned int gcr_current_track_size;
 
-        gcr_current_track_size = drive->gcr->track_size[track - 1];
+		gcr_current_track_size = drive->gcr->track_size[track - 1];
 
-        gcr_track_start_ptr = drive->gcr->data
-                              + ((track - 1) * NUM_MAX_BYTES_TRACK);
+		gcr_track_start_ptr = drive->gcr->data
+			+ ((track - 1) * NUM_MAX_BYTES_TRACK);
 
-        disk_image_write_track(drive->image, track,
-                               gcr_current_track_size,
-                               drive->gcr->speed_zone,
-                               gcr_track_start_ptr);
-        drive->GCR_dirty_track = 0;
-        return;
-    }
+		disk_image_write_track(drive->image, track,
+				gcr_current_track_size,
+				drive->gcr->speed_zone,
+				gcr_track_start_ptr);
+		drive->GCR_dirty_track = 0;
+		return;
+	}
 
-    if (drive->image->type == DISK_IMAGE_TYPE_D64
-        || drive->image->type == DISK_IMAGE_TYPE_X64) {
-        if (track > EXT_TRACKS_1541)
-            return;
-        max_sector = disk_image_sector_per_track(DISK_IMAGE_TYPE_D64, track);
-        if (track > drive->image->tracks) {
-            switch (drive->extend_image_policy) {
-              case DRIVE_EXTEND_NEVER:
-                drive->ask_extend_disk_image = 1;
-                return;
-              case DRIVE_EXTEND_ASK:
-                if (drive->ask_extend_disk_image == 1) {
-                    extend = ui_extend_image_dialog();
-                    if (extend == 0) {
-                        drive->ask_extend_disk_image = 0;
-                        return;
-                    } else {
-                        drive_extend_disk_image(drive);
-                    }
-                } else {
-                    return;
-                }
-                break;
-              case DRIVE_EXTEND_ACCESS:
-                drive->ask_extend_disk_image = 1;
-                drive_extend_disk_image(drive);
-                break;
-            }
-        }
-    }
+	if (drive->image->type == DISK_IMAGE_TYPE_D64 || drive->image->type == DISK_IMAGE_TYPE_X64)
+	{
+		if (track > EXT_TRACKS_1541)
+			return;
+		max_sector = disk_image_sector_per_track(DISK_IMAGE_TYPE_D64, track);
+		if (track > drive->image->tracks) {
+			switch (drive->extend_image_policy)
+			{
+				case DRIVE_EXTEND_NEVER:
+					drive->ask_extend_disk_image = 1;
+					return;
+				case DRIVE_EXTEND_ASK:
+					if (drive->ask_extend_disk_image == 1)
+					{
+						extend = ui_extend_image_dialog();
+						if (extend == 0)
+						{
+							drive->ask_extend_disk_image = 0;
+							return;
+						}
+						else
+							drive_extend_disk_image(drive);
+					}
+					else
+						return;
+					break;
+				case DRIVE_EXTEND_ACCESS:
+					drive->ask_extend_disk_image = 1;
+					drive_extend_disk_image(drive);
+					break;
+			}
+		}
+	}
 
-    if (drive->image->type == DISK_IMAGE_TYPE_D71) {
-        if (track > MAX_TRACKS_1571)
-            return;
-        max_sector = disk_image_sector_per_track(DISK_IMAGE_TYPE_D71, track);
-    }
+	if (drive->image->type == DISK_IMAGE_TYPE_D71)
+	{
+		if (track > MAX_TRACKS_1571)
+			return;
+		max_sector = disk_image_sector_per_track(DISK_IMAGE_TYPE_D71, track);
+	}
 
-    drive->GCR_dirty_track = 0;
+	drive->GCR_dirty_track = 0;
 
-    for (sector = 0; sector < max_sector; sector++) {
+	for (sector = 0; sector < max_sector; sector++)
+	{
 
-        offset = gcr_find_sector_header(track, sector,
-                                        drive->GCR_track_start_ptr,
-                                        drive->GCR_current_track_size);
-        if (offset == NULL) {
-            log_error(drive->log,
-                      "Could not find header of T:%d S:%d.",
-                      track, sector);
-        } else {
-            offset = gcr_find_sector_data(offset,
-                                          drive->GCR_track_start_ptr,
-                                          drive->GCR_current_track_size);
-            if (offset == NULL) {
-                log_error(drive->log,
-                          "Could not find data sync of T:%d S:%d.",
-                          track, sector);
-            } else {
-                gcr_data_writeback2(buffer, offset, track, sector, drive);
-            }
-        }
-    }
+		offset = gcr_find_sector_header(track, sector,
+				drive->GCR_track_start_ptr,
+				drive->GCR_current_track_size);
+		if (offset == NULL)
+		{
+#ifdef CELL_DEBUG
+			printf("ERROR: Could not find header of T:%d S:%d.\n", track, sector);
+#endif
+		}
+		else
+		{
+			offset = gcr_find_sector_data(offset, drive->GCR_track_start_ptr, drive->GCR_current_track_size);
+			if (offset == NULL)
+			{
+#ifdef CELL_DEBUG
+				printf("ERROR: Could not find data sync of T:%d S:%d.\n", track, sector);
+#endif
+			}
+			else
+			{
+				gcr_data_writeback2(buffer, offset, track, sector, drive);
+			}
+		}
+	}
 }
 
 void drive_gcr_data_writeback_all(void)
 {
-    drive_t *drive;
-    unsigned int i;
+	drive_t *drive;
+	unsigned int i;
 
-    for (i = 0; i < DRIVE_NUM; i++) {
-        drive = drive_context[i]->drive;
-        drive_gcr_data_writeback(drive);
-    }
+	for (i = 0; i < DRIVE_NUM; i++)
+	{
+		drive = drive_context[i]->drive;
+		drive_gcr_data_writeback(drive);
+	}
 }
 
 static void drive_extend_disk_image(drive_t *drive)
 {
-    int rc;
-    unsigned int track, sector;
-    BYTE buffer[256];
+	int rc;
+	unsigned int track, sector;
+	BYTE buffer[256];
 
-    drive->image->tracks = EXT_TRACKS_1541;
-    memset(buffer, 0, 256);
-    for (track = NUM_TRACKS_1541 + 1; track <= EXT_TRACKS_1541; track++) {
-        for (sector = 0;
-             sector < disk_image_sector_per_track(DISK_IMAGE_TYPE_D64, track);
-             sector++) {
-             rc = disk_image_write_sector(drive->image, buffer, track,
-                                          sector);
-             if (rc < 0)
-                 log_error(drive->log,
-                           "Could not update T:%d S:%d.", track, sector);
-        }
-    }
+	drive->image->tracks = EXT_TRACKS_1541;
+	memset(buffer, 0, 256);
+	for (track = NUM_TRACKS_1541 + 1; track <= EXT_TRACKS_1541; track++)
+	{
+		for (sector = 0; sector < disk_image_sector_per_track(DISK_IMAGE_TYPE_D64, track); sector++)
+		{
+			rc = disk_image_write_sector(drive->image, buffer, track, sector);
+
+			#ifdef CELL_DEBUG
+			if (rc < 0)
+				printf("ERROR: Could not update T:%d S:%d.\n", track, sector);
+			#endif
+		}
+	}
 }
 
 /* ------------------------------------------------------------------------- */
 
 static void drive_led_update(drive_t *drive)
 {
-    int my_led_status = 0;
-    CLOCK led_period;
-    unsigned int led_pwm;
+	int my_led_status = 0;
+	CLOCK led_period;
+	unsigned int led_pwm;
 
-    /* Actually update the LED status only if the `trap idle'
-       idling method is being used, as the LED status could be
-       incorrect otherwise.  */
+	/* Actually update the LED status only if the `trap idle'
+	   idling method is being used, as the LED status could be
+	   incorrect otherwise.  */
 
-    if (drive->idling_method != DRIVE_IDLE_SKIP_CYCLES)
-        my_led_status = drive->led_status;
+	if (drive->idling_method != DRIVE_IDLE_SKIP_CYCLES)
+		my_led_status = drive->led_status;
 
-    /* Update remaining led clock ticks. */
-    if (drive->led_status)
-        drive->led_active_ticks += *(drive->clk)
-                                   - drive->led_last_change_clk;
-    drive->led_last_change_clk = *(drive->clk);
+	/* Update remaining led clock ticks. */
+	if (drive->led_status)
+		drive->led_active_ticks += *(drive->clk)
+			- drive->led_last_change_clk;
+	drive->led_last_change_clk = *(drive->clk);
 
-    led_period = *(drive->clk) - drive->led_last_uiupdate_clk;
-    drive->led_last_uiupdate_clk = *(drive->clk);
+	led_period = *(drive->clk) - drive->led_last_uiupdate_clk;
+	drive->led_last_uiupdate_clk = *(drive->clk);
 
-    if (led_period == 0)
-        return;
+	if (led_period == 0)
+		return;
 
-    led_pwm = drive->led_active_ticks * 1000 / led_period;
-    /* during startup it has been observer that led_pwm > 1000, 
-       which potentially breaks several UIs */
-    assert(led_pwm <= MAX_PWM);
-    if (led_pwm > MAX_PWM) {
-        led_pwm = MAX_PWM;
-    }
-    
-    drive->led_active_ticks = 0;
+	led_pwm = drive->led_active_ticks * 1000 / led_period;
+	/* during startup it has been observer that led_pwm > 1000, 
+	   which potentially breaks several UIs */
+	assert(led_pwm <= MAX_PWM);
+	if (led_pwm > MAX_PWM)
+		led_pwm = MAX_PWM;
 
-    if (led_pwm != drive->led_last_pwm
-        || my_led_status != drive->old_led_status) {
-        ui_display_drive_led(drive->mynumber, led_pwm,
-                             (my_led_status & 2) ? 1000 : 0);
-        drive->led_last_pwm = led_pwm;
-        drive->old_led_status = my_led_status;
-    }
+	drive->led_active_ticks = 0;
+
+	if (led_pwm != drive->led_last_pwm || my_led_status != drive->old_led_status)
+	{
+		ui_display_drive_led(drive->mynumber, led_pwm, (my_led_status & 2) ? 1000 : 0);
+		drive->led_last_pwm = led_pwm;
+		drive->old_led_status = my_led_status;
+	}
 }
 
 /* Update the status bar in the UI.  */
 void drive_update_ui_status(void)
 {
-    int i;
+	int i;
 
-    if (console_mode || vsid_mode) {
-        return;
-    }
+	if (console_mode || vsid_mode)
+		return;
 
-    /* Update the LEDs and the track indicators.  */
-    for (i = 0; i < DRIVE_NUM; i++) {
-        drive_t *drive;
+	/* Update the LEDs and the track indicators.  */
+	for (i = 0; i < DRIVE_NUM; i++)
+	{
+		drive_t *drive;
 
-        drive = drive_context[i]->drive;
-        if (drive->enable
-            || ((i == 1) && drive_context[0]->drive->enable
-            && drive_check_dual(drive_context[0]->drive->type))) {
-            drive_led_update(drive);
+		drive = drive_context[i]->drive;
+		if (drive->enable || ((i == 1) && drive_context[0]->drive->enable && drive_check_dual(drive_context[0]->drive->type)))
+		{
+			drive_led_update(drive);
 
-            if (drive->current_half_track != drive->old_half_track) {
-                drive->old_half_track = drive->current_half_track;
-                ui_display_drive_track(i, (i < 2
-                    && drive_context[0]->drive->enable
-                    && drive_check_dual(drive_context[0]->drive->type))
-                    ? 0 : 8, drive->current_half_track);
-            }
-        }
-    }
+			if (drive->current_half_track != drive->old_half_track)
+			{
+				drive->old_half_track = drive->current_half_track;
+				ui_display_drive_track(i, (i < 2 && drive_context[0]->drive->enable && drive_check_dual(drive_context[0]->drive->type))
+						? 0 : 8, drive->current_half_track);
+			}
+		}
+	}
 }
 
 int drive_num_leds(unsigned int dnr)
 {
-    if (drive_check_old(drive_context[dnr]->drive->type)) {
-        return 2;
-    }
+	if (drive_check_old(drive_context[dnr]->drive->type))
+		return 2;
 
-    if ((dnr == 1) && drive_check_dual(drive_context[0]->drive->type)) {
-        return 2;
-    }
+	if ((dnr == 1) && drive_check_dual(drive_context[0]->drive->type))
+		return 2;
 
-    return 1;
+	return 1;
 }
 
 /* This is called at every vsync.  */
 void drive_vsync_hook(void)
 {
-    unsigned int dnr;
+	unsigned int dnr;
 
-    drive_update_ui_status();
+	drive_update_ui_status();
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        drive_t *drive;
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++)
+	{
+		drive_t *drive;
 
-        drive = drive_context[dnr]->drive;
-        if (drive->idling_method != DRIVE_IDLE_SKIP_CYCLES
-            && drive->enable)
-            drivecpu_execute(drive_context[dnr], maincpu_clk);
-    }
+		drive = drive_context[dnr]->drive;
+		if (drive->idling_method != DRIVE_IDLE_SKIP_CYCLES && drive->enable)
+			drivecpu_execute(drive_context[dnr], maincpu_clk);
+	}
 
-    machine_drive_vsync_hook();
+	machine_drive_vsync_hook();
 }
 
 /* ------------------------------------------------------------------------- */
 
-static void drive_setup_context_for_drive(drive_context_t *drv,
-                                          unsigned int dnr)
+static void drive_setup_context_for_drive(drive_context_t *drv, unsigned int dnr)
 {
-    drv->mynumber = dnr;
-    drv->drive = lib_calloc(1, sizeof(drive_t));
-    drv->clk_ptr = &drive_clk[dnr];
+	drv->mynumber = dnr;
+	drv->drive = lib_calloc(1, sizeof(drive_t));
+	drv->clk_ptr = &drive_clk[dnr];
 
-    drivecpu_setup_context(drv);
-    machine_drive_setup_context(drv);
+	drivecpu_setup_context(drv);
+	machine_drive_setup_context(drv);
 }
 
 void drive_setup_context(void)
 {
-    unsigned int dnr;
+	unsigned int dnr;
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        drive_context[dnr] = lib_calloc(1, sizeof(drive_context_t));
-        drive_setup_context_for_drive(drive_context[dnr], dnr);
-    }
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++)
+	{
+		drive_context[dnr] = lib_calloc(1, sizeof(drive_context_t));
+		drive_setup_context_for_drive(drive_context[dnr], dnr);
+	}
 }

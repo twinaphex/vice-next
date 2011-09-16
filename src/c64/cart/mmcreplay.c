@@ -41,7 +41,6 @@
 #include "crt.h"
 #include "flash040.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "mmcreplay.h"
@@ -2352,36 +2351,38 @@ void mmcreplay_freeze(void)
 
 void mmcreplay_reset(void)
 {
-    LOG(("MMCREPLAY: ----------------------------------------"));
-    LOG(("MMCREPLAY: Reset"));
-    LOG(("MMCREPLAY: ----------------------------------------"));
+	LOG(("MMCREPLAY: ----------------------------------------"));
+	LOG(("MMCREPLAY: Reset"));
+	LOG(("MMCREPLAY: ----------------------------------------"));
 
-    rr_active = 1;
+	rr_active = 1;
 
-    /* 8 game */
-    enable_exrom = 1 ^ 1;
-    enable_game = 0;
+	/* 8 game */
+	enable_exrom = 1 ^ 1;
+	enable_game = 0;
 
-    enable_ram_io = 0;
-    enable_ram_io1 = 0;
-    enable_raml = 0;
-    enable_ramh = 0;
-    allow_bank = 0;
-    disable_mmc_bios = 0;
-    enable_16k_mapping = 0;
-    enable_extended_mode = 0;   /* enable nordic power mode */
+	enable_ram_io = 0;
+	enable_ram_io1 = 0;
+	enable_raml = 0;
+	enable_ramh = 0;
+	allow_bank = 0;
+	disable_mmc_bios = 0;
+	enable_16k_mapping = 0;
+	enable_extended_mode = 0;   /* enable nordic power mode */
 
-    bank_address_13_15 = 0;
-    bank_address_16_18 = 7;
+	bank_address_13_15 = 0;
+	bank_address_16_18 = 7;
 
-    mmcreplay_set_stdcfg();
+	mmcreplay_set_stdcfg();
 
-    if (enable_rescue_mode) {
-        log_debug("MMCREPLAY: Rescue Mode enabled");
-    }
+#if 0
+	if (enable_rescue_mode) {
+		log_debug("MMCREPLAY: Rescue Mode enabled");
+	}
+#endif
 
-    mmcreplay_update_mapper(CMODE_READ, 0);
-    flash040core_reset(flashrom_state);
+	mmcreplay_update_mapper(CMODE_READ, 0);
+	flash040core_reset(flashrom_state);
 }
 
 

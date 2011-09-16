@@ -47,7 +47,6 @@
 #include "kbdbuf.h"
 #include "keyboard.h"
 #include "lib.h"
-#include "log.h"
 #include "machine-video.h"
 #include "machine.h"
 #include "maincpu.h"
@@ -140,18 +139,20 @@ void machine_reset_event_playback(CLOCK offset, void *data)
 
 void machine_reset(void)
 {
-    log_message(LOG_DEFAULT, "Main CPU: RESET.");
+#ifdef CELL_DEBUG
+	printf("INFO: Main CPU: RESET.\n");
+#endif
 
-    /* Do machine-specific initialization.  */
-    machine_specific_reset();
+	/* Do machine-specific initialization.  */
+	machine_specific_reset();
 
-    autostart_reset();
+	autostart_reset();
 
-    mem_initialize_memory();
+	mem_initialize_memory();
 
-    event_reset_ack();
+	event_reset_ack();
 
-    vsync_suspend_speed_eval();
+	vsync_suspend_speed_eval();
 }
 
 static void machine_maincpu_clk_overflow_callback(CLOCK sub, void *data)
@@ -244,10 +245,7 @@ void machine_shutdown(void)
 
     sysfile_shutdown();
 
-    log_close_all();
-
     event_shutdown();
-
 
     autostart_resources_shutdown();
     fsdevice_resources_shutdown();
@@ -256,7 +254,6 @@ void machine_shutdown(void)
     sysfile_resources_shutdown();
     zfile_shutdown();
     ui_resources_shutdown();
-    log_resources_shutdown();
     fliplist_resources_shutdown();
     romset_resources_shutdown();
 #ifdef HAVE_NETWORK

@@ -33,7 +33,6 @@
 
 #include "gfxoutput.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "palette.h"
 #include "resources.h"
@@ -42,8 +41,6 @@
 #include "uiapi.h"
 #include "video.h"
 
-
-static log_t screenshot_log = LOG_ERR;
 static gfxoutputdrv_t *recording_driver;
 static struct video_canvas_s *recording_canvas;
 
@@ -54,8 +51,6 @@ static char *reopen_filename;
 
 int screenshot_init(void)
 {
-    /* Setup logging system.  */
-    screenshot_log = log_open("Screenshot");
     recording_driver = NULL;
     recording_canvas = NULL;
 
@@ -67,50 +62,51 @@ int screenshot_init(void)
 static void screenshot_line_data(screenshot_t *screenshot, BYTE *data,
                                  unsigned int line, unsigned int mode)
 {
-    unsigned int i;
-    BYTE *line_base;
-    BYTE color;
+	unsigned int i;
+	BYTE *line_base;
+	BYTE color;
 
-    if (line > screenshot->height) {
-        log_error(screenshot_log, "Invalild line `%i' request.", line);
-        return;
-    }
+	if (line > screenshot->height) {
+		//log_error(screenshot_log, "Invalid line `%i' request.", line);
+		return;
+	}
 
 #define BUFFER_LINE_START(i, n) ((i)->draw_buffer \
-                                + (n) * (i)->draw_buffer_line_size)
+		+ (n) * (i)->draw_buffer_line_size)
 
-    line_base = BUFFER_LINE_START(screenshot,
-                                  (line + screenshot->y_offset)
-                                  * screenshot->size_height);
+	line_base = BUFFER_LINE_START(screenshot,
+			(line + screenshot->y_offset)
+			* screenshot->size_height);
 
-    switch (mode) {
-      case SCREENSHOT_MODE_PALETTE:
-        for (i = 0; i < screenshot->width; i++)
-            data[i] = screenshot->color_map[line_base[i
-                      * screenshot->size_width + screenshot->x_offset]];
-        break;
-      case SCREENSHOT_MODE_RGB32:
-        for (i = 0; i < screenshot->width; i++) {
-            color = screenshot->color_map[line_base[i
-                    * screenshot->size_width + screenshot->x_offset]];
-            data[i * 4] = screenshot->palette->entries[color].red;
-            data[i * 4 + 1] = screenshot->palette->entries[color].green;
-            data[i * 4 + 2] = screenshot->palette->entries[color].blue;
-            data[i * 4 + 3] = 0;
-        }
-        break;
-      case SCREENSHOT_MODE_RGB24:
-        for (i = 0; i < screenshot->width; i++) {
-            color = screenshot->color_map[line_base[i
-                    * screenshot->size_width + screenshot->x_offset]];
-            data[i * 3] = screenshot->palette->entries[color].red;
-            data[i * 3 + 1] = screenshot->palette->entries[color].green;
-            data[i * 3 + 2] = screenshot->palette->entries[color].blue;
-        }
-        break;
-      default:
-        log_error(screenshot_log, "Invalid mode %i.", mode);
-    }
+	switch (mode) {
+		case SCREENSHOT_MODE_PALETTE:
+			for (i = 0; i < screenshot->width; i++)
+				data[i] = screenshot->color_map[line_base[i
+					* screenshot->size_width + screenshot->x_offset]];
+			break;
+		case SCREENSHOT_MODE_RGB32:
+			for (i = 0; i < screenshot->width; i++) {
+				color = screenshot->color_map[line_base[i
+					* screenshot->size_width + screenshot->x_offset]];
+				data[i * 4] = screenshot->palette->entries[color].red;
+				data[i * 4 + 1] = screenshot->palette->entries[color].green;
+				data[i * 4 + 2] = screenshot->palette->entries[color].blue;
+				data[i * 4 + 3] = 0;
+			}
+			break;
+		case SCREENSHOT_MODE_RGB24:
+			for (i = 0; i < screenshot->width; i++) {
+				color = screenshot->color_map[line_base[i
+					* screenshot->size_width + screenshot->x_offset]];
+				data[i * 3] = screenshot->palette->entries[color].red;
+				data[i * 3 + 1] = screenshot->palette->entries[color].green;
+				data[i * 3 + 2] = screenshot->palette->entries[color].blue;
+			}
+			break;
+		default:
+			//log_error(screenshot_log, "Invalid mode %i.", mode);
+			break;
+	}
 }
 
 /*-----------------------------------------------------------------------*/
@@ -135,14 +131,14 @@ static int screenshot_save_core(screenshot_t *screenshot, gfxoutputdrv_t *drv,
         if (drv->save_native != NULL) {
             /* It's a native screenshot. */
             if ((drv->save_native)(screenshot, filename) < 0) {
-                log_error(screenshot_log, "Saving failed...");
+                //log_error(screenshot_log, "Saving failed...");
                 lib_free(screenshot->color_map);
                 return -1;
             }
         } else {
             /* It's a usual screenshot. */
             if ((drv->save)(screenshot, filename) < 0) {
-                log_error(screenshot_log, "Saving failed...");
+                //log_error(screenshot_log, "Saving failed...");
                 lib_free(screenshot->color_map);
                 return -1;
             }
@@ -150,7 +146,7 @@ static int screenshot_save_core(screenshot_t *screenshot, gfxoutputdrv_t *drv,
     } else {
         /* We're recording a movie */
         if ((recording_driver->record)(screenshot) < 0) {
-            log_error(screenshot_log, "Recording failed...");
+            //log_error(screenshot_log, "Recording failed...");
             lib_free(screenshot->color_map);
             return -1;
         }
@@ -178,7 +174,7 @@ int screenshot_save(const char *drvname, const char *filename,
     }
 
     if (machine_screenshot(&screenshot, canvas) < 0) {
-        log_error(screenshot_log, "Retrieving screen geometry failed.");
+        //log_error(screenshot_log, "Retrieving screen geometry failed.");
         return -1;
     }
 
@@ -210,7 +206,7 @@ int memmap_screenshot_save(const char *drvname, const char *filename, int x_size
         return -1;
 
     if ((drv->savememmap)(filename, x_size, y_size, gfx, palette) < 0) {
-            log_error(screenshot_log, "Saving failed...");
+            //log_error(screenshot_log, "Saving failed...");
             return -1;
     }
     return 0;
@@ -227,12 +223,12 @@ int screenshot_record()
     /* Retrive framebuffer and screen geometry.  */
     if (recording_canvas != NULL) {
         if (machine_screenshot(&screenshot, recording_canvas) < 0) {
-            log_error(screenshot_log, "Retrieving screen geometry failed.");
+            //log_error(screenshot_log, "Retrieving screen geometry failed.");
             return -1;
         }
     } else {
         /* should not happen */
-            log_error(screenshot_log, "Canvas is unknown.");
+            //log_error(screenshot_log, "Canvas is unknown.");
             return -1;
     }
 

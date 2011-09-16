@@ -35,7 +35,6 @@
 #include "fsimage-probe.h"
 #include "fsimage.h"
 #include "lib.h"
-#include "log.h"
 #include "types.h"
 #include "util.h"
 #include "x64.h"
@@ -46,23 +45,19 @@
 #define IS_D80_LEN(x) ((x) == D80_FILE_SIZE)
 #define IS_D82_LEN(x) ((x) == D82_FILE_SIZE)
 
-static log_t disk_image_probe_log = LOG_ERR;
-
 static void disk_image_check_log(disk_image_t *image, const char *type)
 {
     fsimage_t *fsimage;
 
     fsimage = image->media.fsimage;
 
-    log_verbose("%s disk image recognised: %s, %d tracks%s",
-                type, fsimage->name, image->tracks,
-                image->read_only ? " (read only)." : ".");
+    //log_verbose("%s disk image recognised: %s, %d tracks%s", type, fsimage->name, image->tracks, image->read_only ? " (read only)." : ".");
 }
 
 static int disk_image_check_min_block(unsigned int blk, unsigned int length)
 {
     if (blk < length) {
-        log_error(disk_image_probe_log, "Cannot read block %d.", blk);
+        //log_error(disk_image_probe_log, "Cannot read block %d.", blk);
         return -1;
     }
     return 0;
@@ -114,7 +109,7 @@ static int disk_image_check_for_d64(disk_image_t *image)
     rewind(fsimage->fd);
     for (countbytes = 0; countbytes < checkimage_realsize; countbytes++) {
         if (fgetc(fsimage->fd) == EOF) {
-            log_error(disk_image_probe_log, "Cannot read D64 image.");
+            //log_error(disk_image_probe_log, "Cannot read D64 image.");
             return 0;
         }
     }
@@ -159,7 +154,7 @@ static int disk_image_check_for_d67(disk_image_t *image)
     while ((len = fread(block, 1, 256, fsimage->fd)) == 256) {
         /* FIXME */
         if (++blk > (NUM_BLOCKS_2040)) {
-            log_error(disk_image_probe_log, "Disk image too large");
+            //log_error(disk_image_probe_log, "Disk image too large");
             break;
         }
     }
@@ -243,7 +238,7 @@ static int disk_image_check_for_d81(disk_image_t *image)
 
     while ((len = fread(block, 1, 256, fsimage->fd)) == 256) {
         if (++blk > NUM_BLOCKS_1581 + 13) {
-            log_error(disk_image_probe_log, "Disk image too large.");
+            //log_error(disk_image_probe_log, "Disk image too large.");
             break;
         }
     }
@@ -284,7 +279,7 @@ static int disk_image_check_for_d80(disk_image_t *image)
 
     while ((len = fread(block, 1, 256, fsimage->fd)) == 256) {
         if (++blk > NUM_BLOCKS_8050 + 6) {
-            log_error(disk_image_probe_log, "Disk image too large.");
+            //log_error(disk_image_probe_log, "Disk image too large.");
             break;
         }
     }
@@ -306,41 +301,41 @@ static int disk_image_check_for_d80(disk_image_t *image)
 
 static int disk_image_check_for_d82(disk_image_t *image)
 {
-    unsigned int blk = 0;
-    size_t len;
-    BYTE block[256];
-    fsimage_t *fsimage;
+	unsigned int blk = 0;
+	size_t len;
+	BYTE block[256];
+	fsimage_t *fsimage;
 
-    fsimage = image->media.fsimage;
+	fsimage = image->media.fsimage;
 
-    if (!(IS_D82_LEN(util_file_length(fsimage->fd))))
-        return 0;
+	if (!(IS_D82_LEN(util_file_length(fsimage->fd))))
+		return 0;
 
-    image->type = DISK_IMAGE_TYPE_D82;
-    image->tracks = NUM_TRACKS_8250;
+	image->type = DISK_IMAGE_TYPE_D82;
+	image->tracks = NUM_TRACKS_8250;
 
-    rewind(fsimage->fd);
+	rewind(fsimage->fd);
 
-    while ((len = fread(block, 1, 256, fsimage->fd)) == 256) {
-        if (++blk > NUM_BLOCKS_8250 + 6) {
-            log_error(disk_image_probe_log, "Disk image too large.");
-            break;
-        }
-    }
+	while ((len = fread(block, 1, 256, fsimage->fd)) == 256) {
+		if (++blk > NUM_BLOCKS_8250 + 6) {
+			//log_error(disk_image_probe_log, "Disk image too large.");
+			break;
+		}
+	}
 
-    if (disk_image_check_min_block(blk, NUM_BLOCKS_8250) < 0)
-        return 0;
+	if (disk_image_check_min_block(blk, NUM_BLOCKS_8250) < 0)
+		return 0;
 
-    switch (blk) {
-      case NUM_BLOCKS_8250:
-        image->tracks = NUM_TRACKS_8250;
-        break;
-      default:
-        return 0;
-    }
-    fsimage_error_info_destroy(fsimage);
-    disk_image_check_log(image, "D82");
-    return 1;
+	switch (blk) {
+		case NUM_BLOCKS_8250:
+			image->tracks = NUM_TRACKS_8250;
+			break;
+		default:
+			return 0;
+	}
+	fsimage_error_info_destroy(fsimage);
+	disk_image_check_log(image, "D82");
+	return 1;
 }
 
 static int disk_image_check_for_x64(disk_image_t *image)
@@ -374,53 +369,47 @@ static int disk_image_check_for_x64(disk_image_t *image)
 
 static int disk_image_check_for_gcr(disk_image_t *image)
 {
-    int trackfield;
-    BYTE header[32];
-    fsimage_t *fsimage;
+	int trackfield;
+	BYTE header[32];
+	fsimage_t *fsimage;
 
-    fsimage = image->media.fsimage;
+	fsimage = image->media.fsimage;
 
-    fseek(fsimage->fd, 0, SEEK_SET);
-    if (fread((BYTE *)header, sizeof (header), 1, fsimage->fd) < 1) {
-        log_error(disk_image_probe_log, "Cannot read image header.");
-        return 0;
-    }
+	fseek(fsimage->fd, 0, SEEK_SET);
+	if (fread((BYTE *)header, sizeof (header), 1, fsimage->fd) < 1) {
+		//log_error(disk_image_probe_log, "Cannot read image header.");
+		return 0;
+	}
 
-    if (strncmp("GCR-1541", (char*)header, 8))
-        return 0;
+	if (strncmp("GCR-1541", (char*)header, 8))
+		return 0;
 
-    if (header[8] != 0) {
-        log_error(disk_image_probe_log,
-                  "Import GCR: Unknown GCR image version %i.",
-                  (int)header[8]);
-        return 0;
-    }
+	if (header[8] != 0) {
+		//log_error(disk_image_probe_log, "Import GCR: Unknown GCR image version %i.", (int)header[8]);
+		return 0;
+	}
 
-    if (header[9] < NUM_TRACKS_1541 * 2 || header[9] > MAX_TRACKS_1541 * 2) {
-        log_error(disk_image_probe_log,
-                  "Import GCR: Invalid number of tracks (%i).",
-                  (int)header[9]);
-        return 0;
-    }
+	if (header[9] < NUM_TRACKS_1541 * 2 || header[9] > MAX_TRACKS_1541 * 2) {
+		//log_error(disk_image_probe_log, "Import GCR: Invalid number of tracks (%i).", (int)header[9]);
+		return 0;
+	}
 
-    trackfield = header[10] + header[11] * 256;
-    if (trackfield != 7928) {
-        log_error(disk_image_probe_log,
-                  "Import GCR: Invalid track field number %i.",
-                  trackfield);
-        return 0;
-    }
+	trackfield = header[10] + header[11] * 256;
+	if (trackfield != 7928) {
+		//log_error(disk_image_probe_log, "Import GCR: Invalid track field number %i.", trackfield);
+		return 0;
+	}
 
-    image->type = DISK_IMAGE_TYPE_G64;
-    image->tracks = header[9] / 2;
-    fsimage_error_info_destroy(fsimage);
-    disk_image_check_log(image, "GCR");
+	image->type = DISK_IMAGE_TYPE_G64;
+	image->tracks = header[9] / 2;
+	fsimage_error_info_destroy(fsimage);
+	disk_image_check_log(image, "GCR");
 
-    if (image->gcr != NULL) {
-        if (fsimage_read_gcr_image(image) < 0)
-            return 0;
-    }
-    return 1;
+	if (image->gcr != NULL) {
+		if (fsimage_read_gcr_image(image) < 0)
+			return 0;
+	}
+	return 1;
 }
 
 
@@ -448,6 +437,5 @@ int fsimage_probe(disk_image_t *image)
 
 void fsimage_probe_init(void)
 {
-    disk_image_probe_log = log_open("Filesystem Image Probe");
 }
 

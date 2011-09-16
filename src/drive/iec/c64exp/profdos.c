@@ -34,7 +34,6 @@
 #include "drivemem.h"
 #include "drivetypes.h"
 #include "lib.h"
-#include "log.h"
 #include "profdos.h"
 #include "resources.h"
 #include "util.h"

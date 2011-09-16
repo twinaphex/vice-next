@@ -31,7 +31,6 @@
 #include "sound.h"
 #include "types.h"
 #include "archdep.h"
-#include "log.h"
 
 #define VOC_MAX 0x6fc00c   /* taken from sound conversion program */
 
@@ -144,22 +143,24 @@ static int voc_write(SWORD *pbuf, size_t nr)
 
 static void voc_close(void)
 {
-    int res = -1;
-    BYTE rlen[3];
+	int res = -1;
+	BYTE rlen[3];
 
-    rlen[0] = (BYTE)((samples*2) & 0xff);
-    rlen[1] = (BYTE)(((samples*2) >> 8) & 0xff);
-    rlen[2] = (BYTE)(((samples*2) >> 16) & 0xff);
-    fseek(voc_fd, block_start + 1, SEEK_SET);
-    if (fwrite(rlen, 1, 3, voc_fd) == 3) {
-        res = 0;
-    }
-    fclose(voc_fd);
-    voc_fd = NULL;
-    
-    if (res < 0) {
-        log_debug("ERROR voc_close failed.");
-    }
+	rlen[0] = (BYTE)((samples*2) & 0xff);
+	rlen[1] = (BYTE)(((samples*2) >> 8) & 0xff);
+	rlen[2] = (BYTE)(((samples*2) >> 16) & 0xff);
+	fseek(voc_fd, block_start + 1, SEEK_SET);
+	if (fwrite(rlen, 1, 3, voc_fd) == 3) {
+		res = 0;
+	}
+	fclose(voc_fd);
+	voc_fd = NULL;
+
+#if 0
+	if (res < 0) {
+		log_debug("ERROR voc_close failed.");
+	}
+#endif
 }
 
 static sound_device_t voc_device =

@@ -34,7 +34,6 @@
 #include "cmdline.h"
 #include "doodledrv.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "mem.h"
 #include "gfxoutput.h"

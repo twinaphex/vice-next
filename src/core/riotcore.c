@@ -32,7 +32,6 @@
 #include "alarm.h"
 #include "clkguard.h"
 #include "lib.h"
-#include "log.h"
 #include "riot.h"
 #include "snapshot.h"
 #include "types.h"
@@ -228,15 +227,14 @@ void REGPARM3 riotcore_store(riot_context_t *riot_context, WORD addr, BYTE byte)
 BYTE REGPARM2 riotcore_read(riot_context_t *riot_context, WORD addr)
 {
 #ifdef MYRIOT_TIMER_DEBUG
-    BYTE REGPARM2 myriot_read_(riot_context_t *, WORD);
-    BYTE retv = myriot_read_(riot_context, addr);
-    addr &= 0x1f;
-    if ((addr > 3 && addr < 10) || app_resources.debugFlag)
-        log_message(riot_context->log,
-                    (riot_context->myname)
-                    "(%x) -> %02x, clk=%d", addr, retv,
-                    *(riot_context->clk_ptr));
-    return retv;
+	BYTE REGPARM2 myriot_read_(riot_context_t *, WORD);
+	BYTE retv = myriot_read_(riot_context, addr);
+	addr &= 0x1f;
+	if ((addr > 3 && addr < 10) || app_resources.debugFlag)
+	{
+		//log_message(riot_context->log, (riot_context->myname) "(%x) -> %02x, clk=%d", addr, retv, *(riot_context->clk_ptr));
+	}
+	return retv;
 }
 BYTE REGPARM2 myriot_read_(riot_context_t *riot_context, WORD addr)
 {
@@ -329,7 +327,6 @@ static void riotcore_int_riot(CLOCK offset, void *data)
 
 void riotcore_setup_context(riot_context_t *riot_context)
 {
-    riot_context->log = LOG_ERR;
     riot_context->read_clk = 0;
     riot_context->read_offset = 0;
     riot_context->last_read = 0;
@@ -343,8 +340,6 @@ void riotcore_init(riot_context_t *riot_context,
                    unsigned int number)
 {
     char *buffer;
-
-    riot_context->log = log_open(riot_context->myname);
 
     buffer = lib_msprintf("%sT1", riot_context->myname);
     riot_context->alarm = alarm_new(alarm_context, buffer, riotcore_int_riot,
@@ -434,15 +429,13 @@ int riotcore_snapshot_read_module(riot_context_t *riot_context, snapshot_t *p)
 
     m = snapshot_module_open(p, riot_context->myname, &vmajor, &vminor);
     if (m == NULL) {
-        log_message(riot_context->log,
-                    "Could not find snapshot module %s", riot_context->myname);
+        //log_message(riot_context->log, "Could not find snapshot module %s", riot_context->myname);
         return -1;
     }
 
-    if (vmajor != RIOT_DUMP_VER_MAJOR) {
-        log_error(riot_context->log,
-                  "Snapshot module version (%d.%d) newer than %d.%d.",
-                  vmajor, vminor, RIOT_DUMP_VER_MAJOR, RIOT_DUMP_VER_MINOR);
+    if (vmajor != RIOT_DUMP_VER_MAJOR)
+    {
+        printf("ERROR: Snapshot module version (%d.%d) newer than %d.%d.\n", vmajor, vminor, RIOT_DUMP_VER_MAJOR, RIOT_DUMP_VER_MINOR);
         snapshot_module_close(m);
         return -1;
     }

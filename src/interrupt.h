@@ -32,7 +32,6 @@
 #include <stdio.h>
 
 #include "debug.h"
-#include "log.h"
 #include "types.h"
 
 /* Define the number of cycles needed by the CPU to detect the NMI or IRQ.  */

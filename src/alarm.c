@@ -32,7 +32,6 @@
 
 #include "alarm.h"
 #include "lib.h"
-#include "log.h"
 #include "types.h"
 
 
@@ -200,6 +199,6 @@ void alarm_unset(alarm_t *alarm)
 
 void alarm_log_too_many_alarms(void)
 {
-    log_error(LOG_DEFAULT, "alarm_set(): Too many alarms set!");
+    //log_error(LOG_DEFAULT, "alarm_set(): Too many alarms set!");
 }
 

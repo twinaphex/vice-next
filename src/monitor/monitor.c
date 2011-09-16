@@ -59,7 +59,6 @@
 #include "ioutil.h"
 #include "kbdbuf.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "machine-video.h"
 #include "mem.h"
@@ -366,65 +365,73 @@ static unsigned get_range_len(MON_ADDR addr1, MON_ADDR addr2)
 long mon_evaluate_address_range(MON_ADDR *start_addr, MON_ADDR *end_addr,
                                 bool must_be_range, WORD default_len)
 {
-    long len = default_len;
+	long len = default_len;
 
-    /* Check if we DEFINITELY need a range. */
-    if (!is_valid_addr_range(*start_addr, *end_addr) && must_be_range)
-        return -1;
+	/* Check if we DEFINITELY need a range. */
+	if (!is_valid_addr_range(*start_addr, *end_addr) && must_be_range)
+		return -1;
 
-    if (is_valid_addr_range(*start_addr, *end_addr)) {
-        MEMSPACE mem1, mem2;
-        /* Resolve any default memory spaces. We wait until now because we
-         * need both addresses - if only 1 is a default, use the other to
-         * resolve the memory space.
-         */
-        mem1 = addr_memspace(*start_addr);
-        mem2 = addr_memspace(*end_addr);
+	if (is_valid_addr_range(*start_addr, *end_addr)) {
+		MEMSPACE mem1, mem2;
+		/* Resolve any default memory spaces. We wait until now because we
+		 * need both addresses - if only 1 is a default, use the other to
+		 * resolve the memory space.
+		 */
+		mem1 = addr_memspace(*start_addr);
+		mem2 = addr_memspace(*end_addr);
 
-        if (mem1 == e_default_space) {
-            if (mem2 == e_default_space) {
-                set_addr_memspace(start_addr, default_memspace);
-                set_addr_memspace(end_addr, default_memspace);
-            } else {
-                if (mem2 != e_invalid_space) {
-                    set_addr_memspace(start_addr, mem2);
-                } else {
-                    set_addr_memspace(start_addr, default_memspace);
-                }
-            }
-        } else {
-            if (mem2 == e_default_space) {
-                set_addr_memspace(end_addr, mem1);
-            } else {
-                if (mem2 != e_invalid_space) {
-                    if (!(mem1 == mem2)) {
-                        log_error(LOG_ERR, "Invalid memspace!");
-                        return 0;
-                    }
-                } else {
-                    log_error(LOG_ERR, "Invalid memspace!");
-                    return 0;
-                }
-            }
-        }
+		if (mem1 == e_default_space) {
+			if (mem2 == e_default_space) {
+				set_addr_memspace(start_addr, default_memspace);
+				set_addr_memspace(end_addr, default_memspace);
+			} else {
+				if (mem2 != e_invalid_space) {
+					set_addr_memspace(start_addr, mem2);
+				} else {
+					set_addr_memspace(start_addr, default_memspace);
+				}
+			}
+		} else {
+			if (mem2 == e_default_space) {
+				set_addr_memspace(end_addr, mem1);
+			} else {
+				if (mem2 != e_invalid_space)
+				{
+					if (!(mem1 == mem2))
+					{
+#ifdef CELL_DEBUG
+						printf("ERROR: Invalid memspace!\n");
+#endif
+						return 0;
+					}
+				}
+				else
+				{
+#ifdef CELL_DEBUG
+					printf("ERROR: Invalid memspace!\n");
+#endif
+					return 0;
+				}
+			}
+		}
 
-        len = get_range_len(*start_addr, *end_addr);
-    } else {
-        if (!mon_is_valid_addr(*start_addr))
-            *start_addr = dot_addr[(int)default_memspace];
-        else
-            mon_evaluate_default_addr(start_addr);
+		len = get_range_len(*start_addr, *end_addr);
+	} else {
+		if (!mon_is_valid_addr(*start_addr))
+			*start_addr = dot_addr[(int)default_memspace];
+		else
+			mon_evaluate_default_addr(start_addr);
 
-        if (!mon_is_valid_addr(*end_addr)) {
-            *end_addr = *start_addr;
-            mon_inc_addr_location(end_addr, len);
-        } else {
-            set_addr_memspace(end_addr,addr_memspace(*start_addr));
-            len = get_range_len(*start_addr, *end_addr);
-        }
-    }
+		if (!mon_is_valid_addr(*end_addr)) {
+			*end_addr = *start_addr;
+			mon_inc_addr_location(end_addr, len);
+		} else {
+			set_addr_memspace(end_addr,addr_memspace(*start_addr));
+			len = get_range_len(*start_addr, *end_addr);
+		}
+	}
 
-    return len;
+	return len;
 }
 
 
@@ -1814,94 +1821,103 @@ void mon_stack_down(int count)
 
 void mon_print_conditional(cond_node_t *cnode)
 {
-    /* Do an in-order traversal of the tree */
-    if (cnode->is_parenthized)
-        mon_out("( ");
+	/* Do an in-order traversal of the tree */
+	if (cnode->is_parenthized)
+		mon_out("( ");
 
-    if (cnode->operation != e_INV) {
-        if (!(cnode->child1 && cnode->child2)) {
-            log_error(LOG_ERR, "No conditional!");
-            return;
-        }
-        mon_print_conditional(cnode->child1);
-        mon_out(" %s ",cond_op_string[cnode->operation]);
-        mon_print_conditional(cnode->child2);
-    } else {
-        if (cnode->is_reg)
-            mon_out(".%s", register_string[reg_regid(cnode->reg_num)]);
-        else
-            mon_out("%d", cnode->value);
-    }
+	if (cnode->operation != e_INV)
+	{
+		if (!(cnode->child1 && cnode->child2))
+		{
+#ifdef CELL_DEBUG
+			printf("ERROR: No conditional!\n");
+#endif
+			return;
+		}
+		mon_print_conditional(cnode->child1);
+		mon_out(" %s ",cond_op_string[cnode->operation]);
+		mon_print_conditional(cnode->child2);
+	} else {
+		if (cnode->is_reg)
+			mon_out(".%s", register_string[reg_regid(cnode->reg_num)]);
+		else
+			mon_out("%d", cnode->value);
+	}
 
-    if (cnode->is_parenthized)
-        mon_out(" )");
+	if (cnode->is_parenthized)
+		mon_out(" )");
 }
 
 
 int mon_evaluate_conditional(cond_node_t *cnode)
 {
-    /* Do a post-order traversal of the tree */
-    if (cnode->operation != e_INV) {
-        if (!(cnode->child1 && cnode->child2)) {
-            log_error(LOG_ERR, "No conditional!");
-            return 0;
-        }
-        mon_evaluate_conditional(cnode->child1);
-        mon_evaluate_conditional(cnode->child2);
+	/* Do a post-order traversal of the tree */
+	if (cnode->operation != e_INV) {
+		if (!(cnode->child1 && cnode->child2))
+		{
+			#ifdef CELL_DEBUG
+			printf("ERROR: No conditional!\n");
+			#endif
+			return 0;
+		}
+		mon_evaluate_conditional(cnode->child1);
+		mon_evaluate_conditional(cnode->child2);
 
-        switch(cnode->operation) {
-          case e_EQU:
-            cnode->value = ((cnode->child1->value) == (cnode->child2->value));
-            break;
-          case e_NEQ:
-            cnode->value = ((cnode->child1->value) != (cnode->child2->value));
-            break;
-          case e_GT :
-            cnode->value = ((cnode->child1->value) > (cnode->child2->value));
-            break;
-          case e_LT :
-            cnode->value = ((cnode->child1->value) < (cnode->child2->value));
-            break;
-          case e_GTE:
-            cnode->value = ((cnode->child1->value) >= (cnode->child2->value));
-            break;
-          case e_LTE:
-            cnode->value = ((cnode->child1->value) <= (cnode->child2->value));
-            break;
-          case e_AND:
-            cnode->value = ((cnode->child1->value) && (cnode->child2->value));
-            break;
-          case e_OR :
-            cnode->value = ((cnode->child1->value) || (cnode->child2->value));
-            break;
-          default:
-            log_error(LOG_ERR, "Unexpected conditional operator: %d\n",
-                      cnode->operation);
-            return 0;
-        }
-    } else {
-        if (cnode->is_reg)
-            cnode->value = (monitor_cpu_for_memspace[reg_memspace(cnode->reg_num)]->mon_register_get_val)
-                           (reg_memspace(cnode->reg_num),
-                           reg_regid(cnode->reg_num));
-    }
+		switch(cnode->operation)
+		{
+			case e_EQU:
+				cnode->value = ((cnode->child1->value) == (cnode->child2->value));
+				break;
+			case e_NEQ:
+				cnode->value = ((cnode->child1->value) != (cnode->child2->value));
+				break;
+			case e_GT :
+				cnode->value = ((cnode->child1->value) > (cnode->child2->value));
+				break;
+			case e_LT :
+				cnode->value = ((cnode->child1->value) < (cnode->child2->value));
+				break;
+			case e_GTE:
+				cnode->value = ((cnode->child1->value) >= (cnode->child2->value));
+				break;
+			case e_LTE:
+				cnode->value = ((cnode->child1->value) <= (cnode->child2->value));
+				break;
+			case e_AND:
+				cnode->value = ((cnode->child1->value) && (cnode->child2->value));
+				break;
+			case e_OR :
+				cnode->value = ((cnode->child1->value) || (cnode->child2->value));
+				break;
+			default:
+#ifdef CELL_DEBUG
+				printf("ERROR: Unexpected conditional operator: %d\n", cnode->operation);
+#endif
+				return 0;
+		}
+	} else {
+		if (cnode->is_reg)
+			cnode->value = (monitor_cpu_for_memspace[reg_memspace(cnode->reg_num)]->mon_register_get_val)
+				(reg_memspace(cnode->reg_num),
+				 reg_regid(cnode->reg_num));
+	}
 
-    return cnode->value;
+	return cnode->value;
 }
 
 
 void mon_delete_conditional(cond_node_t *cnode)
 {
-    if (!cnode)
-        return;
+	if (!cnode)
+		return;
 
-    if (cnode->child1)
-        mon_delete_conditional(cnode->child1);
+	if (cnode->child1)
+		mon_delete_conditional(cnode->child1);
 
-    if (cnode->child2)
-        mon_delete_conditional(cnode->child2);
+	if (cnode->child2)
+		mon_delete_conditional(cnode->child2);
 
-    lib_free(cnode);
+	lib_free(cnode);
 }
 
 
@@ -1936,39 +1952,40 @@ void monitor_watch_push_store_addr(WORD addr, MEMSPACE mem)
 
 static bool watchpoints_check_loads(MEMSPACE mem)
 {
-    bool trap = FALSE;
-    unsigned count;
-    WORD addr = 0;
+	bool trap = FALSE;
+	unsigned count;
+	WORD addr = 0;
 
-    count = watch_load_count[mem];
-    watch_load_count[mem] = 0;
-    while (count) {
-        count--;
-        addr = watch_load_array[count][mem];
-        if (monitor_breakpoint_check_checkpoint(mem, addr,
-                                                watchpoints_load[mem]))
-            trap = TRUE;
-    }
-    return trap;
+	count = watch_load_count[mem];
+	watch_load_count[mem] = 0;
+	while (count)
+	{
+		count--;
+		addr = watch_load_array[count][mem];
+		if (monitor_breakpoint_check_checkpoint(mem, addr,
+					watchpoints_load[mem]))
+			trap = TRUE;
+	}
+	return trap;
 }
 
 static bool watchpoints_check_stores(MEMSPACE mem)
 {
-    bool trap = FALSE;
-    unsigned count;
-    WORD addr = 0;
+	bool trap = FALSE;
+	unsigned count;
+	WORD addr = 0;
 
-    count = watch_store_count[mem];
-    watch_store_count[mem] = 0;
+	count = watch_store_count[mem];
+	watch_store_count[mem] = 0;
 
-    while (count) {
-        count--;
-        addr = watch_store_array[count][mem];
-        if (monitor_breakpoint_check_checkpoint(mem, addr,
-            watchpoints_store[mem]))
-            trap = TRUE;
-    }
-    return trap;
+	while (count) {
+		count--;
+		addr = watch_store_array[count][mem];
+		if (monitor_breakpoint_check_checkpoint(mem, addr,
+					watchpoints_store[mem]))
+			trap = TRUE;
+	}
+	return trap;
 }
 
 
@@ -1987,50 +2004,50 @@ int monitor_force_import(MEMSPACE mem)
 
 void monitor_check_icount(WORD a)
 {
-    if (!instruction_count)
-        return;
+	if (!instruction_count)
+		return;
 
-    if (wait_for_return_level == 0)
-        instruction_count--;
+	if (wait_for_return_level == 0)
+		instruction_count--;
 
-    if (skip_jsrs == TRUE) {
-        if (MONITOR_GET_OPCODE(caller_space) == OP_JSR)
-            wait_for_return_level++;
+	if (skip_jsrs == TRUE) {
+		if (MONITOR_GET_OPCODE(caller_space) == OP_JSR)
+			wait_for_return_level++;
 
-        if (MONITOR_GET_OPCODE(caller_space) == OP_RTS)
-            wait_for_return_level--;
+		if (MONITOR_GET_OPCODE(caller_space) == OP_RTS)
+			wait_for_return_level--;
 
-        if (MONITOR_GET_OPCODE(caller_space) == OP_RTI)
-            wait_for_return_level--;
+		if (MONITOR_GET_OPCODE(caller_space) == OP_RTI)
+			wait_for_return_level--;
 
-        if (wait_for_return_level < 0) {
-            wait_for_return_level = 0;
+		if (wait_for_return_level < 0) {
+			wait_for_return_level = 0;
 
-            /* FIXME: [SRT], 01-24-2000: this is only a workaround.
-             this occurs when the commands 'n' or  'ret' are executed
-             out of an active IRQ or NMI processing routine.
+			/* FIXME: [SRT], 01-24-2000: this is only a workaround.
+			   this occurs when the commands 'n' or  'ret' are executed
+			   out of an active IRQ or NMI processing routine.
 
-             the following command immediately stops executing when used
-             with 'n' and parameter > 1, but it's necessary because else,
-             it can occur that the monitor will not come back at all.
-             Don't know so far how this can be avoided. The only
-             solution I see is to keep track of every IRQ and NMI
-             invocation and every RTI. */
-            instruction_count = 0;
-        }
-    }
+			   the following command immediately stops executing when used
+			   with 'n' and parameter > 1, but it's necessary because else,
+			   it can occur that the monitor will not come back at all.
+			   Don't know so far how this can be avoided. The only
+			   solution I see is to keep track of every IRQ and NMI
+			   invocation and every RTI. */
+			instruction_count = 0;
+		}
+	}
 
-    if (instruction_count != 0)
-        return;
+	if (instruction_count != 0)
+		return;
 
-    if (monitor_mask[caller_space] & MI_STEP) {
-        monitor_mask[caller_space] &= ~MI_STEP;
-        disassemble_on_entry = 1;
-    }
-    if (!monitor_mask[caller_space])
-        interrupt_monitor_trap_off(mon_interfaces[caller_space]->int_status);
+	if (monitor_mask[caller_space] & MI_STEP) {
+		monitor_mask[caller_space] &= ~MI_STEP;
+		disassemble_on_entry = 1;
+	}
+	if (!monitor_mask[caller_space])
+		interrupt_monitor_trap_off(mon_interfaces[caller_space]->int_status);
 
-    monitor_startup();
+	monitor_startup();
 }
 
 void monitor_check_icount_interrupt(void)
@@ -2047,35 +2064,35 @@ void monitor_check_icount_interrupt(void)
 
 void monitor_check_watchpoints(WORD a)
 {
-    unsigned int dnr;
+	unsigned int dnr;
 
-    if (watch_load_occurred) {
-        if (watchpoints_check_loads(e_comp_space)) {
-            caller_space = e_comp_space;
-            monitor_startup();
-        }
-        for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-            if (watchpoints_check_loads(monitor_diskspace_mem(dnr))) {
-                caller_space = monitor_diskspace_mem(dnr);
-                monitor_startup();
-            }
-        }
-        watch_load_occurred = FALSE;
-    }
+	if (watch_load_occurred) {
+		if (watchpoints_check_loads(e_comp_space)) {
+			caller_space = e_comp_space;
+			monitor_startup();
+		}
+		for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
+			if (watchpoints_check_loads(monitor_diskspace_mem(dnr))) {
+				caller_space = monitor_diskspace_mem(dnr);
+				monitor_startup();
+			}
+		}
+		watch_load_occurred = FALSE;
+	}
 
-    if (watch_store_occurred) {
-        if (watchpoints_check_stores(e_comp_space)) {
-            caller_space = e_comp_space;
-            monitor_startup();
-        }
-        for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-            if (watchpoints_check_stores(monitor_diskspace_mem(dnr))) {
-                caller_space = monitor_diskspace_mem(dnr);
-                monitor_startup();
-            }
-        }
-        watch_store_occurred = FALSE;
-    }
+	if (watch_store_occurred) {
+		if (watchpoints_check_stores(e_comp_space)) {
+			caller_space = e_comp_space;
+			monitor_startup();
+		}
+		for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
+			if (watchpoints_check_stores(monitor_diskspace_mem(dnr))) {
+				caller_space = monitor_diskspace_mem(dnr);
+				monitor_startup();
+			}
+		}
+		watch_store_occurred = FALSE;
+	}
 }
 
 int monitor_diskspace_dnr(int mem)

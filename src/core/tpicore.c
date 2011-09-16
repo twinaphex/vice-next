@@ -30,7 +30,6 @@
 #include <stdio.h>
 
 #include "lib.h"
-#include "log.h"
 #include "monitor.h"
 #include "snapshot.h"
 #include "tpi.h"
@@ -60,7 +59,8 @@ static int mytpi_debug = 0;
 
 static void set_latch_bit(tpi_context_t *tpi_context, int bit)
 {
-    if (mytpi_debug && !(bit & irq_latches)) {
+    if (mytpi_debug && !(bit & irq_latches))
+    {
         log_message(tpi_context->log, "set_latch_bit(%02x, mask=%02x)",
                     bit, irq_mask);
     }

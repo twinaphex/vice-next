@@ -38,7 +38,6 @@
 #include "c64cart.h"
 #include "c64cartmem.h"
 #include "dma.h"
-#include "log.h"
 #include "maincpu.h"
 #include "mem.h"
 #include "raster-sprite-status.h"

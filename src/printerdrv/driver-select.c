@@ -33,7 +33,6 @@
 #include "driver-select.h"
 #include "drv-ascii.h"
 #include "lib.h"
-#include "log.h"
 #include "resources.h"
 #include "translate.h"
 #include "types.h"
@@ -41,8 +40,6 @@
 
 
 /* #define DEBUG_PRINTER */
-
-static log_t driver_select_log = LOG_ERR;
 
 struct driver_select_list_s {
     driver_select_t driver_select;
@@ -133,7 +130,6 @@ int driver_select_init_cmdline_options(void)
 
 void driver_select_init(void)
 {
-    driver_select_log = log_open("Driver Select");
 }
 
 /* ------------------------------------------------------------------------- */

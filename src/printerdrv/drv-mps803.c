@@ -34,7 +34,6 @@
 #include "archdep.h"
 #include "driver-select.h"
 #include "drv-mps803.h"
-#include "log.h"
 #include "output-select.h"
 #include "output.h"
 #include "palette.h"
@@ -74,9 +73,6 @@ static BYTE charset[512][7];
 
 static mps_t drv_mps803[3];
 static palette_t *palette = NULL;
-
-/* Logging goes here.  */
-static log_t drv803_log = LOG_ERR;
 
 /* ------------------------------------------------------------------------- */
 /* MPS803 printer engine. */
@@ -324,16 +320,17 @@ static void print_char(mps_t *mps, unsigned int prnr, const BYTE c)
 
 static int init_charset(BYTE charset[512][7], const char *name)
 {
-    BYTE romimage[MPS803_ROM_SIZE];
+	BYTE romimage[MPS803_ROM_SIZE];
 
-    if (sysfile_load(name, romimage, MPS803_ROM_SIZE, MPS803_ROM_SIZE) < 0) {
-        log_error(drv803_log, "Could not load MPS-803 charset '%s'.", name);
-        return -1;
-    }
+	if (sysfile_load(name, romimage, MPS803_ROM_SIZE, MPS803_ROM_SIZE) < 0)
+	{
+		printf("ERROR: Could not load MPS-803 charset '%s'.\n", name);
+		return -1;
+	}
 
-    memcpy(charset, romimage, MPS803_ROM_SIZE);
+	memcpy(charset, romimage, MPS803_ROM_SIZE);
 
-    return 0;
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -400,27 +397,27 @@ int drv_mps803_init_resources(void)
 
 int drv_mps803_init(void)
 {
-    static const char *color_names[2] =
-    {
-      "Black", "White"
-    };
+	static const char *color_names[2] =
+	{
+		"Black", "White"
+	};
 
-    drv803_log = log_open("MPS-803");
+	init_charset(charset, "mps803");
 
-    init_charset(charset, "mps803");
+	palette = palette_create(2, color_names);
 
-    palette = palette_create(2, color_names);
+	if (palette == NULL)
+		return -1;
 
-    if (palette == NULL)
-        return -1;
+	if (palette_load("mps803" FSDEV_EXT_SEP_STR "vpl", palette) < 0)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Cannot load palette file `%s'.\n", FSDEV_EXT_SEP_STR "vpl");
+#endif
+		return -1;
+	}
 
-    if (palette_load("mps803" FSDEV_EXT_SEP_STR "vpl", palette) < 0) {
-        log_error(drv803_log, "Cannot load palette file `%s'.",
-                  "mps803" FSDEV_EXT_SEP_STR "vpl");
-        return -1;
-    }
-
-    return 0;
+	return 0;
 }
 
 void drv_mps803_shutdown(void)

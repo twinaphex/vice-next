@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "log.h"
 #include "sound.h"
 #include "resources.h"
 #include "types.h"

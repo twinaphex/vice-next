@@ -35,14 +35,10 @@
 #include "archdep.h"
 #include "embedded.h"
 #include "lib.h"
-#include "log.h"
 #include "palette.h"
 #include "sysfile.h"
 #include "types.h"
 #include "util.h"
-
-
-static log_t palette_log = LOG_ERR;
 
 
 palette_t *palette_create(unsigned int num_entries, const char *entry_names[])
@@ -95,8 +91,7 @@ static int palette_copy(palette_t *dest, const palette_t *src)
     unsigned int i;
 
     if (dest->num_entries != src->num_entries) {
-        log_error(palette_log,
-                  "Number of entries of src and dest palette do not match.");
+        //log_error(palette_log, "Number of entries of src and dest palette do not match.");
         return -1;
     }
 
@@ -149,16 +144,12 @@ static int palette_load_core(FILE *f, const char *file_name,
             const char *p2;
 
             if (util_string_to_long(p1, &p2, 16, &result) < 0) {
-                log_error(palette_log, "%s, %d: number expected.",
-                          file_name, line_num);
+                //log_error(palette_log, "%s, %d: number expected.", file_name, line_num);
                 return -1;
             }
-            if (result < 0
-                || (i == 3 && result > 0xf)
-                || result > 0xff
-                || result < 0) {
-                log_error(palette_log, "%s, %d: invalid value %lx.",
-                          file_name, line_num, result);
+            if (result < 0 || (i == 3 && result > 0xf) || result > 0xff || result < 0)
+	    {
+                //log_error(palette_log, "%s, %d: invalid value %lx.", file_name, line_num, result);
                 return -1;
             }
             values[i] = (BYTE)result;
@@ -166,39 +157,35 @@ static int palette_load_core(FILE *f, const char *file_name,
         }
 
         p1 = next_nonspace(p1);
-        if (*p1 != '\0') {
-            log_error(palette_log,
-                      "%s, %d: garbage at end of line.",
-                      file_name, line_num);
+        if (*p1 != '\0')
+	{
+            //log_error(palette_log, "%s, %d: garbage at end of line.", file_name, line_num);
             return -1;
         }
         if (entry_num >= palette_return->num_entries) {
-            log_error(palette_log,
-                      "%s: too many entries, %d expected.", file_name,
-                      palette_return->num_entries);
+            //log_error(palette_log, "%s: too many entries, %d expected.", file_name, palette_return->num_entries);
             return -1;
         }
         if (palette_set_entry(tmp_palette, entry_num,
                               values[0], values[1], values[2], values[3]) < 0) {
-            log_error(palette_log, "Failed to set palette entry.");
+            //log_error(palette_log, "Failed to set palette entry.");
             return -1;
         }
         entry_num++;
     }
 
     if (line_num == 0) {
-        log_error(palette_log, "Could not read from palette file.");
+        //log_error(palette_log, "Could not read from palette file.");
         return -1;
     }
 
     if (entry_num < palette_return->num_entries) {
-        log_error(palette_log, "%s: too few entries, %d found, %d expected.",
-                  file_name, entry_num, palette_return->num_entries);
+        //log_error(palette_log, "%s: too few entries, %d found, %d expected.", file_name, entry_num, palette_return->num_entries);
         return -1;
     }
 
     if (palette_copy(palette_return, tmp_palette) < 0) {
-        log_error(palette_log, "Failed to copy palette.");
+        //log_error(palette_log, "Failed to copy palette.");
         return -1;
     }
 
@@ -230,7 +217,7 @@ int palette_load(const char *file_name, palette_t *palette_return)
             return -1;
     }
 
-    log_message(palette_log, "Loading palette `%s'.", complete_path);
+    //log_message(palette_log, "Loading palette `%s'.", complete_path);
     lib_free(complete_path);
 
     tmp_palette = palette_create(palette_return->num_entries, NULL);
@@ -269,6 +256,5 @@ int palette_save(const char *file_name, const palette_t *palette)
 
 void palette_init(void)
 {
-    palette_log = log_open("Palette");
 }
 

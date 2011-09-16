@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "log.h"
 #include "machine-bus.h"
 #include "printer.h"
 #include "serial-trap.h"
@@ -47,15 +46,10 @@ static int traps_installed = 0;
 /* Pointer to list of traps we are using.  */
 static const trap_t *serial_traps;
 
-/* Logging goes here.  */
-static log_t serial_log = LOG_ERR;
-
 /* ------------------------------------------------------------------------- */
 
 int serial_init(const trap_t *trap_list)
 {
-    serial_log = log_open("Serial");
-
     /* Remove installed traps, if any.  */
     serial_remove_traps();
 

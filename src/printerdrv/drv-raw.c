@@ -29,7 +29,6 @@
 
 #include "driver-select.h"
 #include "drv-raw.h"
-#include "log.h"
 #include "output-select.h"
 #include "output.h"
 #include "types.h"
@@ -43,7 +42,6 @@ struct raw_s
 typedef struct raw_s raw_t;
 
 static raw_t drv_raw[3];
-static log_t drv_raw_log = LOG_ERR;
 
 static int print_char(raw_t *raw, unsigned int prnr, const BYTE c)
 {
@@ -137,6 +135,5 @@ int drv_raw_init_resources(void)
 
 void drv_raw_init(void)
 {
-    drv_raw_log = log_open("Drv-Raw");
 }
 

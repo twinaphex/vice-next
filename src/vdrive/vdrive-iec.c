@@ -54,7 +54,6 @@
 #include "cbmdos.h"
 #include "diskimage.h"
 #include "lib.h"
-#include "log.h"
 #include "machine-bus.h"
 #include "types.h"
 #include "vdrive-bam.h"
@@ -64,16 +63,12 @@
 #include "vdrive-rel.h"
 #include "vdrive.h"
 
-
-static log_t vdrive_iec_log = LOG_ERR;
-
 #define OFFSET_SUPER_POINTER 3
 #define SIDE_SECTORS_MAX 6
 #define OFFSET_RECORD_LEN  3
 
 void vdrive_iec_init(void)
 {
-    vdrive_iec_log = log_open("VDriveIEC");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -312,188 +307,188 @@ static int iec_open_write(vdrive_t *vdrive, unsigned int secondary,
 int vdrive_iec_open(vdrive_t *vdrive, const BYTE *name, unsigned int length,
                     unsigned int secondary, cbmdos_cmd_parse_t *cmd_parse_ext)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
-    BYTE *slot; /* Current directory entry */
-    int rc, status = SERIAL_OK;
-    /* FIXME: This should probably be set to zero */
-    cbmdos_cmd_parse_t cmd_parse_stat;
-    cbmdos_cmd_parse_t *cmd_parse;
-    BYTE name_stat[17];
-    unsigned int opentype;
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	BYTE *slot; /* Current directory entry */
+	int rc, status = SERIAL_OK;
+	/* FIXME: This should probably be set to zero */
+	cbmdos_cmd_parse_t cmd_parse_stat;
+	cbmdos_cmd_parse_t *cmd_parse;
+	BYTE name_stat[17];
+	unsigned int opentype;
 
-    if (cmd_parse_ext != NULL) {
-        cmd_parse = cmd_parse_ext;
-        memset(name_stat, 0, sizeof(name_stat));
-        strncpy((char *)name_stat, cmd_parse->parsecmd, sizeof(name_stat) - 1);
-        name = name_stat;
-        length = (unsigned int)strlen((char *)name);
-        secondary = cmd_parse->secondary;
-    } else {
-        cmd_parse = &cmd_parse_stat;
-    }
+	if (cmd_parse_ext != NULL) {
+		cmd_parse = cmd_parse_ext;
+		memset(name_stat, 0, sizeof(name_stat));
+		strncpy((char *)name_stat, cmd_parse->parsecmd, sizeof(name_stat) - 1);
+		name = name_stat;
+		length = (unsigned int)strlen((char *)name);
+		secondary = cmd_parse->secondary;
+	} else {
+		cmd_parse = &cmd_parse_stat;
+	}
 
-    if (cmd_parse_ext == NULL
-        && (!name || !*name) && p->mode != BUFFER_COMMAND_CHANNEL)
-        return SERIAL_NO_DEVICE;
+	if (cmd_parse_ext == NULL
+			&& (!name || !*name) && p->mode != BUFFER_COMMAND_CHANNEL)
+		return SERIAL_NO_DEVICE;
 
-    /* No floppy in drive?   */
-    if (vdrive->image == NULL
-        && p->mode != BUFFER_COMMAND_CHANNEL
-        && secondary != 15
-        && *name != '#') {
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_READY, 18, 0);
-        log_message(vdrive_iec_log, "Drive not ready.");
-        return SERIAL_ERROR;
-    }
+	/* No floppy in drive?   */
+	if (vdrive->image == NULL && p->mode != BUFFER_COMMAND_CHANNEL && secondary != 15 && *name != '#')
+	{
+		vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_READY, 18, 0);
+#ifdef CELL_DEBUG
+		printf("ERROR: Drive not ready.\n");
+#endif
+		return SERIAL_ERROR;
+	}
 
 #ifdef DEBUG_DRIVE
-    log_debug("VDRIVE#%i: OPEN: Name '%s' (%d) on ch %d.",
-              vdrive->unit, name, length, secondary);
+	log_debug("VDRIVE#%i: OPEN: Name '%s' (%d) on ch %d.",
+			vdrive->unit, name, length, secondary);
 #endif
 #ifdef __riscos
-    archdep_set_drive_leds(vdrive->unit - 8, 1);
+	archdep_set_drive_leds(vdrive->unit - 8, 1);
 #endif
 
-    /*
-     * If channel is command channel, name will be used as write. Return only
-     * status of last write ...
-     */
-    if (p->mode == BUFFER_COMMAND_CHANNEL) {
-        unsigned int n;
+	/*
+	 * If channel is command channel, name will be used as write. Return only
+	 * status of last write ...
+	 */
+	if (p->mode == BUFFER_COMMAND_CHANNEL) {
+		unsigned int n;
 
-        for (n = 0; n < length; n++)
-            status = vdrive_iec_write(vdrive, name[n], secondary);
+		for (n = 0; n < length; n++)
+			status = vdrive_iec_write(vdrive, name[n], secondary);
 
-        if (length)
-            p->readmode = CBMDOS_FAM_WRITE;
-        else
-            p->readmode = CBMDOS_FAM_READ;
-        return status;
-    }
+		if (length)
+			p->readmode = CBMDOS_FAM_WRITE;
+		else
+			p->readmode = CBMDOS_FAM_READ;
+		return status;
+	}
 
-    /*
-     * Clear error flag
-     */
-    vdrive_command_set_error(vdrive, CBMDOS_IPE_OK, 0, 0);
+	/*
+	 * Clear error flag
+	 */
+	vdrive_command_set_error(vdrive, CBMDOS_IPE_OK, 0, 0);
 
-    /*
-     * In use ?
-     */
-    if (p->mode != BUFFER_NOT_IN_USE) {
+	/*
+	 * In use ?
+	 */
+	if (p->mode != BUFFER_NOT_IN_USE) {
 #ifdef DEBUG_DRIVE
-        log_debug("Cannot open channel %d. Mode is %d.", secondary, p->mode);
+		log_debug("Cannot open channel %d. Mode is %d.", secondary, p->mode);
 #endif
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_CHANNEL, 0, 0);
-        return SERIAL_ERROR;
-    }
+		vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_CHANNEL, 0, 0);
+		return SERIAL_ERROR;
+	}
 
-    if (cmd_parse_ext == NULL) {
-        cmd_parse->cmd = name;
-        cmd_parse->cmdlength = length;
-        cmd_parse->secondary = secondary;
-        /* make sure this is zero, since it isn't set below */
-        cmd_parse->recordlength = 0;
+	if (cmd_parse_ext == NULL) {
+		cmd_parse->cmd = name;
+		cmd_parse->cmdlength = length;
+		cmd_parse->secondary = secondary;
+		/* make sure this is zero, since it isn't set below */
+		cmd_parse->recordlength = 0;
 
-        rc = cbmdos_command_parse(cmd_parse);
+		rc = cbmdos_command_parse(cmd_parse);
 
-        if (rc != CBMDOS_IPE_OK) {
-            status = SERIAL_ERROR;
-            goto out;
-        }
+		if (rc != CBMDOS_IPE_OK) {
+			status = SERIAL_ERROR;
+			goto out;
+		}
 #ifdef DEBUG_DRIVE
-        log_debug("Raw file name: `%s', length: %i.", name, length);
-        log_debug("Parsed file name: `%s', reallength: %i.",
-                  cmd_parse->parsecmd, cmd_parse->parselength);
+		log_debug("Raw file name: `%s', length: %i.", name, length);
+		log_debug("Parsed file name: `%s', reallength: %i.",
+				cmd_parse->parsecmd, cmd_parse->parselength);
 #endif
-    }
+	}
 
-    /* Limit file name to 16 chars.  */
-    if (cmd_parse->parselength > 16)
-        cmd_parse->parselength = 16;
+	/* Limit file name to 16 chars.  */
+	if (cmd_parse->parselength > 16)
+		cmd_parse->parselength = 16;
 
-    /*
-     * Internal buffer ?
-     */
-    if (*name == '#') {
-        p->mode = BUFFER_MEMORY_BUFFER;
-        p->buffer = lib_malloc(256);
-        /* clear out buffer */
-        memset(p->buffer, 0, 256);
-        /* the pointer is actually 1 on the real drives. */
-        /* this probably relates to the B-R and B-W commands. */
-        /* 1541 firmware: $cb84 - open channel, $cc0f bp = 1 */
-        p->bufptr = 1;
-        /* we need a length to support the original B-R and B-W
-           commands. */
-        p->length = 256;
-        status = SERIAL_OK;
-        goto out;
-    }
+	/*
+	 * Internal buffer ?
+	 */
+	if (*name == '#') {
+		p->mode = BUFFER_MEMORY_BUFFER;
+		p->buffer = lib_malloc(256);
+		/* clear out buffer */
+		memset(p->buffer, 0, 256);
+		/* the pointer is actually 1 on the real drives. */
+		/* this probably relates to the B-R and B-W commands. */
+		/* 1541 firmware: $cb84 - open channel, $cc0f bp = 1 */
+		p->bufptr = 1;
+		/* we need a length to support the original B-R and B-W
+		   commands. */
+		p->length = 256;
+		status = SERIAL_OK;
+		goto out;
+	}
 
-    /* Clear update flag */
-    p->needsupdate = 0;
+	/* Clear update flag */
+	p->needsupdate = 0;
 
-    /*
-     * Directory read
-     * A little-known feature of the 1541: open 1,8,2,"$" (or even 1,8,1).
-     * It gives you the BAM+DIR as a sequential file, containing the data
-     * just as it appears on disk.  -Olaf Seibert
-     */
+	/*
+	 * Directory read
+	 * A little-known feature of the 1541: open 1,8,2,"$" (or even 1,8,1).
+	 * It gives you the BAM+DIR as a sequential file, containing the data
+	 * just as it appears on disk.  -Olaf Seibert
+	 */
 
-    if (*name == '$') {
-        status = iec_open_read_directory(vdrive, secondary, cmd_parse);
-        goto out;
-    }
+	if (*name == '$') {
+		status = iec_open_read_directory(vdrive, secondary, cmd_parse);
+		goto out;
+	}
 
-    /*
-     * Check that there is room on directory.
-     */
-    if (cmd_parse->readmode == CBMDOS_FAM_READ
-        || cmd_parse->readmode == CBMDOS_FAM_APPEND)
-        opentype = cmd_parse->filetype;
-    else
-        opentype = CBMDOS_FT_DEL;
+	/*
+	 * Check that there is room on directory.
+	 */
+	if (cmd_parse->readmode == CBMDOS_FAM_READ
+			|| cmd_parse->readmode == CBMDOS_FAM_APPEND)
+		opentype = cmd_parse->filetype;
+	else
+		opentype = CBMDOS_FT_DEL;
 
-    vdrive_dir_find_first_slot(vdrive, cmd_parse->parsecmd,
-                               cmd_parse->parselength, opentype);
+	vdrive_dir_find_first_slot(vdrive, cmd_parse->parsecmd,
+			cmd_parse->parselength, opentype);
 
-    /*
-     * Find the first non-DEL entry in the directory (if it exists).
-     */
-    do
-        slot = vdrive_dir_find_next_slot(vdrive);
-    while (slot && ((slot[SLOT_TYPE_OFFSET] & 0x07) == CBMDOS_FT_DEL));
+	/*
+	 * Find the first non-DEL entry in the directory (if it exists).
+	 */
+	do
+		slot = vdrive_dir_find_next_slot(vdrive);
+	while (slot && ((slot[SLOT_TYPE_OFFSET] & 0x07) == CBMDOS_FT_DEL));
 
-    p->readmode = cmd_parse->readmode;
-    p->slot = slot;
+	p->readmode = cmd_parse->readmode;
+	p->slot = slot;
 
-    /* Call REL function if we are creating OR opening one */
-    if (cmd_parse->filetype == CBMDOS_FT_REL ||
-        ( slot && (slot[SLOT_TYPE_OFFSET] & 0x07) == CBMDOS_FT_REL) ) {
-    /* Make sure the record length of the opening command is the same as
-       the record length in the directory slot, if not DOS ERROR 50 */
-       if (slot && cmd_parse->recordlength > 0 &&
-           slot[SLOT_RECORD_LENGTH] != cmd_parse->recordlength) {
-           vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_RECORD, 0, 0);
-           status = SERIAL_ERROR;
-           goto out;
-       }
-       /* At this point the record lengths are the same (or will be), so set
-           them equal. */
-       if (slot)
-           cmd_parse->recordlength = slot[SLOT_RECORD_LENGTH];
-       status = vdrive_rel_open(vdrive, secondary, cmd_parse, name);
-       goto out;
-    }
+	/* Call REL function if we are creating OR opening one */
+	if (cmd_parse->filetype == CBMDOS_FT_REL ||
+			( slot && (slot[SLOT_TYPE_OFFSET] & 0x07) == CBMDOS_FT_REL) ) {
+		/* Make sure the record length of the opening command is the same as
+		   the record length in the directory slot, if not DOS ERROR 50 */
+		if (slot && cmd_parse->recordlength > 0 &&
+				slot[SLOT_RECORD_LENGTH] != cmd_parse->recordlength) {
+			vdrive_command_set_error(vdrive, CBMDOS_IPE_NO_RECORD, 0, 0);
+			status = SERIAL_ERROR;
+			goto out;
+		}
+		/* At this point the record lengths are the same (or will be), so set
+		   them equal. */
+		if (slot)
+			cmd_parse->recordlength = slot[SLOT_RECORD_LENGTH];
+		status = vdrive_rel_open(vdrive, secondary, cmd_parse, name);
+		goto out;
+	}
 
-    if (cmd_parse->readmode == CBMDOS_FAM_READ)
-        status = iec_open_read(vdrive, secondary);
-    else
-        status = iec_open_write(vdrive, secondary, cmd_parse, name);
+	if (cmd_parse->readmode == CBMDOS_FAM_READ)
+		status = iec_open_read(vdrive, secondary);
+	else
+		status = iec_open_write(vdrive, secondary, cmd_parse, name);
 
 out:
-    lib_free(cmd_parse->parsecmd);
-    return status;
+	lib_free(cmd_parse->parsecmd);
+	return status;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -632,99 +627,106 @@ static int iec_close_sequential(vdrive_t *vdrive, unsigned int secondary)
 
 int vdrive_iec_close(vdrive_t *vdrive, unsigned int secondary)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
-    int status = SERIAL_OK;
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	int status = SERIAL_OK;
 
 #ifdef __riscos
-    archdep_set_drive_leds(vdrive->unit - 8, 0);
+	archdep_set_drive_leds(vdrive->unit - 8, 0);
 #endif
 
-    switch (p->mode) {
-      case BUFFER_NOT_IN_USE:
-        return SERIAL_OK; /* FIXME: Is this correct? */
+	switch (p->mode)
+	{
+		case BUFFER_NOT_IN_USE:
+			return SERIAL_OK; /* FIXME: Is this correct? */
 
-      case BUFFER_MEMORY_BUFFER:
-      case BUFFER_DIRECTORY_READ:
-        lib_free((char *)p->buffer);
-        p->mode = BUFFER_NOT_IN_USE;
-        p->buffer = NULL;
-        p->slot = NULL;
-        break;
-      case BUFFER_SEQUENTIAL:
-        status = iec_close_sequential(vdrive, secondary);
-        break;
-      case BUFFER_RELATIVE:
-        status = vdrive_rel_close(vdrive, secondary);
-        break;
-      case BUFFER_COMMAND_CHANNEL:
-        /* I'm not sure if this is correct, but really closing the buffer
-           should reset the read pointer to the beginning for the next
-           write! */
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_OK, 0, 0);
-        /* this breaks any rel file access if the command channel is closed
-            when the record is changed. Removed for now.*/
-/*        vdrive_close_all_channels(vdrive); */
-        break;
-      default:
-        log_error(vdrive_iec_log, "Fatal: unknown floppy-close-mode: %i.",
-                  p->mode);
-    }
+		case BUFFER_MEMORY_BUFFER:
+		case BUFFER_DIRECTORY_READ:
+			lib_free((char *)p->buffer);
+			p->mode = BUFFER_NOT_IN_USE;
+			p->buffer = NULL;
+			p->slot = NULL;
+			break;
+		case BUFFER_SEQUENTIAL:
+			status = iec_close_sequential(vdrive, secondary);
+			break;
+		case BUFFER_RELATIVE:
+			status = vdrive_rel_close(vdrive, secondary);
+			break;
+		case BUFFER_COMMAND_CHANNEL:
+			/* I'm not sure if this is correct, but really closing the buffer
+			   should reset the read pointer to the beginning for the next
+			   write! */
+			vdrive_command_set_error(vdrive, CBMDOS_IPE_OK, 0, 0);
+			/* this breaks any rel file access if the command channel is closed
+			   when the record is changed. Removed for now.*/
+			/*        vdrive_close_all_channels(vdrive); */
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("FATAL: unknown floppy-close-mode: %i.\n", p->mode);
+#endif
+			break;
+	}
 
-    return status;
+	return status;
 }
 
 /* ------------------------------------------------------------------------- */
 
-static int iec_read_sequential(vdrive_t *vdrive, BYTE *data,
-                               unsigned int secondary)
+static int iec_read_sequential(vdrive_t *vdrive, BYTE *data, unsigned int secondary)
 {
-    bufferinfo_t *p = &(vdrive->buffers[secondary]);
+	bufferinfo_t *p = &(vdrive->buffers[secondary]);
 
-    if (p->readmode != CBMDOS_FAM_READ)
-        return SERIAL_ERROR;
+	if (p->readmode != CBMDOS_FAM_READ)
+		return SERIAL_ERROR;
 
-    /*
-     * Read next block if needed
-     */
-    if (p->buffer[0]) {
-        if (p->bufptr >= 256) {
-            int status;
-            unsigned int track, sector;
+	/*
+	 * Read next block if needed
+	 */
+	if (p->buffer[0])
+	{
+		if (p->bufptr >= 256)
+		{
+			int status;
+			unsigned int track, sector;
 
-            track = (unsigned int)p->buffer[0];
-            sector = (unsigned int)p->buffer[1];
+			track = (unsigned int)p->buffer[0];
+			sector = (unsigned int)p->buffer[1];
 
-            status = disk_image_read_sector(vdrive->image, p->buffer,
-                                                track, sector);
-            vdrive_set_last_read(track, sector, p->buffer);
+			status = disk_image_read_sector(vdrive->image, p->buffer,
+					track, sector);
+			vdrive_set_last_read(track, sector, p->buffer);
 
-            if (status == 0) {
-                p->bufptr = 2;
-            } else {
-                *data = 0xc7;
-                return SERIAL_EOF;
-            }
-        }
-    } else {
-        if (p->bufptr > p->buffer[1]) {
-            *data = 0xc7;
+			if (status == 0)
+				p->bufptr = 2;
+			else
+			{
+				*data = 0xc7;
+				return SERIAL_EOF;
+			}
+		}
+	}
+	else
+	{
+		if (p->bufptr > p->buffer[1])
+		{
+			*data = 0xc7;
 #ifdef DEBUG_DRIVE
-            if (p->mode == BUFFER_COMMAND_CHANNEL)
-                log_debug("Disk read  %d [%02d %02d] data %02x (%c).",
-                          p->mode, 0, 0, *data, (isprint(*data)
-                          ? *data : '.'));
+			if (p->mode == BUFFER_COMMAND_CHANNEL)
+				log_debug("Disk read  %d [%02d %02d] data %02x (%c).",
+						p->mode, 0, 0, *data, (isprint(*data)
+							? *data : '.'));
 #endif
-            return SERIAL_EOF;
-        }
-    }
+			return SERIAL_EOF;
+		}
+	}
 
-    *data = p->buffer[p->bufptr];
-    p->bufptr++;
-    if (!p->buffer[0] && p->bufptr > p->buffer[1]) {
-        return SERIAL_EOF;
-    }
+	*data = p->buffer[p->bufptr];
+	p->bufptr++;
+	if (!p->buffer[0] && p->bufptr > p->buffer[1])
+		return SERIAL_EOF;
 
-    return SERIAL_OK;
+	return SERIAL_OK;
 }
 
 int vdrive_iec_read(vdrive_t *vdrive, BYTE *data, unsigned int secondary)
@@ -732,71 +734,75 @@ int vdrive_iec_read(vdrive_t *vdrive, BYTE *data, unsigned int secondary)
     bufferinfo_t *p = &(vdrive->buffers[secondary]);
     int status = SERIAL_OK;
 
-    switch (p->mode) {
-      case BUFFER_NOT_IN_USE:
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_OPEN, 0, 0);
-        return SERIAL_ERROR;
+    switch (p->mode)
+    {
+	    case BUFFER_NOT_IN_USE:
+		    vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_OPEN, 0, 0);
+		    return SERIAL_ERROR;
 
-      case BUFFER_DIRECTORY_READ:
-        if (p->bufptr >= p->length) {
-            *data = 0xc7;
+	    case BUFFER_DIRECTORY_READ:
+		    if (p->bufptr >= p->length) {
+			    *data = 0xc7;
 #ifdef DEBUG_DRIVE
-            if (p->mode == BUFFER_COMMAND_CHANNEL)
-                log_debug("Disk read  %d [%02d %02d] data %02x (%c).",
-                          p->mode, 0, 0, *data, (isprint(*data) ? *data : '.'));
+			    if (p->mode == BUFFER_COMMAND_CHANNEL)
+				    log_debug("Disk read  %d [%02d %02d] data %02x (%c).",
+						    p->mode, 0, 0, *data, (isprint(*data) ? *data : '.'));
 #endif
-            return SERIAL_EOF;
-        }
-        *data = p->buffer[p->bufptr];
-        p->bufptr++;
-        if (p->bufptr >= p->length) {
-            status = SERIAL_EOF;
-        }
-        break;
+			    return SERIAL_EOF;
+		    }
+		    *data = p->buffer[p->bufptr];
+		    p->bufptr++;
+		    if (p->bufptr >= p->length) {
+			    status = SERIAL_EOF;
+		    }
+		    break;
 
-      case BUFFER_MEMORY_BUFFER:
-        *data = p->buffer[p->bufptr];
-        p->bufptr++;
-        if (p->bufptr >= p->length) {
-            /* Buffer pointer resets to 1, not 0. */
-            p->bufptr = 1;
-            status = SERIAL_EOF;
-        }
-        break;
+	    case BUFFER_MEMORY_BUFFER:
+		    *data = p->buffer[p->bufptr];
+		    p->bufptr++;
+		    if (p->bufptr >= p->length) {
+			    /* Buffer pointer resets to 1, not 0. */
+			    p->bufptr = 1;
+			    status = SERIAL_EOF;
+		    }
+		    break;
 
-      case BUFFER_SEQUENTIAL:
-        status = iec_read_sequential(vdrive, data, secondary);
-        break;
+	    case BUFFER_SEQUENTIAL:
+		    status = iec_read_sequential(vdrive, data, secondary);
+		    break;
 
-      case BUFFER_COMMAND_CHANNEL:
-        if (p->bufptr > p->length) {
-            vdrive_command_set_error(vdrive, CBMDOS_IPE_OK, 0, 0);
+	    case BUFFER_COMMAND_CHANNEL:
+		    if (p->bufptr > p->length) {
+			    vdrive_command_set_error(vdrive, CBMDOS_IPE_OK, 0, 0);
 #if 0
 #ifdef DEBUG_DRIVE
-            log_debug("End of buffer in command channel.");
+			    log_debug("End of buffer in command channel.");
 #endif
-            *data = 0xc7;
+			    *data = 0xc7;
 #ifdef DEBUG_DRIVE
-            if (p->mode == BUFFER_COMMAND_CHANNEL)
-                log_debug("Disk read  %d [%02d %02d] data %02x (%c).",
-                          p->mode, 0, 0, *data, (isprint(*data) ? *data : '.'));
+			    if (p->mode == BUFFER_COMMAND_CHANNEL)
+				    log_debug("Disk read  %d [%02d %02d] data %02x (%c).",
+						    p->mode, 0, 0, *data, (isprint(*data) ? *data : '.'));
 #endif
-            return SERIAL_EOF;
+			    return SERIAL_EOF;
 #endif
-        }
-        *data = p->buffer[p->bufptr];
-        p->bufptr++;
-        if (p->bufptr > p->length) {
-            status = SERIAL_EOF;
-        }
-        break;
+		    }
+		    *data = p->buffer[p->bufptr];
+		    p->bufptr++;
+		    if (p->bufptr > p->length) {
+			    status = SERIAL_EOF;
+		    }
+		    break;
 
-      case BUFFER_RELATIVE:
-        status = vdrive_rel_read(vdrive, data, secondary);
-        break;
+	    case BUFFER_RELATIVE:
+		    status = vdrive_rel_read(vdrive, data, secondary);
+		    break;
 
-      default:
-        log_error(vdrive_iec_log, "Fatal: unknown buffermode on floppy-read.");
+	    default:
+#ifdef CELL_DEBUG
+		    printf("FATAL: unknown buffermode on floppy-read.\n");
+#endif
+		    break;
     }
 
 #ifdef DEBUG_DRIVE
@@ -824,50 +830,53 @@ int vdrive_iec_write(vdrive_t *vdrive, BYTE data, unsigned int secondary)
                   p->mode, 0, 0, data, (isprint(data) ? data : '.') );
 #endif
 
-    switch (p->mode) {
-      case BUFFER_NOT_IN_USE:
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_OPEN, 0, 0);
-        return SERIAL_ERROR;
-      case BUFFER_DIRECTORY_READ:
-        vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_WRITE, 0, 0);
-        return SERIAL_ERROR;
-      case BUFFER_MEMORY_BUFFER:
-        p->buffer[p->bufptr] = data;
-        p->bufptr++;
-        if (p->bufptr >= p->length)
-        {
-            /* On writes, buffer pointer resets to 0. */
-            p->bufptr = 0;
-        }
-        return SERIAL_OK;
-      case BUFFER_SEQUENTIAL:
-        if (p->readmode == CBMDOS_FAM_READ)
-            return SERIAL_ERROR;
+    switch (p->mode)
+    {
+	    case BUFFER_NOT_IN_USE:
+		    vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_OPEN, 0, 0);
+		    return SERIAL_ERROR;
+	    case BUFFER_DIRECTORY_READ:
+		    vdrive_command_set_error(vdrive, CBMDOS_IPE_NOT_WRITE, 0, 0);
+		    return SERIAL_ERROR;
+	    case BUFFER_MEMORY_BUFFER:
+		    p->buffer[p->bufptr] = data;
+		    p->bufptr++;
+		    if (p->bufptr >= p->length)
+		    {
+			    /* On writes, buffer pointer resets to 0. */
+			    p->bufptr = 0;
+		    }
+		    return SERIAL_OK;
+	    case BUFFER_SEQUENTIAL:
+		    if (p->readmode == CBMDOS_FAM_READ)
+			    return SERIAL_ERROR;
 
-        if (p->bufptr >= 256) {
-            p->bufptr = 2;
-            if (iec_write_sequential(vdrive, p, WRITE_BLOCK) < 0)
-                return SERIAL_ERROR;
-        }
-        p->buffer[p->bufptr] = data;
-        p->bufptr++;
-        break;
-      case BUFFER_COMMAND_CHANNEL:
-        if (p->readmode == CBMDOS_FAM_READ) {
-            p->bufptr = 0;
-            p->readmode = CBMDOS_FAM_WRITE;
-        }
-        if (p->bufptr >= 256) /* Limits checked later */
-            return SERIAL_ERROR;
-        p->buffer[p->bufptr] = data;
-        p->bufptr++;
-        break;
-      case BUFFER_RELATIVE:
-        return vdrive_rel_write(vdrive, data, secondary);
-        break;
-      default:
-        log_error(vdrive_iec_log, "Fatal: Unknown write mode.");
-        exit(-1);
+		    if (p->bufptr >= 256) {
+			    p->bufptr = 2;
+			    if (iec_write_sequential(vdrive, p, WRITE_BLOCK) < 0)
+				    return SERIAL_ERROR;
+		    }
+		    p->buffer[p->bufptr] = data;
+		    p->bufptr++;
+		    break;
+	    case BUFFER_COMMAND_CHANNEL:
+		    if (p->readmode == CBMDOS_FAM_READ) {
+			    p->bufptr = 0;
+			    p->readmode = CBMDOS_FAM_WRITE;
+		    }
+		    if (p->bufptr >= 256) /* Limits checked later */
+			    return SERIAL_ERROR;
+		    p->buffer[p->bufptr] = data;
+		    p->bufptr++;
+		    break;
+	    case BUFFER_RELATIVE:
+		    return vdrive_rel_write(vdrive, data, secondary);
+		    break;
+	    default:
+#ifdef CELL_DEBUG
+		    printf("FATAL: Unknown write mode.\n");
+#endif
+		    exit(-1);
     }
     return SERIAL_OK;
 }

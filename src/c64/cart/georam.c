@@ -87,7 +87,6 @@
 #include "cartridge.h"
 #include "cmdline.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "mem.h"
 #include "resources.h"
@@ -109,8 +108,6 @@ static BYTE georam[2];
 /* GEORAM image.  */
 static BYTE *georam_ram = NULL;
 static int old_georam_ram_size = 0;
-
-static log_t georam_log = LOG_ERR;
 
 static int georam_activate(void);
 static int georam_deactivate(void);
@@ -203,116 +200,140 @@ static const c64export_resource_t export_res= {
 
 static int georam_activate(void)
 {
-    if (!georam_size) {
-        return 0;
-    }
+	if (!georam_size)
+		return 0;
 
-    georam_ram = lib_realloc((void *)georam_ram, (size_t)georam_size);
+	georam_ram = lib_realloc((void *)georam_ram, (size_t)georam_size);
 
-    /* Clear newly allocated RAM.  */
-    if (georam_size > old_georam_ram_size) {
-        memset(georam_ram, 0, (size_t)(georam_size - old_georam_ram_size));
-    }
+	/* Clear newly allocated RAM.  */
+	if (georam_size > old_georam_ram_size)
+		memset(georam_ram, 0, (size_t)(georam_size - old_georam_ram_size));
 
-    old_georam_ram_size = georam_size;
+	old_georam_ram_size = georam_size;
 
-    log_message(georam_log, "%dKB unit installed.", georam_size >> 10);
+#ifdef CELL_DEBUG
+	printf("INFO: %dKB unit installed.\n", georam_size >> 10);
+#endif
 
-    if (!util_check_null_string(georam_filename)) {
-        if (util_file_load(georam_filename, georam_ram, (size_t)georam_size, UTIL_FILE_LOAD_RAW) < 0) {
-            log_message(georam_log, "Reading GEORAM image %s failed.", georam_filename);
-            if (util_file_save(georam_filename, georam_ram, georam_size) < 0) {
-                log_message(georam_log, "Creating GEORAM image %s failed.", georam_filename);
-                return -1;
-            }
-            log_message(georam_log, "Creating GEORAM image %s.", georam_filename);
-            return 0;
-        }
-        log_message(georam_log, "Reading GEORAM image %s.", georam_filename);
-    }
+	if (!util_check_null_string(georam_filename))
+	{
+		if (util_file_load(georam_filename, georam_ram, (size_t)georam_size, UTIL_FILE_LOAD_RAW) < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: Reading GEORAM image %s failed.\n", georam_filename);
+			#endif
+			if (util_file_save(georam_filename, georam_ram, georam_size) < 0)
+			{
+				#ifdef CELL_DEBUG
+				printf("INFO: Creating GEORAM image %s failed.\n", georam_filename);
+				#endif
+				return -1;
+			}
+			#ifdef CELL_DEBUG
+			printf("INFO: Creating GEORAM image %s.\n", georam_filename);
+			#endif
+			return 0;
+		}
+		#ifdef CELL_DEBUG
+		printf("INFO: Reading GEORAM image %s.\n", georam_filename);
+		#endif
+	}
 
-    georam_reset();
-    return 0;
+	georam_reset();
+	return 0;
 }
 
 static int georam_deactivate(void)
 {
-    if (georam_ram == NULL) {
-        return 0;
-    }
+	if (georam_ram == NULL)
+		return 0;
 
-    if (!util_check_null_string(georam_filename)) {
-        if (util_file_save(georam_filename, georam_ram, georam_size) < 0) {
-            log_message(georam_log, "Writing GEORAM image %s failed.", georam_filename);
-            return -1;
-        }
-        log_message(georam_log, "Writing GEORAM image %s.", georam_filename);
-    }
+	if (!util_check_null_string(georam_filename))
+	{
+		if (util_file_save(georam_filename, georam_ram, georam_size) < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: Writing GEORAM image %s failed.\n", georam_filename);
+			#endif
+			return -1;
+		}
+		#ifdef CELL_DEBUG
+		printf("INFO: Writing GEORAM image %s.\n", georam_filename);
+		#endif
+	}
 
-    lib_free(georam_ram);
-    georam_ram = NULL;
-    old_georam_ram_size = 0;
+	lib_free(georam_ram);
+	georam_ram = NULL;
+	old_georam_ram_size = 0;
 
-    return 0;
+	return 0;
 }
 
 static int set_georam_enabled(int val, void *param)
 {
-    if (georam_enabled && !val) {
-        if (georam_deactivate() < 0) {
-            return -1;
-        }
-        c64io_unregister(georam_io1_list_item);
-        c64io_unregister(georam_io2_list_item);
-        georam_io1_list_item = NULL;
-        georam_io2_list_item = NULL;
-        c64export_remove(&export_res);
-        georam_enabled = 0;
-    } if (!georam_enabled && val) {
-        if (georam_activate() < 0) {
-            return -1;
-        }
-        if (c64export_add(&export_res) < 0) {
-            return -1;
-        }
-        georam_io1_list_item = c64io_register(&georam_io1_device);
-        georam_io2_list_item = c64io_register(&georam_io2_device);
-        georam_enabled = 1;
-    }
-    return 0;
+	if (georam_enabled && !val)
+	{
+		if (georam_deactivate() < 0)
+			return -1;
+
+		c64io_unregister(georam_io1_list_item);
+		c64io_unregister(georam_io2_list_item);
+		georam_io1_list_item = NULL;
+		georam_io2_list_item = NULL;
+		c64export_remove(&export_res);
+		georam_enabled = 0;
+	}
+	if (!georam_enabled && val)
+	{
+		if (georam_activate() < 0)
+			return -1;
+
+		if (c64export_add(&export_res) < 0)
+			return -1;
+
+		georam_io1_list_item = c64io_register(&georam_io1_device);
+		georam_io2_list_item = c64io_register(&georam_io2_device);
+		georam_enabled = 1;
+	}
+	return 0;
 }
 
 static int set_georam_size(int val, void *param)
 {
-    if (val == georam_size_kb) {
-        return 0;
-    }
+	if (val == georam_size_kb)
+		return 0;
 
-    switch (val) {
-        case 64:
-        case 128:
-        case 256:
-        case 512:
-        case 1024:
-        case 2048:
-        case 4096:
-            break;
-        default:
-            log_message(georam_log, "Unknown GEORAM size %d.", val);
-            return -1;
-    }
+	switch (val)
+	{
+		case 64:
+		case 128:
+		case 256:
+		case 512:
+		case 1024:
+		case 2048:
+		case 4096:
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("INFO: Unknown GEORAM size %d.\n", val);
+#endif
+			return -1;
+	}
 
-    if (georam_enabled) {
-        georam_deactivate();
-        georam_size_kb = val;
-        georam_size = georam_size_kb << 10;
-        georam_activate();
-    } else {
-        georam_size_kb = val;
-        georam_size = georam_size_kb << 10;
-    }
+	if (georam_enabled)
+	{
+		georam_deactivate();
+		georam_size_kb = val;
+		georam_size = georam_size_kb << 10;
+		georam_activate();
+	}
+	else
+	{
+		georam_size_kb = val;
+		georam_size = georam_size_kb << 10;
+	}
 
-    return 0;
+	return 0;
 }
 
 static int set_georam_filename(const char *name, void *param)
@@ -408,7 +429,6 @@ const char *georam_get_file_name(void)
 
 void georam_init(void)
 {
-    georam_log = log_open("GEORAM");
 }
 
 void georam_reset(void)
@@ -462,46 +482,48 @@ int georam_write_snapshot_module(snapshot_t *s)
 
 int georam_read_snapshot_module(snapshot_t *s)
 {
-    BYTE major_version, minor_version;
-    snapshot_module_t *m;
-    DWORD size;
+	BYTE major_version, minor_version;
+	snapshot_module_t *m;
+	DWORD size;
 
-    m = snapshot_module_open(s, snap_module_name, &major_version, &minor_version);
-    if (m == NULL) {
-        return -1;
-    }
+	m = snapshot_module_open(s, snap_module_name, &major_version, &minor_version);
+	if (m == NULL)
+		return -1;
 
-    if (major_version != SNAP_MAJOR) {
-        log_error(georam_log, "Major version %d not valid; should be %d.", major_version, SNAP_MAJOR);
-        goto fail;
-    }
+	if (major_version != SNAP_MAJOR)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Major version %d not valid; should be %d.\n", major_version, SNAP_MAJOR);
+		#endif
+		goto fail;
+	}
 
-    /* Read RAM size.  */
-    if (SMR_DW(m, &size) < 0) {
-        goto fail;
-    }
+	/* Read RAM size.  */
+	if (SMR_DW(m, &size) < 0)
+		goto fail;
 
-    if (size > 4096) {
-        log_error(georam_log, "Size %d in snapshot not supported.", (int)size);
-        goto fail;
-    }
+	if (size > 4096)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Size %d in snapshot not supported.\n", (int)size);
+		#endif
+		goto fail;
+	}
 
-    set_georam_size((int)size, NULL);
+	set_georam_size((int)size, NULL);
 
-    if (!georam_enabled) {
-        set_georam_enabled(1, NULL);
-    }
+	if (!georam_enabled)
+		set_georam_enabled(1, NULL);
 
-    if (SMR_BA(m, georam, sizeof(georam)) < 0 || SMR_BA(m, georam_ram, georam_size) < 0) {
-        goto fail;
-    }
+	if (SMR_BA(m, georam, sizeof(georam)) < 0 || SMR_BA(m, georam_ram, georam_size) < 0)
+		goto fail;
 
-    snapshot_module_close(m);
-    georam_enabled = 1;
-    return 0;
+	snapshot_module_close(m);
+	georam_enabled = 1;
+	return 0;
 
 fail:
-    snapshot_module_close(m);
-    georam_enabled = 0;
-    return -1;
+	snapshot_module_close(m);
+	georam_enabled = 0;
+	return -1;
 }

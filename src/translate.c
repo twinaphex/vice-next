@@ -39,7 +39,6 @@
 #endif
 
 #include "lib.h"
-#include "log.h"
 #include "resources.h"
 #include "translate.h"
 #include "util.h"
@@ -259,53 +258,53 @@ char translate_id_error_text[30];
 
 char *translate_text(int en_resource)
 {
-  unsigned int i;
-  char *retval = NULL;
+	unsigned int i;
+	char *retval = NULL;
 
-  if (en_resource == IDCLS_UNUSED)
-      return NULL;
+	if (en_resource == IDCLS_UNUSED)
+		return NULL;
 
-  if (en_resource == 0)
-  {
-    log_error(LOG_DEFAULT, "TRANSLATE ERROR: ID 0 was requested.");
-    return "ID 0 translate error";
-  }
+	if (en_resource == 0)
+	{
+		//log_error(LOG_DEFAULT, "TRANSLATE ERROR: ID 0 was requested.");
+		return "ID 0 translate error";
+	}
 
-  /* handle sid cmdline special case translations */
-  if (en_resource == IDCLS_SPECIFY_SIDCART_ENGINE_MODEL ||
-      en_resource == IDCLS_SPECIFY_SID_ENGINE_MODEL ||
-      en_resource == IDCLS_SPECIFY_SIDDTV_ENGINE_MODEL) {
-      return translate_and_build_sid_cmdline_option(en_resource);
-  }
+	/* handle sid cmdline special case translations */
+	if (en_resource == IDCLS_SPECIFY_SIDCART_ENGINE_MODEL ||
+			en_resource == IDCLS_SPECIFY_SID_ENGINE_MODEL ||
+			en_resource == IDCLS_SPECIFY_SIDDTV_ENGINE_MODEL) {
+		return translate_and_build_sid_cmdline_option(en_resource);
+	}
 
-  if (en_resource < 0x10000)
-  {
-    retval = intl_translate_text(en_resource);
-  }
-  else
-  {
-    for (i = 0; i < countof(translate_text_table); i++)
-    {
-      if (translate_text_table[i][0] == en_resource)
-      {
-        if (translate_text_table[i][current_language_index]!=0 &&
-            text_table[i][current_language_index]!=NULL &&
-            strlen(text_table[i][current_language_index])!=0)
-          retval = text_table[i][current_language_index];
-        else
-          retval = text_table[i][0];
-      }
-    }
-  }
+	if (en_resource < 0x10000)
+	{
+		retval = intl_translate_text(en_resource);
+	}
+	else
+	{
+		for (i = 0; i < countof(translate_text_table); i++)
+		{
+			if (translate_text_table[i][0] == en_resource)
+			{
+				if (translate_text_table[i][current_language_index]!=0 &&
+						text_table[i][current_language_index]!=NULL &&
+						strlen(text_table[i][current_language_index])!=0)
+					retval = text_table[i][current_language_index];
+				else
+					retval = text_table[i][0];
+			}
+		}
+	}
 
-  if (retval == NULL)
-  {
-    log_error(LOG_DEFAULT, "TRANSLATE ERROR: ID %d was requested, and would be returning NULL.",en_resource);
-    sprintf(translate_id_error_text,"ID %d translate error",en_resource);
-    retval = translate_id_error_text;
-  }
+	if (retval == NULL)
+	{
+		//log_error(LOG_DEFAULT, "TRANSLATE ERROR: ID %d was requested, and would be returning NULL.",en_resource);
+		sprintf(translate_id_error_text,"ID %d translate error",en_resource);
+		retval = translate_id_error_text;
+	}
 
-  return retval;
+	return retval;
 }
 
 int translate_res(int en_resource)
@@ -397,22 +396,22 @@ void translate_arch_language_init(void)
 
 char *translate_text(int en_resource)
 {
-  if (en_resource == IDCLS_UNUSED)
-      return NULL;
+	if (en_resource == IDCLS_UNUSED)
+		return NULL;
 
-  if (en_resource == 0)
-  {
-    log_error(LOG_DEFAULT, "TRANSLATE ERROR: ID 0 was requested.");
-    return "ID 0 translate error";
-  }
+	if (en_resource == 0)
+	{
+		//log_error(LOG_DEFAULT, "TRANSLATE ERROR: ID 0 was requested.");
+		return "ID 0 translate error";
+	}
 
-  /* handle sid cmdline special case translations */
-  if (en_resource == IDCLS_SPECIFY_SIDCART_ENGINE_MODEL ||
-      en_resource == IDCLS_SPECIFY_SID_ENGINE_MODEL ||
-      en_resource == IDCLS_SPECIFY_SIDDTV_ENGINE_MODEL) {
-      return translate_and_build_sid_cmdline_option(en_resource);
-  }
+	/* handle sid cmdline special case translations */
+	if (en_resource == IDCLS_SPECIFY_SIDCART_ENGINE_MODEL ||
+			en_resource == IDCLS_SPECIFY_SID_ENGINE_MODEL ||
+			en_resource == IDCLS_SPECIFY_SIDDTV_ENGINE_MODEL) {
+		return translate_and_build_sid_cmdline_option(en_resource);
+	}
 
-  return _(get_string_by_id(en_resource));
+	return _(get_string_by_id(en_resource));
 }
 #endif

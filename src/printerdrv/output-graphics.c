@@ -31,7 +31,6 @@
 #include <string.h>
 
 #include "lib.h"
-#include "log.h"
 #include "cmdline.h"
 #include "gfxoutput.h"
 #include "output-select.h"
@@ -95,38 +94,41 @@ int output_graphics_init_cmdline_options(void)
 static void output_graphics_line_data(screenshot_t *screenshot, BYTE *data,
                                       unsigned int line, unsigned int mode)
 {
-    unsigned int i;
-    BYTE *line_base;
-    unsigned int color;
+	unsigned int i;
+	BYTE *line_base;
+	unsigned int color;
 
-    line_base = output_gfx[current_prnr].line;
+	line_base = output_gfx[current_prnr].line;
 
-    switch (mode) {
-      case SCREENSHOT_MODE_PALETTE:
-        for (i = 0; i < screenshot->width; i++) {
-            /* FIXME: Use a table here if color printers are introduced.  */
-            if (line_base[i] == OUTPUT_PIXEL_BLACK)
-                data[i] = 0;
-            else
-                data[i] = 1;
-        }
-        break;
-      case SCREENSHOT_MODE_RGB32:
-        for (i = 0; i < screenshot->width; i++) {
-            /* FIXME: Use a table here if color printers are introduced.  */
-            if (line_base[i] == OUTPUT_PIXEL_BLACK)
-                color = 0;
-            else
-                color = 1;
-            data[i * 4] = screenshot->palette->entries[color].red;
-            data[i * 4 + 1] = screenshot->palette->entries[color].green;
-            data[i * 4 + 2] = screenshot->palette->entries[color].blue;
-            data[i * 4 + 3] = 0;
-        }
-        break;
-      default:
-        log_error(LOG_ERR, "Invalid mode %i.", mode);
-    }
+	switch (mode) {
+		case SCREENSHOT_MODE_PALETTE:
+			for (i = 0; i < screenshot->width; i++) {
+				/* FIXME: Use a table here if color printers are introduced.  */
+				if (line_base[i] == OUTPUT_PIXEL_BLACK)
+					data[i] = 0;
+				else
+					data[i] = 1;
+			}
+			break;
+		case SCREENSHOT_MODE_RGB32:
+			for (i = 0; i < screenshot->width; i++) {
+				/* FIXME: Use a table here if color printers are introduced.  */
+				if (line_base[i] == OUTPUT_PIXEL_BLACK)
+					color = 0;
+				else
+					color = 1;
+				data[i * 4] = screenshot->palette->entries[color].red;
+				data[i * 4 + 1] = screenshot->palette->entries[color].green;
+				data[i * 4 + 2] = screenshot->palette->entries[color].blue;
+				data[i * 4 + 3] = 0;
+			}
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Invalid mode %i.\n", mode);
+#endif
+			break;
+	}
 }
 
 /* ------------------------------------------------------------------------- */

@@ -50,7 +50,6 @@
 #include "fsdevicetypes.h"
 #include "ioutil.h"
 #include "lib.h"
-#include "log.h"
 #include "tape.h"
 #include "vdrive-command.h"
 #include "vdrive.h"
@@ -277,7 +276,7 @@ static int fsdevice_open_buffer(vdrive_t *vdrive, unsigned int secondary,
                               bufinfo_t *bufinfo,
                               cbmdos_cmd_parse_t *cmd_parse, char *rname)
 {
-    log_message(LOG_DEFAULT, "Fsdevice: Warning - open channel '%s'. (block access needs disk image)", rname);
+    //log_message(LOG_DEFAULT, "Fsdevice: Warning - open channel '%s'. (block access needs disk image)", rname);
     fsdevice_error(vdrive, CBMDOS_IPE_OK);
     return FLOPPY_COMMAND_OK;
 }
@@ -344,7 +343,7 @@ int fsdevice_open(vdrive_t *vdrive, const BYTE *name, unsigned int length,
         not found" - so it is the best we can do in that case, too.
     */
     if (strlen((const char*)name) != length) {
-        log_message(LOG_DEFAULT, "Fsdevice: Warning - filename '%s' with bogus length '%d'.", cmd_parse.parsecmd, length);
+        //log_message(LOG_DEFAULT, "Fsdevice: Warning - filename '%s' with bogus length '%d'.", cmd_parse.parsecmd, length);
         status = CBMDOS_IPE_NOT_FOUND;
         goto out;
     }

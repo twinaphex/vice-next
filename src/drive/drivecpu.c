@@ -44,7 +44,6 @@
 #include "drivetypes.h"
 #include "interrupt.h"
 #include "lib.h"
-#include "log.h"
 #include "machine-drive.h"
 #include "machine.h"
 #include "mem.h"
@@ -179,7 +178,7 @@ static void cpu_reset(drive_context_t *drv)
 
     preserve_monitor = drv->cpu->int_status->global_pending_int & IK_MONITOR;
 
-    log_message(drv->drive->log, "RESET.");
+    //log_message(drv->drive->log, "RESET.");
 
     interrupt_cpu_status_reset(drv->cpu->int_status);
 
@@ -291,9 +290,8 @@ inline void drivecpu_wake_up(drive_context_t *drv)
 {
     /* FIXME: this value could break some programs, or be way too high for
        others.  Maybe we should put it into a user-definable resource.  */
-    if (maincpu_clk - drv->cpu->last_clk > 0xffffff
-        && *(drv->clk_ptr) > 934639) {
-        log_message(drv->drive->log, "Skipping cycles.");
+    if (maincpu_clk - drv->cpu->last_clk > 0xffffff && *(drv->clk_ptr) > 934639) {
+        //log_message(drv->drive->log, "Skipping cycles.");
         drv->cpu->last_clk = maincpu_clk;
     }
 }
@@ -727,7 +725,7 @@ int drivecpu_snapshot_read_module(drive_context_t *drv, snapshot_t *s)
     MOS6510_REGS_SET_PC(&(cpu->cpu_regs), pc);
     MOS6510_REGS_SET_STATUS(&(cpu->cpu_regs), status);
 
-    log_message(drv->drive->log, "RESET (For undump).");
+    //log_message(drv->drive->log, "RESET (For undump).");
 
     interrupt_cpu_status_reset(cpu->int_status);
 

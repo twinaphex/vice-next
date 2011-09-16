@@ -29,7 +29,6 @@
 
 #include "vice.h"
 
-#include "log.h"
 #include "machine.h"
 
 

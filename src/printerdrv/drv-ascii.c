@@ -30,7 +30,6 @@
 #include "charset.h"
 #include "driver-select.h"
 #include "drv-ascii.h"
-#include "log.h"
 #include "output-select.h"
 #include "output.h"
 #include "types.h"
@@ -48,7 +47,6 @@ typedef struct ascii_s ascii_t;
 
 static ascii_t drv_ascii[3];
 
-static log_t drv_ascii_log = LOG_ERR;
 
 static int print_char(ascii_t *ascii, unsigned int prnr, BYTE c)
 {
@@ -196,6 +194,5 @@ int drv_ascii_init_resources(void)
 
 void drv_ascii_init(void)
 {
-    drv_ascii_log = log_open("Drv-Ascii");
 }
 

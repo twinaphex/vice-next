@@ -32,7 +32,6 @@
 #include "attach.h"
 #include "drive.h"
 #include "drivetypes.h"
-#include "log.h"
 #include "parallel-trap.h"
 #include "parallel.h"
 #include "serial.h"
@@ -51,9 +50,6 @@ static void (*eof_callback_func)(void);
 
 /* Function to call when the `serialattention()' trap is called.  */
 static void (*attention_callback_func)(void);
-
-/* Logging goes here.  */
-static log_t parallel_log = LOG_DEFAULT;
 
 static BYTE SerialBuffer[SERIAL_NAMELENGTH + 1];
 static int SerialPtr;
@@ -95,72 +91,75 @@ static int parallelcommand(void)
         p->nextok[channel] = 0;
         p->lastok[channel] = 0;
     }
-    switch (TrapSecondary & 0xf0) {
-      case 0x60:
-        /* Open Channel */
-        if (!p->isopen[channel] == 1) {
-            p->isopen[channel] = 2;
-            st = (*(p->openf))(vdrive, NULL, 0, channel, NULL);
-            for (i = 0; i < SerialPtr; i++) {
-                (*(p->putf))(vdrive, SerialBuffer[i], channel);
-            }
-            SerialPtr = 0;
-        }
-        if (p->flushf) {
-            (*(p->flushf))(vdrive, channel);
-        }
+    switch (TrapSecondary & 0xf0)
+    {
+	    case 0x60:
+		    /* Open Channel */
+		    if (!p->isopen[channel] == 1) {
+			    p->isopen[channel] = 2;
+			    st = (*(p->openf))(vdrive, NULL, 0, channel, NULL);
+			    for (i = 0; i < SerialPtr; i++)
+				    (*(p->putf))(vdrive, SerialBuffer[i], channel);
+			    SerialPtr = 0;
+		    }
+		    if (p->flushf)
+			    (*(p->flushf))(vdrive, channel);
 
-        if ((!st) && ((TrapDevice & 0xf0) == 0x40)) {
-            /* any error, except eof */
-            st = parallel_trap_receivebyte(&b, 1) & 0xbf;
-        }
-        break;
-      case 0xE0:
-        /* Close File */
-        p->isopen[channel] = 0;
-        st = (*(p->closef))(vdrive, channel);
-        break;
-      case 0xF0:
-        /* Open File */
-        if (p->isopen[channel]) {
+		    if ((!st) && ((TrapDevice & 0xf0) == 0x40))
+			    st = parallel_trap_receivebyte(&b, 1) & 0xbf;	/* any error, except eof */
+		    break;
+	    case 0xE0:
+		    /* Close File */
+		    p->isopen[channel] = 0;
+		    st = (*(p->closef))(vdrive, channel);
+		    break;
+	    case 0xF0:
+		    /* Open File */
+		    if (p->isopen[channel]) {
 #ifndef DELAYEDCLOSE
-            if (p->isopen[channel] == 2) {
-                log_warning(parallel_log, "Bogus close?");
-                (*(p->closef))(vdrive, channel);
-            }
-            p->isopen[channel] = 2;
-            SerialBuffer[SerialPtr] = 0;
-            st = (*(p->openf))(vdrive, SerialBuffer, SerialPtr, channel, NULL);
-            SerialPtr = 0;
+			    if (p->isopen[channel] == 2) {
+				    log_warning(parallel_log, "Bogus close?");
+				    (*(p->closef))(vdrive, channel);
+			    }
+			    p->isopen[channel] = 2;
+			    SerialBuffer[SerialPtr] = 0;
+			    st = (*(p->openf))(vdrive, SerialBuffer, SerialPtr, channel, NULL);
+			    SerialPtr = 0;
 
-            if (st) {
-               p->isopen[channel] = 0;
-               (*(p->closef))(vdrive, channel);
-               log_error(parallel_log, "Cannot open file. Status $%02x.", st);
-            }
+			    if (st) {
+				    p->isopen[channel] = 0;
+				    (*(p->closef))(vdrive, channel);
+				    log_error(parallel_log, "Cannot open file. Status $%02x.", st);
+			    }
 #else
-            if (SerialPtr != 0 || channel == 0x0f) {
-                (*(p->closef))(vdrive, channel);
-                p->isopen[channel] = 2;
+			    if (SerialPtr != 0 || channel == 0x0f) {
+				    (*(p->closef))(vdrive, channel);
+				    p->isopen[channel] = 2;
 
-                SerialBuffer[SerialPtr] = 0;
-                st = (*(p->openf))(vdrive, SerialBuffer, SerialPtr, channel, NULL);
-                SerialPtr = 0;
+				    SerialBuffer[SerialPtr] = 0;
+				    st = (*(p->openf))(vdrive, SerialBuffer, SerialPtr, channel, NULL);
+				    SerialPtr = 0;
 
-                if (st) {
-                   p->isopen[channel] = 0;
-                   (*(p->closef))(vdrive, channel);
-                   log_error(parallel_log, "Cannot open file. Status $%02x.", st);
-                }
-            }
+				    if (st)
+				    {
+					    p->isopen[channel] = 0;
+					    (*(p->closef))(vdrive, channel);
+#ifdef CELL_DEBUG
+					    printf("ERROR: Cannot open file. Status $%02x.\n", st);
 #endif
-        }
-        if (p->flushf) {
-            (*(p->flushf))(vdrive, channel);
-        }
-        break;
-      default:
-        log_error(parallel_log, "Unknown command %02X.", TrapSecondary & 0xff);
+				    }
+			    }
+#endif
+		    }
+		    if (p->flushf) {
+			    (*(p->flushf))(vdrive, channel);
+		    }
+		    break;
+	    default:
+#ifdef CELL_DEBUG
+		    printf("ERROR: Unknown command %02X.\n", TrapSecondary & 0xff);
+#endif
+		    break;
     }
     return (st);
 }
@@ -171,9 +170,10 @@ int parallel_trap_attention(int b)
     serial_t *p;
     void *vdrive;
 
-    if (parallel_debug) {
+#ifdef PARALLEL_DEBUG
+    if (parallel_debug)
         log_message(parallel_log, "ParallelAttention(%02x).", b);
-    }
+#endif
 
     if (b == 0x3f
         && (((TrapSecondary & 0xf0) == 0xf0)
@@ -237,111 +237,115 @@ int parallel_trap_attention(int b)
 
 int parallel_trap_sendbyte(BYTE data)
 {
-    int st = 0;
-    serial_t *p;
-    void *vdrive;
-    unsigned int dnr;
+	int st = 0;
+	serial_t *p;
+	void *vdrive;
+	unsigned int dnr;
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        if ((unsigned int)(TrapDevice & 0x0f) == dnr + 8
-            && drive_context[dnr]->drive->enable) {
-            return 0x83;    /* device not present */
-        }
-    }
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++)
+	{
+		if ((unsigned int)(TrapDevice & 0x0f) == dnr + 8 && drive_context[dnr]->drive->enable)
+			return 0x83;    /* device not present */
+	}
 
-    p = serial_device_get(TrapDevice & 0x0f);
-    vdrive = (void *)file_system_get_vdrive(TrapDevice & 0x0f);
+	p = serial_device_get(TrapDevice & 0x0f);
+	vdrive = (void *)file_system_get_vdrive(TrapDevice & 0x0f);
 
-    if (p->inuse) {
-        if (p->isopen[TrapSecondary & 0x0f] == 1) {
+	if (p->inuse)
+	{
+		if (p->isopen[TrapSecondary & 0x0f] == 1)
+		{
 
-            if (parallel_debug) {
-                log_message(parallel_log,
-                            "SerialSendByte[%2d] = %02x.", SerialPtr, data);
-            }
-            /* Store name here */
-            if (SerialPtr < SERIAL_NAMELENGTH) {
-                SerialBuffer[SerialPtr++] = data;
-            }
-        } else {
-            /* Send to device */
-            st = (*(p->putf))(vdrive, data, TrapSecondary & 0x0f);
-        }
-    } else {                    /* Not present */
-        st = 0x83;
-    }
+#ifdef PARALLEL_DEBUG
+			if (parallel_debug)
+			{
+				log_message(parallel_log, "SerialSendByte[%2d] = %02x.", SerialPtr, data);
+			}
+#endif
 
-    return st + (TrapDevice << 8);
+			/* Store name here */
+			if (SerialPtr < SERIAL_NAMELENGTH)
+				SerialBuffer[SerialPtr++] = data;
+		}
+		else
+			st = (*(p->putf))(vdrive, data, TrapSecondary & 0x0f);	/* Send to device */
+	}
+	else
+		st = 0x83;                    /* Not present */
+
+	return st + (TrapDevice << 8);
 }
 
 int parallel_trap_receivebyte(BYTE * data, int fake)
 {
-    int st = 0, secadr = TrapSecondary & 0x0f;
-    serial_t *p;
-    void *vdrive;
-    unsigned int dnr;
+	int st = 0, secadr = TrapSecondary & 0x0f;
+	serial_t *p;
+	void *vdrive;
+	unsigned int dnr;
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        if ((unsigned int)(TrapDevice & 0x0f) == dnr + 8
-            && drive_context[dnr]->drive->enable) {
-            return 0x83;    /* device not present */
-        }
-    }
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
+		if ((unsigned int)(TrapDevice & 0x0f) == dnr + 8
+				&& drive_context[dnr]->drive->enable) {
+			return 0x83;    /* device not present */
+		}
+	}
 
-    p = serial_device_get(TrapDevice & 0x0f);
-    vdrive = (void *)file_system_get_vdrive(TrapDevice & 0x0f);
+	p = serial_device_get(TrapDevice & 0x0f);
+	vdrive = (void *)file_system_get_vdrive(TrapDevice & 0x0f);
 
-    /* first fill up buffers */
+	/* first fill up buffers */
 #if 0
-    if (!p->lastok[secadr]) {
-        p->lastok[secadr] = p->nextok[secadr];
-        p->lastbyte[secadr] = p->nextbyte[secadr];
-        p->lastst[secadr] = p->nextst[secadr];
-        p->nextok[secadr] = 0;
+	if (!p->lastok[secadr]) {
+		p->lastok[secadr] = p->nextok[secadr];
+		p->lastbyte[secadr] = p->nextbyte[secadr];
+		p->lastst[secadr] = p->nextst[secadr];
+		p->nextok[secadr] = 0;
 #endif
-        if (!p->lastok[secadr]) {
-            p->lastst[secadr] =
-                (*(p->getf))(vdrive, &(p->lastbyte[secadr]), secadr);
-            p->lastok[secadr] = 1;
-        }
+		if (!p->lastok[secadr]) {
+			p->lastst[secadr] =
+				(*(p->getf))(vdrive, &(p->lastbyte[secadr]), secadr);
+			p->lastok[secadr] = 1;
+		}
 #if 0
-    }
-    if ((!p->nextok[secadr]) && (!p->lastst[secadr])) {
-        p->nextst[secadr] =
-            (*(p->getf))(vdrive, &(p->nextbyte[secadr]), secadr);
-        p->nextok[secadr] = 1;
-    }
+	}
+	if ((!p->nextok[secadr]) && (!p->lastst[secadr])) {
+		p->nextst[secadr] =
+			(*(p->getf))(vdrive, &(p->nextbyte[secadr]), secadr);
+		p->nextok[secadr] = 1;
+	}
 #endif
-    *data = p->lastbyte[secadr];
-    if (!fake) {
-        p->lastok[secadr] = 0;
-    }
+	*data = p->lastbyte[secadr];
+	if (!fake) {
+		p->lastok[secadr] = 0;
+	}
 #if 0
-    st = p->nextok[secadr] ? p->nextst[secadr] :
-        (p->lastok[secadr] ? p->lastst[secadr] : 2);
+	st = p->nextok[secadr] ? p->nextst[secadr] :
+		(p->lastok[secadr] ? p->lastst[secadr] : 2);
 #endif
-    st = p->lastst[secadr]; /* added */
-    st += TrapDevice << 8;
+	st = p->lastst[secadr]; /* added */
+	st += TrapDevice << 8;
 
-    if (parallel_debug) {
-        log_message(parallel_log,
-                    "receive: sa=%02x lastb = %02x (data=%02x), "
-                    "ok=%s, st=%04x, nextb = %02x, "
-                    "ok=%s, st=%04x.", secadr,
-                    p->lastbyte[secadr], (int)*data,
-                    p->lastok[secadr] ? "ok" : "no",
-                    p->lastst[secadr],
-                    p->nextbyte[secadr], p->nextok[secadr] ? "ok" : "no",
-                    p->nextst[secadr]);
-    }
-#if 0
-    if ((!fake) && p->nextok[secadr] && p->nextst[secadr])
-        p->nextok[secadr] = 0;
+#ifdef PARALLEL_DEBUG
+	if (parallel_debug) {
+		log_message(parallel_log,
+				"receive: sa=%02x lastb = %02x (data=%02x), "
+				"ok=%s, st=%04x, nextb = %02x, "
+				"ok=%s, st=%04x.", secadr,
+				p->lastbyte[secadr], (int)*data,
+				p->lastok[secadr] ? "ok" : "no",
+				p->lastst[secadr],
+				p->nextbyte[secadr], p->nextok[secadr] ? "ok" : "no",
+				p->nextst[secadr]);
+	}
 #endif
-    if ((st & 0x40) && eof_callback_func != NULL) {
-        eof_callback_func();
-    }
-    return st;
+#if 0
+	if ((!fake) && p->nextok[secadr] && p->nextst[secadr])
+		p->nextok[secadr] = 0;
+#endif
+	if ((st & 0x40) && eof_callback_func != NULL) {
+		eof_callback_func();
+	}
+	return st;
 }
 
 /* Specify a function to call when EOF happens in `serialreceivebyte()'.  */

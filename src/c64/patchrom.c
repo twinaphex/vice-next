@@ -39,7 +39,6 @@
 #include <strings.h>
 #endif
 
-#include "log.h"
 #include "c64memrom.h"
 #include "patchrom.h"
 #include "types.h"
@@ -237,82 +236,96 @@ static const unsigned short patch_bytes[] = {
 
 int patch_rom(const char *str)
 {
-    int rev, curr, num, lcount, isnum;
-    short bytes, n, i = 0;
-    WORD a;
+	int rev, curr, num, lcount, isnum;
+	short bytes, n, i = 0;
+	WORD a;
 
-    if (str == NULL || *str == '\0') {
-        return 0;
-    }
+	if (str == NULL || *str == '\0')
+		return 0;
 
-    for (isnum = 1, i = 0; str[i] != '\0'; i++) {
-        if (!isdigit((int)str[i])) {
-            isnum = 0;
-        }
-    }
+	for (isnum = 1, i = 0; str[i] != '\0'; i++)
+	{
+		if (!isdigit((int)str[i]))
+			isnum = 0;
+	}
 
-    if (!isnum) {
-        if (strcasecmp(str, "sx") == 0) {
-            rev = 67;
-        } else {
-            log_error(LOG_DEFAULT, "Invalid ROM revision `%s'.", str);
-            return -1;
-        }
-    } else {
-        rev = atoi (str);
-    }
+	if (!isnum)
+	{
+		if (strcasecmp(str, "sx") == 0)
+			rev = 67;
+		else
+		{
+#ifdef CELL_DEBUG
+			printf("Invalid ROM revision `%s'.\n", str);
+#endif
+			return -1;
+		}
+	}
+	else
+		rev = atoi (str);
 
-    curr = c64memrom_rom64_read(0xff80);
+	curr = c64memrom_rom64_read(0xff80);
 
-    if (rev == curr) {
-        log_warning(LOG_DEFAULT, "ROM not patched: Already revision #%d.", curr);
-        return (0);
-    }
+	if (rev == curr)
+	{
+#ifdef CELL_DEBUG
+		printf("WARNING: ROM not patched: Already revision #%d.\n", curr);
+#endif
+		return (0);
+	}
 
-    if (rev < 0) {
-          rev = 0;
-    }
+	if (rev < 0)
+		rev = 0;
 
-    /* create index */
+	/* create index */
 
-    num = rev;
+	num = rev;
 
-    switch (rev) {
-        case 4064:
-        case 100:
-            rev = 3; /* index for rev100 data */
-            break;
-        case 67:
-            rev = 2; /* index for rev67 data */
-            break;
-        case 3:
-            rev = 1; /* index for rev03 data */
-            break;
-        case 0:
-            break;
-        default:
-            log_error(LOG_DEFAULT, "Cannot patch ROM to revision #%d.", rev);
-            return (-1);
-    }
+	switch (rev)
+	{
+		case 4064:
+		case 100:
+			rev = 3; /* index for rev100 data */
+			break;
+		case 67:
+			rev = 2; /* index for rev67 data */
+			break;
+		case 3:
+			rev = 1; /* index for rev03 data */
+			break;
+		case 0:
+			break;
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Cannot patch ROM to revision #%d.\n", rev);
+#endif
+			return (-1);
+	}
 
-    log_message(LOG_DEFAULT, "Installing ROM patch for revision #%d:", num);
+#ifdef CELL_DEBUG
+	printf("INFO: Installing ROM patch for revision #%d:\n", num);
+#endif
 
-    lcount = 0;
-    i = 0;
-    while ((bytes = patch_bytes[i++]) > 0) {
-        a = (WORD)patch_bytes[i++];
+	lcount = 0;
+	i = 0;
+	while ((bytes = patch_bytes[i++]) > 0)
+	{
+		a = (WORD)patch_bytes[i++];
 
-        log_message(LOG_DEFAULT, "%.4X (%d byte%s)", a & 0xFFFF, bytes, ((bytes > 1) ? "s" : ""));
+#ifdef CELL_DEBUG
+		printf("%.4X (%d byte%s)\n", a & 0xFFFF, bytes, ((bytes > 1) ? "s" : ""));
+#endif
 
-        i += (bytes * rev);     /* select patch */
-        for (n = bytes; n--;) {
-            c64memrom_rom64_store(a++, (BYTE)patch_bytes[i++]);
-        }
+		i += (bytes * rev);     /* select patch */
+		for (n = bytes; n--;)
+			c64memrom_rom64_store(a++, (BYTE)patch_bytes[i++]);
 
-        i += (bytes * (PATCH_VERSIONS - rev));  /* skip patch */
-    }
+		i += (bytes * (PATCH_VERSIONS - rev));  /* skip patch */
+	}
 
-    log_message(LOG_DEFAULT, "Patch installed.");
+#ifdef CELL_DEBUG
+	printf("INFO: Patch installed.\n");
+#endif
 
-    return (0);
+	return (0);
 }

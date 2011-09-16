@@ -43,7 +43,6 @@
 #include "cmdline.h"
 #include "ds1302.h"
 #include "ide64.h"
-#include "log.h"
 #include "lib.h"
 #include "machine.h"
 #include "resources.h"
@@ -181,229 +180,240 @@ static void ide64_reset(struct drive_t *cdrive)
 
 static int ide64_disk_attach(struct drive_t *cdrive)
 {
-    if (!ide64_enabled) {
-        return 0;
-    }
+	if (!ide64_enabled)
+		return 0;
 
-    ide64_reset(cdrive);
+	ide64_reset(cdrive);
 
-    if (cdrive->ide_disk != NULL) {
-        fclose(cdrive->ide_disk);
-    }
+	if (cdrive->ide_disk != NULL) {
+		fclose(cdrive->ide_disk);
+	}
 
-    cdrive->ide_disk = NULL;
+	cdrive->ide_disk = NULL;
 
-    if (!cdrive->ide64_image_file[0]) {
-        return 0;
-    }
+	if (!cdrive->ide64_image_file[0])
+		return 0;
 
-    cdrive->ide_disk = fopen(cdrive->ide64_image_file, MODE_READ_WRITE);
+	cdrive->ide_disk = fopen(cdrive->ide64_image_file, MODE_READ_WRITE);
 
-    if (!cdrive->ide_disk) {
-        cdrive->ide_disk = fopen(cdrive->ide64_image_file, MODE_APPEND);
-    }
+	if (!cdrive->ide_disk)
+		cdrive->ide_disk = fopen(cdrive->ide64_image_file, MODE_APPEND);
 
-    if (!cdrive->ide_disk) {
-        cdrive->ide_disk = fopen(cdrive->ide64_image_file, MODE_READ);
-    }
+	if (!cdrive->ide_disk)
+		cdrive->ide_disk = fopen(cdrive->ide64_image_file, MODE_READ);
 
-    if (cdrive->ide_disk) {
-        log_message(LOG_DEFAULT, "IDE64: Using imagefile `%s'.", cdrive->ide64_image_file);
-    } else {
-        log_message(LOG_DEFAULT, "IDE64: Cannot use image file `%s'. NO DRIVE EMULATION!", cdrive->ide64_image_file);
-    }
+	if (cdrive->ide_disk)
+	{
+		#ifdef CELL_DEBUG
+		printf("INFO: IDE64: Using imagefile `%s'.\n", cdrive->ide64_image_file);
+		#endif
+	}
+	else
+	{
+		#ifdef CELL_DEBUG
+		printf("INFO: IDE64: Cannot use image file `%s'.\nNO DRIVE EMULATION!", cdrive->ide64_image_file);
+		#endif
+	}
 
-    memcpy(cdrive->ide_identify, hdd_identify, sizeof(hdd_identify));
+	memcpy(cdrive->ide_identify, hdd_identify, sizeof(hdd_identify));
 
-    if (!settings_autodetect_size) {
-        return 0;
-    }
+	if (!settings_autodetect_size)
+		return 0;
 
-    if (cdrive->ide_disk) {
-        /* try to get drive geometry */
-        unsigned char idebuf[24];
-        int  heads, sectors, cyll, cylh, cyl, res;
-        unsigned long size = 0;
-        int is_chs;
+	if (cdrive->ide_disk)
+	{
+		/* try to get drive geometry */
+		unsigned char idebuf[24];
+		int  heads, sectors, cyll, cylh, cyl, res;
+		unsigned long size = 0;
+		int is_chs;
 
-        /* read header */
-        res = (int)fread(idebuf, 1, 24, cdrive->ide_disk);
-        if (res < 24) {
-            log_message(LOG_DEFAULT, "IDE64: Couldn't read disk geometry from image, using default 8 MiB.");
-            return 0;
-        }
-        /* check signature */
+		/* read header */
+		res = (int)fread(idebuf, 1, 24, cdrive->ide_disk);
+		if (res < 24)
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: IDE64: Couldn't read disk geometry from image, using default 8 MiB.\n");
+			#endif
+			return 0;
+		}
+		/* check signature */
 
-        for (;;) {
+		for (;;) {
 
-            res = memcmp(idebuf,"C64-IDE V", 9);
+			res = memcmp(idebuf,"C64-IDE V", 9);
 
-            if (res == 0) { /* old filesystem always CHS */
-                cyl = (idebuf[0x10] << 8) | idebuf[0x11];
-                heads = idebuf[0x12] & 0x0f;
-                sectors = idebuf[0x13];
-                is_chs = 1;
-                break;  /* OK */
-            }
+			if (res == 0) { /* old filesystem always CHS */
+				cyl = (idebuf[0x10] << 8) | idebuf[0x11];
+				heads = idebuf[0x12] & 0x0f;
+				sectors = idebuf[0x13];
+				is_chs = 1;
+				break;  /* OK */
+			}
 
-            res = memcmp(idebuf + 8, "C64 CFS V", 9);
+			res = memcmp(idebuf + 8, "C64 CFS V", 9);
 
-            if (res == 0) {
-                if (idebuf[0x04] & 0x40) { /* LBA */
-                    size = ((idebuf[0x04] & 0x0f) << 24) | (idebuf[0x05] << 16) | (idebuf[0x06] << 8) | idebuf[0x07];
-                    cyl = heads = sectors = 1; /* fake */
-                    is_chs = 0;
-                } else { /* CHS */
-                    cyl = (idebuf[0x05] << 8) | idebuf[0x06];
-                    heads = idebuf[0x04] & 0x0f;
-                    sectors = idebuf[0x07];
-                    is_chs = 1;
-                }
-                break;  /* OK */
-            }
+			if (res == 0) {
+				if (idebuf[0x04] & 0x40) { /* LBA */
+					size = ((idebuf[0x04] & 0x0f) << 24) | (idebuf[0x05] << 16) | (idebuf[0x06] << 8) | idebuf[0x07];
+					cyl = heads = sectors = 1; /* fake */
+					is_chs = 0;
+				} else { /* CHS */
+					cyl = (idebuf[0x05] << 8) | idebuf[0x06];
+					heads = idebuf[0x04] & 0x0f;
+					sectors = idebuf[0x07];
+					is_chs = 1;
+				}
+				break;  /* OK */
+			}
 
-            log_message(LOG_DEFAULT, "IDE64: Disk is not formatted, using default 8 MiB.");
-            return 0;
-        }
+			#ifdef CELL_DEBUG
+			printf("INFO: IDE64: Disk is not formatted, using default 8 MiB.\n");
+			#endif
+			return 0;
+		}
 
-        if (is_chs) {
-            cyl++;
-            heads++;
-            size = cyl * heads * sectors;
-            log_message(LOG_DEFAULT, "IDE64: using %i/%i/%i CHS geometry, %lu sectors total.", cyl, heads, sectors, size);
-        } else {
-            log_message(LOG_DEFAULT, "IDE64: LBA geometry, %lu sectors total.", size);
-        }
+		if (is_chs)
+		{
+			cyl++;
+			heads++;
+			size = cyl * heads * sectors;
+#ifdef CELL_DEBUG
+			printf("INFO: IDE64: using %i/%i/%i CHS geometry, %lu sectors total.\n", cyl, heads, sectors, size);
+#endif
+		}
+		else
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: IDE64: LBA geometry, %lu sectors total.\n", size);
+			#endif
+		}
 
 
-        cdrive->settings_cylinders = cyl;
-        cdrive->settings_heads = heads;
-        cdrive->settings_sectors = sectors;
+		cdrive->settings_cylinders = cyl;
+		cdrive->settings_heads = heads;
+		cdrive->settings_sectors = sectors;
 
-        cyll = cyl & 0xff;
-        cylh = cyl >> 8;
-        cdrive->ide_identify[0x02] = cyll;
-        cdrive->ide_identify[108] = cyll;
-        cdrive->ide_identify[0x03] = cylh;
-        cdrive->ide_identify[109] = cylh;
-        cdrive->ide_identify[0x06] = heads;
-        cdrive->ide_identify[110] = heads;
-        cdrive->ide_identify[0x0c] = sectors;
-        cdrive->ide_identify[112] = sectors;
+		cyll = cyl & 0xff;
+		cylh = cyl >> 8;
+		cdrive->ide_identify[0x02] = cyll;
+		cdrive->ide_identify[108] = cyll;
+		cdrive->ide_identify[0x03] = cylh;
+		cdrive->ide_identify[109] = cylh;
+		cdrive->ide_identify[0x06] = heads;
+		cdrive->ide_identify[110] = heads;
+		cdrive->ide_identify[0x0c] = sectors;
+		cdrive->ide_identify[112] = sectors;
 
-        cdrive->ide_identify[114] = (BYTE)(size & 0xff);
-        size >>= 8;
-        cdrive->ide_identify[115] = (BYTE)(size & 0xff);
-        size >>= 8;
-        cdrive->ide_identify[116] = (BYTE)(size & 0xff);
-        size >>= 8;
-        cdrive->ide_identify[117] = (BYTE)(size & 0xff);
+		cdrive->ide_identify[114] = (BYTE)(size & 0xff);
+		size >>= 8;
+		cdrive->ide_identify[115] = (BYTE)(size & 0xff);
+		size >>= 8;
+		cdrive->ide_identify[116] = (BYTE)(size & 0xff);
+		size >>= 8;
+		cdrive->ide_identify[117] = (BYTE)(size & 0xff);
 
-        memcpy(cdrive->ide_identify + 120, cdrive->ide_identify + 114, 4);
-    }
+		memcpy(cdrive->ide_identify + 120, cdrive->ide_identify + 114, 4);
+	}
 
-    return 0;
+	return 0;
 }
 
 static void geometry_update(struct drive_t *cdrive)
 {
-    cdrive->ide_identify[108] = cdrive->settings_cylinders & 255;
-    cdrive->ide_identify[109] = cdrive->settings_cylinders >> 8;
-    cdrive->ide_identify[110] = cdrive->settings_heads;
-    cdrive->ide_identify[112] = cdrive->settings_sectors;
+	cdrive->ide_identify[108] = cdrive->settings_cylinders & 255;
+	cdrive->ide_identify[109] = cdrive->settings_cylinders >> 8;
+	cdrive->ide_identify[110] = cdrive->settings_heads;
+	cdrive->ide_identify[112] = cdrive->settings_sectors;
 }
 
 static int set_ide64_config(const char *cfg, void *param)
 {
-    int i;
+	int i;
 
-    ide64_DS1302[64] = 0;
-    memset(ide64_DS1302, 0x40, 64);
+	ide64_DS1302[64] = 0;
+	memset(ide64_DS1302, 0x40, 64);
 
-    if (cfg) {
-        for (i = 0; cfg[i] && i < 64; i++) {
-            ide64_DS1302[i] = cfg[i];
-        }
-    }
-    util_string_set(&ide64_configuration_string, ide64_DS1302);
-    try_cartridge_init(16);
-    return 0;
+	if (cfg)
+	{
+		for (i = 0; cfg[i] && i < 64; i++)
+			ide64_DS1302[i] = cfg[i];
+	}
+	util_string_set(&ide64_configuration_string, ide64_DS1302);
+	try_cartridge_init(16);
+	return 0;
 }
 
 static int set_ide64_image_file(const char *name, void *param)
 {
-    int i = vice_ptr_to_int(param);
+	int i = vice_ptr_to_int(param);
 
-    util_string_set(&drives[i].ide64_image_file, name);
+	util_string_set(&drives[i].ide64_image_file, name);
 
-    return ide64_disk_attach(&drives[i]);
+	return ide64_disk_attach(&drives[i]);
 }
 
 static int set_cylinders(int val, void *param)
 {
-    unsigned int cylinders = (unsigned int)val;
+	unsigned int cylinders = (unsigned int)val;
 
-    if (cylinders > 1024) {
-        return -1;
-    }
+	if (cylinders > 1024)
+		return -1;
 
-    drives[0].settings_cylinders = cylinders;
-    geometry_update(&drives[0]);
+	drives[0].settings_cylinders = cylinders;
+	geometry_update(&drives[0]);
 
-    return 0;
+	return 0;
 }
 
 static int set_heads(int val, void *param)
 {
-    unsigned int heads = (unsigned int)val;
+	unsigned int heads = (unsigned int)val;
 
-    if (heads > 16) {
-        return -1;
-    }
+	if (heads > 16)
+		return -1;
 
-    drives[0].settings_heads = heads;
-    geometry_update(&drives[0]);
+	drives[0].settings_heads = heads;
+	geometry_update(&drives[0]);
 
-    return 0;
+	return 0;
 }
 
 static int set_sectors(int val, void *param)
 {
-    unsigned int sectors = (unsigned int)val;
+	unsigned int sectors = (unsigned int)val;
 
-    if (sectors > 63) {
-        return -1;
-    }
+	if (sectors > 63)
+		return -1;
 
-    drives[0].settings_sectors = sectors;
-    geometry_update(&drives[0]);
+	drives[0].settings_sectors = sectors;
+	geometry_update(&drives[0]);
 
-    return 0;
+	return 0;
 }
 
 static int set_autodetect_size(int val, void *param)
 {
-    settings_autodetect_size = val;
+	settings_autodetect_size = val;
 
-    return 0;
+	return 0;
 }
 
 static int set_version4(int val, void *param)
 {
-    if (settings_version4 != val) {
-        machine_trigger_reset(MACHINE_RESET_MODE_HARD);
-    }
+	if (settings_version4 != val)
+		machine_trigger_reset(MACHINE_RESET_MODE_HARD);
 
-    settings_version4 = val;
+	settings_version4 = val;
 
-    return 0;
+	return 0;
 }
 
 static int set_rtc_offset(int val, void *param)
 {
-    rtc_offset = val;
+	rtc_offset = val;
 
-    return 0;
+	return 0;
 }
 
 static const resource_string_t resources_string[] = {
@@ -444,22 +454,20 @@ static const resource_int_t resources_int[] = {
 
 int ide64_resources_init(void)
 {
-    int i;
+	int i;
 
-    if (resources_register_string(resources_string) < 0) {
-        return -1;
-    }
-    if (resources_register_int(resources_int) < 0) {
-        return -1;
-    }
+	if (resources_register_string(resources_string) < 0)
+		return -1;
 
-    for (i = 0; i < 4; i++) {
-        drives[i].ide_disk = NULL;
-    }
+	if (resources_register_int(resources_int) < 0)
+		return -1;
 
-    ide64_enabled = 0;
+	for (i = 0; i < 4; i++)
+		drives[i].ide_disk = NULL;
 
-    return 0;
+	ide64_enabled = 0;
+
+	return 0;
 }
 
 int ide64_resources_shutdown(void)
@@ -777,10 +785,13 @@ static void REGPARM2 ide64_io1_store(WORD addr, BYTE value)
                 case 0x21:
                     cdrive->ide_status = (cdrive->ide_status & (~IDE_BSY) & (~IDE_DF) & (~IDE_DRQ) & (~IDE_ERR)) | IDE_DRDY;
 #ifdef IDE64_DEBUG
-                    if (cdrive->ide_head & 0x40) {
+                    if (cdrive->ide_head & 0x40)
+		    {
                         log_debug("IDE64 %d READ (%d)*%d", idrive, (cdrive->ide_cylinder_low << 8) | (cdrive->ide_cylinder_high << 16) |
                                   ((cdrive->ide_head & 0xf) << 24) | cdrive->ide_sector, cdrive->ide_sector_count);
-                    } else {
+                    }
+		    else
+		    {
                         log_debug("IDE64 %d READ (%d/%d/%d)*%d", idrive, cdrive->ide_cylinder_low | (cdrive->ide_cylinder_high << 8),
                                   cdrive->ide_head & 0xf, cdrive->ide_sector, cdrive->ide_sector_count);
                     }

@@ -39,7 +39,6 @@
 #include "alarm.h"
 #include "clkguard.h"
 #include "cmdline.h"
-#include "log.h"
 #include "maincpu.h"
 #include "resources.h"
 #include "rs232drv.h"
@@ -306,23 +305,28 @@ void rsuser_write_ctrl(BYTE b)
 
 static void check_tx_buffer(void)
 {
-    BYTE c;
+	BYTE c;
 
-    while (valid >= 10 && (buf & masks[valid-1]))
-        valid--;
+	while (valid >= 10 && (buf & masks[valid-1]))
+		valid--;
 
-    if (valid >= 10) {     /* (valid-1)-th bit is not set = start bit! */
-        if (!(buf & masks[valid - 10])) {
-            log_error(LOG_DEFAULT, "Frame error!");
-        } else {
-            c = (buf >> (valid - 9)) & 0xff;
-            if (fd != -1) {
-                LOG_DEBUG(("\"%c\" (%02x).", code[c], code[c]));
-                rs232drv_putc(fd, ((BYTE)(code[c])));
-            }
-        }
-        valid -= 10;
-    }
+	if (valid >= 10) {     /* (valid-1)-th bit is not set = start bit! */
+		if (!(buf & masks[valid - 10]))
+		{
+			#ifdef CELL_DEBUG
+			printf("ERROR: Frame error!\n");
+			#endif
+		}
+		else
+		{
+			c = (buf >> (valid - 9)) & 0xff;
+			if (fd != -1) {
+				LOG_DEBUG(("\"%c\" (%02x).", code[c], code[c]));
+				rs232drv_putc(fd, ((BYTE)(code[c])));
+			}
+		}
+		valid -= 10;
+	}
 }
 
 static void keepup_tx_buffer(void)

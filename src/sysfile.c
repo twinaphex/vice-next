@@ -36,7 +36,6 @@
 #include "findpath.h"
 #include "ioutil.h"
 #include "lib.h"
-#include "log.h"
 #include "resources.h"
 #include "sysfile.h"
 #include "translate.h"
@@ -158,7 +157,7 @@ FILE *sysfile_open(const char *name, char **complete_path_return,
 #endif
 
     if (name == NULL || *name == '\0') {
-        log_error(LOG_DEFAULT, "Missing name for system file.");
+        //log_error(LOG_DEFAULT, "Missing name for system file.");
         return NULL;
     }
 
@@ -240,83 +239,78 @@ int sysfile_locate(const char *name, char **complete_path_return)
 
 int sysfile_load(const char *name, BYTE *dest, int minsize, int maxsize)
 {
-    FILE *fp = NULL;
-    size_t rsize = 0;
-    char *complete_path = NULL;
+	FILE *fp = NULL;
+	size_t rsize = 0;
+	char *complete_path = NULL;
 
-/*
- * This feature is only active when --enable-embedded is given to the
- * configure script, its main use is to make developing new ports easier
- * and to allow ports for platforms which don't have a filesystem, or a
- * filesystem which is hard/impossible to load data files from.
- *
- * when USE_EMBEDDED is defined this will check if a
- * default system file is loaded, when USE_EMBEDDED
- * is not defined the function is just 0 and will
- * be optimized away.
- */
+	/*
+	 * This feature is only active when --enable-embedded is given to the
+	 * configure script, its main use is to make developing new ports easier
+	 * and to allow ports for platforms which don't have a filesystem, or a
+	 * filesystem which is hard/impossible to load data files from.
+	 *
+	 * when USE_EMBEDDED is defined this will check if a
+	 * default system file is loaded, when USE_EMBEDDED
+	 * is not defined the function is just 0 and will
+	 * be optimized away.
+	 */
 
-    if ((rsize = embedded_check_file(name, dest, minsize, maxsize)) != 0) {
-        log_warning(LOG_DEFAULT,
-                "ROM filename invalid `%s'.", name);
-        return rsize;
-    }
+	if ((rsize = embedded_check_file(name, dest, minsize, maxsize)) != 0) {
+		//log_warning(LOG_DEFAULT, "ROM filename invalid `%s'.", name);
+		return rsize;
+	}
 
-    fp = sysfile_open(name, &complete_path, MODE_READ);
+	fp = sysfile_open(name, &complete_path, MODE_READ);
 
-    if (fp == NULL) {
+	if (fp == NULL) {
 #ifdef __riscos
-        goto fail;
+		goto fail;
 #else
-        /* Try to open the file from the current directory. */
-        const char working_dir_prefix[3] = { '.', FSDEV_DIR_SEP_CHR, '\0' };
-        char *local_name = NULL;
+		/* Try to open the file from the current directory. */
+		const char working_dir_prefix[3] = { '.', FSDEV_DIR_SEP_CHR, '\0' };
+		char *local_name = NULL;
 
-        local_name = util_concat(working_dir_prefix, name, NULL);
-        fp = sysfile_open((const char *)local_name, &complete_path, MODE_READ);
-        lib_free(local_name);
-        local_name = NULL;
+		local_name = util_concat(working_dir_prefix, name, NULL);
+		fp = sysfile_open((const char *)local_name, &complete_path, MODE_READ);
+		lib_free(local_name);
+		local_name = NULL;
 
-        if (fp == NULL) {
-            log_warning(LOG_DEFAULT,
-                    "ROM `%s': could not be found.", name);
-            goto fail;
-        }
+		if (fp == NULL) {
+			//log_warning(LOG_DEFAULT, "ROM `%s': could not be found.", name);
+			goto fail;
+		}
 #endif
-    }
+	}
 
-    log_message(LOG_DEFAULT, "Loading system file `%s'.", complete_path);
+	//log_message(LOG_DEFAULT, "Loading system file `%s'.", complete_path);
 
-    rsize = util_file_length(fp);
+	rsize = util_file_length(fp);
 
-    if (rsize < ((size_t)minsize)) {
-        log_error(LOG_DEFAULT, "ROM %s: short file.", complete_path);
-        goto fail;
-    }
-    if (rsize == ((size_t)maxsize + 2)) {
-        log_warning(LOG_DEFAULT,
-                    "ROM `%s': two bytes too large - removing assumed "
-                    "start address.", complete_path);
-        if(fread((char *)dest, 1, 2, fp) < 2) {
-            goto fail;
-        }
-        rsize -= 2;
-    }
-    if (rsize < ((size_t)maxsize)) {
-        dest += maxsize - rsize;
-    } else if (rsize > ((size_t)maxsize)) {
-        log_warning(LOG_DEFAULT, "ROM `%s': long file, discarding end.",
-                    complete_path);
-        rsize = maxsize;
-    }
-    if ((rsize = fread((char *)dest, 1, rsize, fp)) < ((size_t)minsize))
-        goto fail;
+	if (rsize < ((size_t)minsize)) {
+		//log_error(LOG_DEFAULT, "ROM %s: short file.", complete_path);
+		goto fail;
+	}
+	if (rsize == ((size_t)maxsize + 2)) {
+		//log_warning(LOG_DEFAULT, "ROM `%s': two bytes too large - removing assumed " "start address.", complete_path);
+		if(fread((char *)dest, 1, 2, fp) < 2) {
+			goto fail;
+		}
+		rsize -= 2;
+	}
+	if (rsize < ((size_t)maxsize)) {
+		dest += maxsize - rsize;
+	} else if (rsize > ((size_t)maxsize)) {
+		//log_warning(LOG_DEFAULT, "ROM `%s': long file, discarding end.", complete_path);
+		rsize = maxsize;
+	}
+	if ((rsize = fread((char *)dest, 1, rsize, fp)) < ((size_t)minsize))
+		goto fail;
 
-    fclose(fp);
-    lib_free(complete_path);
-    return (int)rsize;  /* return ok */
+	fclose(fp);
+	lib_free(complete_path);
+	return (int)rsize;  /* return ok */
 
 fail:
-    lib_free(complete_path);
-    return -1;
+	lib_free(complete_path);
+	return -1;
 }

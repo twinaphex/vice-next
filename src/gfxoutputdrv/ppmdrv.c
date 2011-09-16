@@ -33,7 +33,6 @@
 #include "archdep.h"
 #include "ppmdrv.h"
 #include "lib.h"
-#include "log.h"
 #include "gfxoutput.h"
 #include "palette.h"
 #include "screenshot.h"

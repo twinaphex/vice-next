@@ -63,7 +63,6 @@ extern "C" {
 #include "sid.h"
 #include "util.h"
 #include "lib.h"
-#include "log.h"
 #include "autostart.h"
 #include "attach.h"
 #include "tape.h"

@@ -35,7 +35,6 @@
 #include "iecdrive.h"
 #include "interrupt.h"
 #include "lib.h"
-#include "log.h"
 #include "types.h"
 
 

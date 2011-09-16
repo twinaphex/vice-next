@@ -45,7 +45,6 @@
 #include "joystick.h"
 #include "kbdbuf.h"
 #include "keyboard.h"
-#include "log.h"
 #include "machine-bus.h"
 #include "machine.h"
 #include "maincpu.h"
@@ -79,10 +78,12 @@ int init_resources(void)
         archdep_startup_log_error("Cannot initialize resource handling.\n");
         return -1;
     }
+    #if 0
     if (log_resources_init() < 0) {
         init_resource_fail("log");
         return -1;
     }
+    #endif
     if (sysfile_resources_init() < 0) {
         init_resource_fail("system file locator");
         return -1;
@@ -161,10 +162,12 @@ int init_cmdline_options(void)
         archdep_startup_log_error("Cannot initialize command-line handling.\n");
         return -1;
     }
+    #if 0
     if (log_cmdline_options_init() < 0) {
         init_cmdline_options_fail("log");
         return -1;
     }
+    #endif
     if (initcmdline_init() < 0) {
         init_cmdline_options_fail("main");
         return -1;
@@ -265,13 +268,13 @@ int init_main(void)
 
     /* Machine-specific initialization.  */
     if (machine_init() < 0) {
-        log_error(LOG_DEFAULT, "Machine initialization failed.");
+        //log_error(LOG_DEFAULT, "Machine initialization failed.");
         return -1;
     }
 
     /* FIXME: what's about uimon_init??? */
     if (!vsid_mode && console_init() < 0) {
-        log_error(LOG_DEFAULT, "Console initialization failed.");
+        //log_error(LOG_DEFAULT, "Console initialization failed.");
         return -1;
     }
 

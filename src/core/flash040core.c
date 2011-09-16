@@ -32,7 +32,6 @@
 #include "alarm.h"
 #include "flash040.h"
 #include "lib.h"
-#include "log.h"
 #include "maincpu.h"
 #include "snapshot.h"
 #include "types.h"

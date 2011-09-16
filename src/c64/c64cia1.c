@@ -38,7 +38,6 @@
 #include "joystick.h"
 #include "keyboard.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "types.h"

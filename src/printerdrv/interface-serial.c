@@ -35,7 +35,6 @@
 #include "cmdline.h"
 #include "driver-select.h"
 #include "interface-serial.h"
-#include "log.h"
 #include "machine-bus.h"
 #include "printer.h"
 #include "resources.h"
@@ -45,7 +44,6 @@
 static int interface_serial_attach(unsigned int prnr);
 static int interface_serial_detach(unsigned int prnr);
 
-static log_t interface_serial_log = LOG_ERR;
 
 /* ------------------------------------------------------------------------- */
 
@@ -128,21 +126,21 @@ static unsigned int inuse[2];
 static int open_pr(unsigned int prnr, const BYTE *name, unsigned int length,
                    unsigned int secondary)
 {
-    if (inuse[prnr]) {
-        log_error(interface_serial_log,
-                  "Open printer #%i while still open - ignoring.", prnr + 4);
-        return 0;
-    }
+	if (inuse[prnr])
+	{
+		//log_error(interface_serial_log,"Open printer #%i while still open - ignoring.", prnr + 4);
+		return 0;
+	}
 
-    if (driver_select_open(prnr, secondary) < 0) {
-        log_error(interface_serial_log,
-                  "Couldn't open device #%i.", prnr + 4);
-        return -1;
-    }
+	if (driver_select_open(prnr, secondary) < 0)
+	{
+		//log_error(interface_serial_log, "Couldn't open device #%i.", prnr + 4);
+		return -1;
+	}
 
-    inuse[prnr] = 1;
+	inuse[prnr] = 1;
 
-    return 0;
+	return 0;
 }
 
 static int read_pr(unsigned int prnr, BYTE *byte, unsigned int secondary)
@@ -152,49 +150,47 @@ static int read_pr(unsigned int prnr, BYTE *byte, unsigned int secondary)
 
 static int write_pr(unsigned int prnr, BYTE byte, unsigned int secondary)
 {
-    int err;
+	int err;
 
-    if (!inuse[prnr]) {
-        /* oh, well, we just assume an implicit open - "OPEN 1,4"
-           just does not leave any trace on the serial bus */
-        log_message(interface_serial_log,
-                    "Auto-opening printer #%i.", prnr + 4);
+	if (!inuse[prnr])
+	{
+		/* oh, well, we just assume an implicit open - "OPEN 1,4"
+		   just does not leave any trace on the serial bus */
+		//log_message(interface_serial_log, "Auto-opening printer #%i.", prnr + 4);
 
-        err = open_pr(prnr, NULL, 0, secondary);
+		err = open_pr(prnr, NULL, 0, secondary);
 
-        if (err < 0)
-            return err;
-    }
+		if (err < 0)
+			return err;
+	}
 
-    return driver_select_putc(prnr, secondary, (BYTE)byte);
+	return driver_select_putc(prnr, secondary, (BYTE)byte);
 }
 
 static int close_pr(unsigned int prnr, unsigned int secondary)
 {
-    if (!inuse[prnr]) {
-        log_error(interface_serial_log,
-                  "Close printer #%i while being closed - ignoring.",
-                  prnr + 4);
-        return 0;
-    }
+	if (!inuse[prnr])
+	{
+		//log_error(interface_serial_log, "Close printer #%i while being closed - ignoring.", prnr + 4);
+		return 0;
+	}
 
-    driver_select_close(prnr, secondary);
-    inuse[prnr] = 0;
+	driver_select_close(prnr, secondary);
+	inuse[prnr] = 0;
 
-    return 0;
+	return 0;
 }
 
 
 static void flush_pr(unsigned int prnr, unsigned int secondary)
 {
-    if (!inuse[prnr]) {
-        log_error(interface_serial_log,
-                  "Flush printer #%i while being closed - ignoring.",
-                  prnr + 4);
-        return;
-    }
+	if (!inuse[prnr])
+	{
+		//log_error(interface_serial_log, "Flush printer #%i while being closed - ignoring.", prnr + 4);
+		return;
+	}
 
-    driver_select_flush(prnr, secondary);
+	driver_select_flush(prnr, secondary);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -303,9 +299,9 @@ static int interface_serial_attach(unsigned int prnr)
         err = -1;
     }
 
-    if (err) {
-        log_error(interface_serial_log,
-                  "Cannot attach serial printer #%i.", prnr + 4);
+    if (err)
+    {
+        //log_error(interface_serial_log, "Cannot attach serial printer #%i.", prnr + 4);
         return -1;
     }
 
@@ -328,7 +324,6 @@ static int interface_serial_detach(unsigned int prnr)
 
 void interface_serial_init(void)
 {
-    interface_serial_log = log_open("Serial Interface");
 }
 
 void interface_serial_shutdown(void)

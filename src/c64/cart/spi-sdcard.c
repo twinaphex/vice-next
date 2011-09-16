@@ -33,7 +33,6 @@
 #include <string.h>
 
 #include "c64io.h"
-#include "log.h"
 #include "spi-sdcard.h"
 #include "types.h"
 #include "util.h"

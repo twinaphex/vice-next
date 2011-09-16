@@ -33,14 +33,10 @@
 #include "blockdev.h"
 #include "diskimage.h"
 #include "lib.h"
-#include "log.h"
 #include "rawimage.h"
 #include "resources.h"
 #include "types.h"
 #include "util.h"
-
-
-static log_t rawimage_log = LOG_DEFAULT;
 
 static char *raw_drive_driver = NULL;
 
@@ -131,9 +127,7 @@ int rawimage_write_sector(disk_image_t *image, BYTE *buf, unsigned int track,
 
 void rawimage_init(void)
 {
-    rawimage_log = log_open("Raw Image");
-
-    blockdev_init();
+	blockdev_init();
 }
 
 /*-----------------------------------------------------------------------*/

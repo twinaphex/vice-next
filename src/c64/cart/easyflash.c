@@ -42,7 +42,6 @@
 #include "easyflash.h"
 #include "flash040.h"
 #include "lib.h"
-#include "log.h"
 #include "maincpu.h"
 #include "mem.h"
 #include "monitor.h"

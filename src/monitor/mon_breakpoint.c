@@ -34,7 +34,6 @@
 
 #include "interrupt.h"
 #include "lib.h"
-#include "log.h"
 #include "mon_breakpoint.h"
 #include "mon_disassemble.h"
 #include "mon_util.h"
@@ -76,30 +75,34 @@ void mon_breakpoint_init(void)
 
 static void remove_checkpoint_from_list(break_list_t **head, breakpoint_t *bp)
 {
-    break_list_t *cur_entry, *prev_entry;
+	break_list_t *cur_entry, *prev_entry;
 
-    cur_entry = *head;
-    prev_entry = NULL;
+	cur_entry = *head;
+	prev_entry = NULL;
 
-    while (cur_entry) {
-        if (cur_entry->brkpt == bp)
-            break;
+	while (cur_entry) {
+		if (cur_entry->brkpt == bp)
+			break;
 
-        prev_entry = cur_entry;
-        cur_entry = cur_entry->next;
-    }
+		prev_entry = cur_entry;
+		cur_entry = cur_entry->next;
+	}
 
-    if (!cur_entry) {
-        log_error(LOG_ERR, "Invalid checkpoint entry!");
-        return;
-    } else {
-        if (!prev_entry) {
-            *head = cur_entry->next;
-        } else {
-             prev_entry->next = cur_entry->next;
-        }
-        lib_free(cur_entry);
-    }
+	if (!cur_entry)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Invalid checkpoint entry!\n");
+#endif
+		return;
+	}
+	else
+	{
+		if (!prev_entry)
+			*head = cur_entry->next;
+		else
+			prev_entry->next = cur_entry->next;
+		lib_free(cur_entry);
+	}
 }
 
 static breakpoint_t *find_checkpoint(int brknum)
@@ -107,27 +110,31 @@ static breakpoint_t *find_checkpoint(int brknum)
     break_list_t *ptr;
     int i;
 
-    for (i = FIRST_SPACE; i <= LAST_SPACE; i++) {
-        ptr = breakpoints[i];
-        while (ptr) {
-            if (ptr->brkpt->brknum == brknum)
-                return ptr->brkpt;
-            ptr = ptr->next;
-        }
+    for (i = FIRST_SPACE; i <= LAST_SPACE; i++)
+    {
+	    ptr = breakpoints[i];
+	    while (ptr)
+	    {
+		    if (ptr->brkpt->brknum == brknum)
+			    return ptr->brkpt;
+		    ptr = ptr->next;
+	    }
 
-        ptr = watchpoints_load[i];
-        while (ptr) {
-            if (ptr->brkpt->brknum == brknum)
-                return ptr->brkpt;
-            ptr = ptr->next;
-        }
+	    ptr = watchpoints_load[i];
+	    while (ptr)
+	    {
+		    if (ptr->brkpt->brknum == brknum)
+			    return ptr->brkpt;
+		    ptr = ptr->next;
+	    }
 
-        ptr = watchpoints_store[i];
-        while (ptr) {
-            if (ptr->brkpt->brknum == brknum)
-                return ptr->brkpt;
-            ptr = ptr->next;
-        }
+	    ptr = watchpoints_store[i];
+	    while (ptr)
+	    {
+		    if (ptr->brkpt->brknum == brknum)
+			    return ptr->brkpt;
+		    ptr = ptr->next;
+	    }
     }
 
     return NULL;
@@ -135,63 +142,65 @@ static breakpoint_t *find_checkpoint(int brknum)
 
 void mon_breakpoint_switch_checkpoint(int op, int breakpt_num)
 {
-    breakpoint_t *bp;
-    bp = find_checkpoint(breakpt_num);
+	breakpoint_t *bp;
+	bp = find_checkpoint(breakpt_num);
 
-    if (!bp) {
-        mon_out("#%d not a valid breakpoint\n", breakpt_num);
-    } else {
-        bp->enabled = op;
-        mon_out("Set breakpoint #%d to state: %s\n",
-                  breakpt_num, (op == e_ON) ? "enabled" : "disabled");
-    }
+	if (!bp)
+	{
+		mon_out("#%d not a valid breakpoint\n", breakpt_num);
+	}
+	else
+	{
+		bp->enabled = op;
+		mon_out("Set breakpoint #%d to state: %s\n", breakpt_num, (op == e_ON) ? "enabled" : "disabled");
+	}
 }
 
 void mon_breakpoint_set_ignore_count(int breakpt_num, int count)
 {
-    breakpoint_t *bp;
-    bp = find_checkpoint(breakpt_num);
+	breakpoint_t *bp;
+	bp = find_checkpoint(breakpt_num);
 
-    if (!bp) {
-        mon_out("#%d not a valid breakpoint\n", breakpt_num);
-    } else {
-        bp->ignore_count = count;
-        mon_out("Ignoring the next %d crossings of breakpoint #%d\n",
-                  count, breakpt_num);
-    }
+	if (!bp) {
+		mon_out("#%d not a valid breakpoint\n", breakpt_num);
+	} else {
+		bp->ignore_count = count;
+		mon_out("Ignoring the next %d crossings of breakpoint #%d\n",
+				count, breakpt_num);
+	}
 }
 
 static void print_checkpoint_info(breakpoint_t *bp)
 {
-    if (bp->trace) {
-        mon_out("TRACE: ");
-    } else if (bp->watch_load || bp->watch_store) {
-        mon_out("WATCH: ");
-    } else {
-        if (bp->temporary)
-            mon_out("UNTIL: ");
-        else
-            mon_out("BREAK: ");
-    }
-    mon_out("%d %s:$%04x",bp->brknum,
-        mon_memspace_string[addr_memspace(bp->start_addr)],addr_location(bp->start_addr));
-    if (mon_is_valid_addr(bp->end_addr) && (bp->start_addr != bp->end_addr))
-        mon_out("-$%04x",addr_location(bp->end_addr));
+	if (bp->trace) {
+		mon_out("TRACE: ");
+	} else if (bp->watch_load || bp->watch_store) {
+		mon_out("WATCH: ");
+	} else {
+		if (bp->temporary)
+			mon_out("UNTIL: ");
+		else
+			mon_out("BREAK: ");
+	}
+	mon_out("%d %s:$%04x",bp->brknum,
+			mon_memspace_string[addr_memspace(bp->start_addr)],addr_location(bp->start_addr));
+	if (mon_is_valid_addr(bp->end_addr) && (bp->start_addr != bp->end_addr))
+		mon_out("-$%04x",addr_location(bp->end_addr));
 
-    if (bp->watch_load)
-        mon_out(" load");
-    if (bp->watch_store)
-        mon_out(" store");
+	if (bp->watch_load)
+		mon_out(" load");
+	if (bp->watch_store)
+		mon_out(" store");
 
-    mon_out("   %s\n", (bp->enabled==e_ON) ? "enabled" : "disabled");
+	mon_out("   %s\n", (bp->enabled==e_ON) ? "enabled" : "disabled");
 
-    if (bp->condition) {
-        mon_out("\tCondition: ");
-        mon_print_conditional(bp->condition);
-        mon_out("\n");
-    }
-    if (bp->command)
-        mon_out("\tCommand: %s\n", bp->command);
+	if (bp->condition) {
+		mon_out("\tCondition: ");
+		mon_print_conditional(bp->condition);
+		mon_out("\n");
+	}
+	if (bp->command)
+		mon_out("\tCommand: %s\n", bp->command);
 }
 
 void mon_breakpoint_print_checkpoints(void)

@@ -35,7 +35,6 @@
 
 #include "fastsid.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "resources.h"

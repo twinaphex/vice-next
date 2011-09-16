@@ -34,46 +34,44 @@
 #include "cbmimage.h"
 #include "diskimage.h"
 #include "lib.h"
-#include "log.h"
 #include "machine-drive.h"
 #include "types.h"
 #include "vdrive-command.h"
 #include "vdrive-internal.h"
 #include "vdrive.h"
 
-
-static log_t vdrive_internal_log = LOG_DEFAULT;
-
-
 vdrive_t *vdrive_internal_open_fsimage(const char *name, unsigned int read_only)
 {
-    vdrive_t *vdrive;
-    disk_image_t *image;
+	vdrive_t *vdrive;
+	disk_image_t *image;
 
-    image = lib_malloc(sizeof(disk_image_t));
+	image = lib_malloc(sizeof(disk_image_t));
 
-    image->gcr = NULL;
-    image->read_only = read_only;
+	image->gcr = NULL;
+	image->read_only = read_only;
 
-    image->device = DISK_IMAGE_DEVICE_FS;
+	image->device = DISK_IMAGE_DEVICE_FS;
 
-    disk_image_media_create(image);
+	disk_image_media_create(image);
 
-    disk_image_name_set(image, lib_stralloc(name));
+	disk_image_name_set(image, lib_stralloc(name));
 
-    if (disk_image_open(image) < 0) {
-        disk_image_media_destroy(image);
-        lib_free(image);
-        log_error(vdrive_internal_log, "Cannot open file `%s'", name);
-        return NULL;
-    }
+	if (disk_image_open(image) < 0)
+	{
+		disk_image_media_destroy(image);
+		lib_free(image);
+		#ifdef CELL_DEBUG
+		printf("ERROR: Cannot open file `%s'\n", name);
+		#endif
+		return NULL;
+	}
 
-    vdrive = lib_calloc(1, sizeof(vdrive_t));
+	vdrive = lib_calloc(1, sizeof(vdrive_t));
 
-    vdrive_device_setup(vdrive, 100);
-    vdrive->image = image;
-    vdrive_attach_image(image, 100, vdrive);
-    return vdrive;
+	vdrive_device_setup(vdrive, 100);
+	vdrive->image = image;
+	vdrive_attach_image(image, 100, vdrive);
+	return vdrive;
 }
 
 int vdrive_internal_close_disk_image(vdrive_t *vdrive)
@@ -137,6 +135,5 @@ int vdrive_internal_create_format_disk_image(const char *filename,
 
 void vdrive_internal_init(void)
 {
-    vdrive_internal_log = log_open("VDrive Internal");
 }
 

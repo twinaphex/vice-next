@@ -41,7 +41,6 @@
 #include "fileio.h"
 #include "ioutil.h"
 #include "lib.h"
-#include "log.h"
 #include "p00.h"
 #include "rawfile.h"
 #include "types.h"

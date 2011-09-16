@@ -58,7 +58,6 @@
 #include "clkguard.h"
 #include "dma.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
@@ -355,7 +354,7 @@ static int init_raster(void)
     vicii_set_geometry();
 
     if (vicii_color_update_palette(raster->canvas) < 0) {
-        log_error(vicii.log, "Cannot load palette.");
+        //log_error(vicii.log, "Cannot load palette.");
         return -1;
     }
 
@@ -385,18 +384,15 @@ raster_t *vicii_init(unsigned int flag)
         case VICII_EXTENDED:
             vicii.viciie = 1;
             vicii.viciidtv = 0;
-            vicii.log = log_open("VIC-IIe");
             break;
         case VICII_DTV:
             vicii.viciie = 0;
             vicii.viciidtv = 1;
-            vicii.log = log_open("VIC-II DTV");
             break;
         default:
         case VICII_STANDARD:
             vicii.viciie = 0;
             vicii.viciidtv = 0;
-            vicii.log = log_open("VIC-II");
             break;
     }
 

@@ -41,7 +41,6 @@
 #include "cartridge.h"
 #include "interrupt.h"
 #include "lib.h"
-#include "log.h"
 #include "magicvoice.h"
 #include "machine.h"
 #include "maincpu.h"
@@ -1086,7 +1085,6 @@ int magicvoice_enable(void)
 void magicvoice_init(void)
 {
     DBG(("MV: init\n"));
-    tpi_context->log = log_open(tpi_context->myname);
 }
 
 void magicvoice_reset(void)

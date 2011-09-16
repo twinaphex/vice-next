@@ -35,7 +35,6 @@
 #include "ioutil.h"
 #include "util.h"
 #include "lib.h"
-#include "log.h"
 #include "lib/zlib/zlib.h"
 #include "archdep.h"
 
@@ -148,7 +147,7 @@ int save_snapshot(const char *filepath)
 		const char *metafilename = util_concat(md5filename, ".txt", NULL);
 		fdout = (FILE *) fopen(metafilename, "w");
 		if (fdout == NULL) {
-			log_error (LOG_DEFAULT, "Failed to open metafile for writing %s\n", metafilename);
+			//log_error (LOG_DEFAULT, "Failed to open metafile for writing %s\n", metafilename);
 			fclose(fdout);
 			lib_free(md5filename);
 			lib_free(metafilename);
@@ -157,7 +156,7 @@ int save_snapshot(const char *filepath)
 		int bytes_wrote = fwrite (filepath, 1, strlen(filepath), fdout);
 		if (bytes_wrote < (signed) strlen(filepath)) {
 			fclose(fdout);
-			log_error (LOG_DEFAULT, "Failed to write metafilename %s, wrote %d bytes of total %d.\n", metafilename, bytes_wrote, strlen(filepath));
+			//log_error (LOG_DEFAULT, "Failed to write metafilename %s, wrote %d bytes of total %d.\n", metafilename, bytes_wrote, strlen(filepath));
 			lib_free(md5filename);
 			lib_free(metafilename);
 			return -1;

@@ -41,7 +41,6 @@
 #include "cartridge.h"
 #include "drivecpu.h"
 #include "lib.h"
-#include "log.h"
 #include "parallel.h"
 #include "maincpu.h"
 #include "monitor.h"
@@ -324,7 +323,6 @@ void tpi_reset(void)
 
 void tpi_init(void)
 {
-    tpi_context->log = log_open(tpi_context->myname);
 }
 
 void tpi_shutdown(void)

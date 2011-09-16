@@ -35,7 +35,6 @@
 #include "resources.h"
 #include "serial-iec-device.h"
 #include "serial.h"
-#include "log.h"
 #include "maincpu.h"
 #include "clkguard.h"
 #include "serial-iec-bus.h"

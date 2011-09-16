@@ -33,7 +33,6 @@
 
 #include "archdep.h"
 #include "lib.h"
-#include "log.h"
 #include "t64.h"
 #include "types.h"
 #include "zfile.h"
@@ -282,9 +281,11 @@ t64_file_record_t *t64_get_file_record(t64_t *t64, unsigned int num)
 
 t64_file_record_t *t64_get_current_file_record(t64_t *t64)
 {
-    if (t64->current_file_number < 0)
-        log_error(LOG_ERR, "T64: Negative file number.");
-    return t64_get_file_record(t64, (unsigned int)(t64->current_file_number));
+#if 0
+	if (t64->current_file_number < 0)
+		log_error(LOG_ERR, "T64: Negative file number.");
+#endif
+	return t64_get_file_record(t64, (unsigned int)(t64->current_file_number));
 }
 
 int t64_read(t64_t *t64, BYTE *buf, size_t size)

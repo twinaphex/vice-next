@@ -36,7 +36,6 @@
 #include "event.h"
 #include "interrupt.h"
 #include "lib.h"
-#include "log.h"
 #include "resources.h"
 #include "translate.h"
 #include "types.h"

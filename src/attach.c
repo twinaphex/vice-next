@@ -38,7 +38,6 @@
 #include "fsdevice.h"
 #include "fliplist.h"
 #include "lib.h"
-#include "log.h"
 #include "machine-drive.h"
 #include "network.h"
 #include "resources.h"
@@ -65,8 +64,6 @@ typedef struct {
 } file_system_t;
 
 static file_system_t file_system[4];
-
-static log_t attach_log = LOG_DEFAULT;
 
 static int attach_device_readonly_enabled[4];
 static int file_system_device_enabled[4];
@@ -197,17 +194,14 @@ static int file_system_set_serial_hooks(unsigned int unit, int fs)
     DBG(("file_system_set_serial_hooks dev %d: %s\n", unit, !fs ? "vdrive":"fsdevice"));
 
     if (!fs) {
-        if (vdrive_iec_attach(unit, "CBM Disk Drive")) {
-            log_error(attach_log,
-                      "Could not initialize vdrive emulation for device #%i.",
-                      unit);
+        if (vdrive_iec_attach(unit, "CBM Disk Drive"))
+	{
+            //log_error(attach_log, "Could not initialize vdrive emulation for device #%i.", unit);
             return -1;
         }
     } else {
         if (fsdevice_attach(unit, "FS Drive")) {
-            log_error(attach_log,
-                      "Could not initialize FS drive for device #%i.",
-                      unit);
+            //log_error(attach_log, "Could not initialize FS drive for device #%i.", unit);
             return -1;
         }
     }
@@ -217,8 +211,6 @@ static int file_system_set_serial_hooks(unsigned int unit, int fs)
 void file_system_init(void)
 {
     unsigned int i;
-
-    attach_log = log_open("Attach");
 
     for (i = 0; i < 8; i++) {
         serial_device_type_set(SERIAL_DEVICE_VIRT, i);
@@ -262,7 +254,7 @@ void file_system_shutdown(void)
 struct vdrive_s *file_system_get_vdrive(unsigned int unit)
 {
     if (unit < 8 || unit > 11) {
-        log_error(attach_log, "Wrong unit for vdrive");
+        //log_error(attach_log, "Wrong unit for vdrive");
         return NULL;
     }
 
@@ -403,7 +395,7 @@ static int set_file_system_device(int val, void *param)
             detach_disk_image(vdrive->image, vdrive, unit);
         }
         if (serial_realdevice_enable() < 0) {
-            log_warning(attach_log, "Falling back to fs device.");
+            //log_warning(attach_log, "Falling back to fs device.");
             return set_file_system_device(ATTACH_DEVICE_FS, param);
         }
         if (vdrive != NULL && vdrive->image != NULL) {
@@ -499,7 +491,7 @@ static int attach_disk_image(disk_image_t **imgptr, vdrive_t *floppy,
     int err = -1;
 
     if (filename == NULL) {
-        log_error(attach_log, "No name, cannot attach floppy image.");
+        //log_error(attach_log, "No name, cannot attach floppy image.");
         return -1;
     }
 
@@ -634,7 +626,7 @@ static void file_system_detach_disk_internal(int unit)
         if (unit >= 8 && unit <= 11) {
             file_system_detach_disk_single((unsigned int)unit);
         } else {
-            log_error(attach_log, "Cannot detach unit %i.", unit);
+            //log_error(attach_log, "Cannot detach unit %i.", unit);
         }
     }
 

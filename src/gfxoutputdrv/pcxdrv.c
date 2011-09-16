@@ -33,7 +33,6 @@
 #include "archdep.h"
 #include "pcxdrv.h"
 #include "lib.h"
-#include "log.h"
 #include "gfxoutput.h"
 #include "palette.h"
 #include "screenshot.h"
@@ -84,36 +83,39 @@ static int pcxdrv_write_file_header(screenshot_t *screenshot)
 
 static int pcxdrv_open(screenshot_t *screenshot, const char *filename)
 {
-    gfxoutputdrv_data_t *sdata;
+	gfxoutputdrv_data_t *sdata;
 
-    if (screenshot->palette->num_entries > 256) {
-        log_error(LOG_DEFAULT, "Max 256 colors supported.");
-        return -1;
-    }
+	if (screenshot->palette->num_entries > 256)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Max 256 colors supported.\n");
+		#endif
+		return -1;
+	}
 
-    sdata = lib_malloc(sizeof(gfxoutputdrv_data_t));
-    screenshot->gfxoutputdrv_data = sdata;
-    sdata->line = 0;
-    sdata->ext_filename=util_add_extension_const(filename, pcx_drv.default_extension);
-    sdata->fd = fopen(sdata->ext_filename, "wb");
+	sdata = lib_malloc(sizeof(gfxoutputdrv_data_t));
+	screenshot->gfxoutputdrv_data = sdata;
+	sdata->line = 0;
+	sdata->ext_filename=util_add_extension_const(filename, pcx_drv.default_extension);
+	sdata->fd = fopen(sdata->ext_filename, "wb");
 
-    if (sdata->fd == NULL) {
-        lib_free(sdata->ext_filename);
-        lib_free(sdata);
-        return -1;
-    }
+	if (sdata->fd == NULL) {
+		lib_free(sdata->ext_filename);
+		lib_free(sdata);
+		return -1;
+	}
 
-    if (pcxdrv_write_file_header(screenshot) < 0) {
-        fclose(sdata->fd);
-        lib_free(sdata->ext_filename);
-        lib_free(sdata);
-        return -1;
-    }
+	if (pcxdrv_write_file_header(screenshot) < 0) {
+		fclose(sdata->fd);
+		lib_free(sdata->ext_filename);
+		lib_free(sdata);
+		return -1;
+	}
 
-    sdata->data = lib_malloc(screenshot->width);
-    sdata->pcx_data = lib_malloc(screenshot->width*2);
+	sdata->data = lib_malloc(screenshot->width);
+	sdata->pcx_data = lib_malloc(screenshot->width*2);
 
-    return 0;
+	return 0;
 }
 
 static int pcxdrv_write(screenshot_t *screenshot)

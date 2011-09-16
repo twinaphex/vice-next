@@ -29,16 +29,12 @@
 #include <stdio.h>
 
 #include "attach.h"
-#include "log.h"
 #include "snapshot.h"
 #include "vdrive-snapshot.h"
 #include "vdrive.h"
 
-static log_t vdrive_snapshot_log = LOG_ERR;
-
 void vdrive_snapshot_init(void)
 {
-    vdrive_snapshot_log = log_open("VDriveSnapshot");
 }
 
 #define SNAP_MAJOR 1
@@ -81,11 +77,12 @@ int vdrive_snapshot_module_read(snapshot_t *s, int start)
         if (m == NULL)
             return 0;
 
-        if (major_version > SNAP_MAJOR || minor_version > SNAP_MINOR) {
-            log_message(vdrive_snapshot_log,
-                        "Snapshot module version (%d.%d) newer than %d.%d.",
-                        major_version, minor_version, SNAP_MAJOR, SNAP_MINOR);
-        }
+        if (major_version > SNAP_MAJOR || minor_version > SNAP_MINOR)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Snapshot module version (%d.%d) newer than %d.%d.\n", major_version, minor_version, SNAP_MAJOR, SNAP_MINOR);
+		#endif
+	}
         snapshot_module_close(m);
     }
     return 0;

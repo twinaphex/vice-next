@@ -36,7 +36,6 @@
 #include "drive.h"
 #include "drivecpu.h"
 #include "drivetypes.h"
-#include "log.h"
 #include "types.h"
 #include "wd1770.h"
 
@@ -83,8 +82,6 @@ static void wd1770_write_buffer(unsigned int dnr);
 /* wd1770 disk controller structure.  */
 wd1770_t wd1770[DRIVE_NUM];
 
-static log_t wd1770_log = LOG_ERR;
-
 /*-----------------------------------------------------------------------*/
 /* WD1770 external interface.  */
 
@@ -110,11 +107,7 @@ static void clk_overflow_callback(CLOCK sub, void *data)
 /* Functions using drive context.  */
 void wd1770d_init(drive_context_t *drv)
 {
-    if (wd1770_log == LOG_ERR)
-        wd1770_log = log_open("WD1770");
-
-    clk_guard_add_callback(drv->cpu->clk_guard, clk_overflow_callback,
-                           uint_to_void_ptr(drv->mynumber));
+    clk_guard_add_callback(drv->cpu->clk_guard, clk_overflow_callback, uint_to_void_ptr(drv->mynumber));
 }
 
 void REGPARM3 wd1770d_store(drive_context_t *drv, WORD addr, BYTE byte)
@@ -456,82 +449,90 @@ static int wd1770_buffer_fb(unsigned int dnr)
 static int wd1770_sector_read(unsigned int dnr, unsigned int track,
                               unsigned int sector)
 {
-    BYTE sector_data[256];
-    int rc;
+	BYTE sector_data[256];
+	int rc;
 
-    wd1770_conv_phy2log(dnr, &track, &sector);
-
-#ifdef WD_DEBUG
-    log_debug("READ T%i S%i",track,sector);
-#endif
-
-    rc = disk_image_read_sector(wd1770[dnr].image, sector_data, track, sector);
-
-    if (rc < 0) {
-        log_error(wd1770_log,
-                  "Cannot read T:%d S:%d from disk image.", track, sector);
-        return -1;
-    }
-
-    wd1770_buffer_put(dnr, sector_data, sizeof(sector_data));
-
-    sector++;
+	wd1770_conv_phy2log(dnr, &track, &sector);
 
 #ifdef WD_DEBUG
-    log_debug("READ T%i S%i",track,sector);
+	log_debug("READ T%i S%i",track,sector);
 #endif
 
-    rc = disk_image_read_sector(wd1770[dnr].image, sector_data, track, sector);
+	rc = disk_image_read_sector(wd1770[dnr].image, sector_data, track, sector);
 
-    if (rc < 0) {
-        log_error(wd1770_log,
-                  "Cannot read T:%d S:%d from disk image.", track, sector);
-        return -1;
-    }
+	if (rc < 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Cannot read T:%d S:%d from disk image.\n", track, sector);
+		#endif
+		return -1;
+	}
 
-    wd1770_buffer_put(dnr, sector_data, sizeof(sector_data));
+	wd1770_buffer_put(dnr, sector_data, sizeof(sector_data));
 
-    return 0;
+	sector++;
+
+#ifdef WD_DEBUG
+	log_debug("READ T%i S%i",track,sector);
+#endif
+
+	rc = disk_image_read_sector(wd1770[dnr].image, sector_data, track, sector);
+
+	if (rc < 0)
+	{
+		#ifdef CELL_DEBUG
+		printf("ERROR: Cannot read T:%d S:%d from disk image.\n", track, sector);
+		#endif
+		return -1;
+	}
+
+	wd1770_buffer_put(dnr, sector_data, sizeof(sector_data));
+
+	return 0;
 }
 
 static int wd1770_sector_write(unsigned int dnr, unsigned int track,
                                unsigned int sector)
 {
-    BYTE sector_data[256];
-    int rc;
+	BYTE sector_data[256];
+	int rc;
 
-    wd1770_conv_phy2log(dnr, &track, &sector);
+	wd1770_conv_phy2log(dnr, &track, &sector);
 
-    wd1770_buffer_get(dnr, sector_data, sizeof(sector_data));
-
-#ifdef WD_DEBUG
-    log_debug("WRITE T%i S%i",track,sector);
-#endif
-
-    rc = disk_image_write_sector(wd1770[dnr].image, sector_data, track, sector);
-
-    if (rc < 0) {
-        log_error(wd1770_log,
-                  "Cannot write T:%d S:%d to disk image.", track, sector);
-        return -1;
-    }
-
-    sector++;
-
-    wd1770_buffer_get(dnr, sector_data, sizeof(sector_data));
+	wd1770_buffer_get(dnr, sector_data, sizeof(sector_data));
 
 #ifdef WD_DEBUG
-    log_debug("WRITE T%i S%i",track,sector);
+	log_debug("WRITE T%i S%i",track,sector);
 #endif
 
-    rc = disk_image_write_sector(wd1770[dnr].image, sector_data, track, sector);
-    if (rc < 0) {
-        log_error(wd1770_log,
-                  "Cannot write T:%d S:%d to disk image.", track, sector);
-        return -1;
-    }
+	rc = disk_image_write_sector(wd1770[dnr].image, sector_data, track, sector);
 
-    return 0;
+	if (rc < 0)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Cannot write T:%d S:%d to disk image.\n", track, sector);
+#endif
+		return -1;
+	}
+
+	sector++;
+
+	wd1770_buffer_get(dnr, sector_data, sizeof(sector_data));
+
+#ifdef WD_DEBUG
+	log_debug("WRITE T%i S%i",track,sector);
+#endif
+
+	rc = disk_image_write_sector(wd1770[dnr].image, sector_data, track, sector);
+	if (rc < 0)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Cannot write T:%d S:%d to disk image.\n", track, sector);
+#endif
+		return -1;
+	}
+
+	return 0;
 }
 
 static int wd1770_track_write(unsigned int dnr, unsigned int track)
@@ -878,56 +879,57 @@ void wd1770_vsync_hook(void)
 
 int wd1770_attach_image(disk_image_t *image, unsigned int unit)
 {
-    if (unit < 8 || unit > 8 + DRIVE_NUM)
-        return -1;
+	if (unit < 8 || unit > 8 + DRIVE_NUM)
+		return -1;
 
-    switch(image->type) {
-      case DISK_IMAGE_TYPE_D81:
-        disk_image_attach_log(image, wd1770_log, unit);
-        break;
-      default:
-        return -1;
-    }
+	switch(image->type) {
+		case DISK_IMAGE_TYPE_D81:
+			disk_image_attach_log(image, 0, unit);
+			break;
+		default:
+			return -1;
+	}
 
-    wd1770[unit - 8].attach_clk = drive_clk[unit - 8];
-    wd1770[unit - 8].image = image;
-    return 0;
+	wd1770[unit - 8].attach_clk = drive_clk[unit - 8];
+	wd1770[unit - 8].image = image;
+	return 0;
 }
 
 int wd1770_detach_image(disk_image_t *image, unsigned int unit)
 {
-    if (image == NULL || unit < 8 || unit > 8 + DRIVE_NUM)
-        return -1;
+	if (image == NULL || unit < 8 || unit > 8 + DRIVE_NUM)
+		return -1;
 
-    switch(image->type) {
-      case DISK_IMAGE_TYPE_D81:
-        disk_image_detach_log(image, wd1770_log, unit);
-        break;
-      default:
-        return -1;
-    }
+	switch(image->type)
+	{
+		case DISK_IMAGE_TYPE_D81:
+			disk_image_detach_log(image, 0, unit);
+			break;
+		default:
+			return -1;
+	}
 
-    wd1770[unit - 8].image = NULL;
-    return 0;
+	wd1770[unit - 8].image = NULL;
+	return 0;
 }
 
 int wd1770_disk_change(drive_context_t *drive_context)
 {
-    unsigned int dnr;
+	unsigned int dnr;
 
-    dnr = drive_context->mynumber;
+	dnr = drive_context->mynumber;
 
-    if (wd1770[dnr].image == NULL)
-        return 1;
+	if (wd1770[dnr].image == NULL)
+		return 1;
 
-    if (wd1770[dnr].attach_clk != (CLOCK)0) {
-        if (*(drive_context->clk_ptr) - wd1770[dnr].attach_clk
-            < DRIVE_ATTACH_DELAY)
-            return 1;
-        wd1770[dnr].attach_clk = (CLOCK)0;
-    }
+	if (wd1770[dnr].attach_clk != (CLOCK)0) {
+		if (*(drive_context->clk_ptr) - wd1770[dnr].attach_clk
+				< DRIVE_ATTACH_DELAY)
+			return 1;
+		wd1770[dnr].attach_clk = (CLOCK)0;
+	}
 
 
-    return 0;
+	return 0;
 }
 

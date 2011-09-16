@@ -30,13 +30,10 @@
 
 #include "attach.h"
 #include "fsdrive.h"
-#include "log.h"
 #include "serial.h"
 #include "types.h"
 
 #define SERIAL_NAMELENGTH 255
-
-static log_t fsdrive_log = LOG_ERR;
 
 static BYTE SerialBuffer[SERIAL_NAMELENGTH + 1];
 static int SerialPtr;
@@ -78,77 +75,80 @@ static BYTE serialcommand(unsigned int device, BYTE secondary)
         p->nextok[channel] = 0;
     }
     switch (secondary & 0xf0) {
-        /*
-         * Open Channel
-         */
-      case 0x60:
-        if (p->isopen[channel] == 1) {
-            p->isopen[channel] = 2;
-            st = (BYTE)((*(p->openf))(vdrive, NULL, 0, channel, NULL));
-            for (i = 0; i < SerialPtr; i++) {
-                (*(p->putf))(vdrive, ((BYTE)(SerialBuffer[i])), channel);
-            }
-            SerialPtr = 0;
-        }
-        if (p->flushf) {
-            (*(p->flushf))(vdrive, channel);
-        }
-        break;
+	    /*
+	     * Open Channel
+	     */
+	    case 0x60:
+		    if (p->isopen[channel] == 1) {
+			    p->isopen[channel] = 2;
+			    st = (BYTE)((*(p->openf))(vdrive, NULL, 0, channel, NULL));
+			    for (i = 0; i < SerialPtr; i++) {
+				    (*(p->putf))(vdrive, ((BYTE)(SerialBuffer[i])), channel);
+			    }
+			    SerialPtr = 0;
+		    }
+		    if (p->flushf) {
+			    (*(p->flushf))(vdrive, channel);
+		    }
+		    break;
 
-        /*
-         * Close File
-         */
-      case 0xE0:
-        p->isopen[channel] = 0;
-        st = (BYTE)((*(p->closef))(vdrive, channel));
-        break;
+		    /*
+		     * Close File
+		     */
+	    case 0xE0:
+		    p->isopen[channel] = 0;
+		    st = (BYTE)((*(p->closef))(vdrive, channel));
+		    break;
 
-        /*
-         * Open File
-         */
-      case 0xF0:
-        if (p->isopen[channel]) {
+		    /*
+		     * Open File
+		     */
+	    case 0xF0:
+		    if (p->isopen[channel]) {
 #ifndef DELAYEDCLOSE
-            if (p->isopen[channel] == 2) {
-                log_warning(fsdrive_log, "Bogus close?");
-                (*(p->closef))(vdrive, channel);
-            }
-            p->isopen[channel] = 2;
-            SerialBuffer[SerialPtr] = 0;
-            st = (BYTE)((*(p->openf))(vdrive, SerialBuffer, SerialPtr,
-                 channel, NULL));
-            SerialPtr = 0;
+			    if (p->isopen[channel] == 2) {
+				    //log_warning(fsdrive_log, "Bogus close?");
+				    (*(p->closef))(vdrive, channel);
+			    }
+			    p->isopen[channel] = 2;
+			    SerialBuffer[SerialPtr] = 0;
+			    st = (BYTE)((*(p->openf))(vdrive, SerialBuffer, SerialPtr,
+						    channel, NULL));
+			    SerialPtr = 0;
 
-            if (st) {
-                p->isopen[channel] = 0;
-                (*(p->closef))(vdrive, channel);
+			    if (st) {
+				    p->isopen[channel] = 0;
+				    (*(p->closef))(vdrive, channel);
 
-                log_error(fsdrive_log, "Cannot open file. Status $%02x.", st);
-            }
+				    //log_error(fsdrive_log, "Cannot open file. Status $%02x.", st);
+			    }
 #else
-            if (SerialPtr != 0 || channel == 0x0f) {
-                (*(p->closef))(vdrive, channel);
-                p->isopen[channel] = 2;
-                SerialBuffer[SerialPtr] = 0;
-                st = (BYTE)((*(p->openf))(vdrive, SerialBuffer, SerialPtr,
-                     channel, NULL));
-                SerialPtr = 0;
-                if (st) {
-                    p->isopen[channel] = 0;
-                    (*(p->closef))(vdrive, channel);
+			    if (SerialPtr != 0 || channel == 0x0f) {
+				    (*(p->closef))(vdrive, channel);
+				    p->isopen[channel] = 2;
+				    SerialBuffer[SerialPtr] = 0;
+				    st = (BYTE)((*(p->openf))(vdrive, SerialBuffer, SerialPtr,
+							    channel, NULL));
+				    SerialPtr = 0;
+				    if (st) {
+					    p->isopen[channel] = 0;
+					    (*(p->closef))(vdrive, channel);
 
-                    log_error(fsdrive_log, "Cannot open file. Status $%02x.", st);
-                }
-            }
+					    //log_error(fsdrive_log, "Cannot open file. Status $%02x.", st);
+				    }
+			    }
 #endif
-        }
-        if (p->flushf) {
-            (*(p->flushf))(vdrive, channel);
-        }
-        break;
+		    }
+		    if (p->flushf) {
+			    (*(p->flushf))(vdrive, channel);
+		    }
+		    break;
 
-      default:
-        log_error(fsdrive_log, "Unknown command %02X.", secondary & 0xff);
+	    default:
+#ifdef CELL_DEBUG
+		    printf("ERROR: Unknown command %02X.\n", secondary & 0xff);
+#endif
+		    break;
     }
 
     return st;
@@ -328,6 +328,5 @@ void fsdrive_reset(void)
 
 void fsdrive_init(void)
 {
-    fsdrive_log = log_open("FSDrive");
 }
 

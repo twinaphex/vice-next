@@ -58,7 +58,6 @@ extern "C" {
 
 #include "sid/sid.h" /* sid_engine_t */
 #include "lib.h"
-#include "log.h"
 #include "resid.h"
 #include "resources.h"
 #include "sid-snapshot.h"
@@ -96,95 +95,95 @@ static sound_t *resid_open(BYTE *sidstate)
 
 static int resid_init(sound_t *psid, int speed, int cycles_per_sec)
 {
-    sampling_method method;
-    char model_text[100];
-    char method_text[100];
-    double passband, gain;
-    int filters_enabled, model, sampling, passband_percentage, gain_percentage;
+	sampling_method method;
+	char model_text[100];
+	char method_text[100];
+	double passband, gain;
+	int filters_enabled, model, sampling, passband_percentage, gain_percentage;
 
-    if (resources_get_int("SidFilters", &filters_enabled) < 0)
-        return 0;
+	if (resources_get_int("SidFilters", &filters_enabled) < 0)
+		return 0;
 
-    if (resources_get_int("SidModel", &model) < 0)
-        return 0;
+	if (resources_get_int("SidModel", &model) < 0)
+		return 0;
 
-    if (resources_get_int("SidResidSampling", &sampling) < 0)
-        return 0;
+	if (resources_get_int("SidResidSampling", &sampling) < 0)
+		return 0;
 
-    if (resources_get_int("SidResidPassband", &passband_percentage) < 0)
-        return 0;
+	if (resources_get_int("SidResidPassband", &passband_percentage) < 0)
+		return 0;
 
-    if (resources_get_int("SidResidGain", &gain_percentage) < 0)
-        return 0;
+	if (resources_get_int("SidResidGain", &gain_percentage) < 0)
+		return 0;
 
-    passband = speed * passband_percentage / 200.0;
-    gain = gain_percentage / 100.0;
- 
-    switch (model) {
-    default:
-    case 0:
-      psid->sid->set_chip_model(MOS6581);
-      psid->sid->input(0);
-      strcpy(model_text, "MOS6581");
-      break;
-    case 1:
-      psid->sid->set_chip_model(MOS8580);
-      psid->sid->input(0);
-      strcpy(model_text, "MOS8580");
-      break;
-    case 2:
-      psid->sid->set_chip_model(MOS8580);
-      psid->sid->input(-32768);
-      strcpy(model_text, "MOS8580 + digi boost");
-      break;
+	passband = speed * passband_percentage / 200.0;
+	gain = gain_percentage / 100.0;
+
+	switch (model) {
+		default:
+		case 0:
+			psid->sid->set_chip_model(MOS6581);
+			psid->sid->input(0);
+			strcpy(model_text, "MOS6581");
+			break;
+		case 1:
+			psid->sid->set_chip_model(MOS8580);
+			psid->sid->input(0);
+			strcpy(model_text, "MOS8580");
+			break;
+		case 2:
+			psid->sid->set_chip_model(MOS8580);
+			psid->sid->input(-32768);
+			strcpy(model_text, "MOS8580 + digi boost");
+			break;
 #if 0
-    case 3: /* not yet */
-      psid->sid->set_chip_model(MOS6581R4);
-      psid->sid->input(0);
-      strcpy(model_text, "MOS6581R4");
-      break;
+		case 3: /* not yet */
+			psid->sid->set_chip_model(MOS6581R4);
+			psid->sid->input(0);
+			strcpy(model_text, "MOS6581R4");
+			break;
 #endif
-    case 4:
-      /* resid-dtv has only the DTVSID model and no ext input*/
-      strcpy(model_text, "DTVSID");
-      break;
-    }
-    psid->sid->enable_filter(filters_enabled ? true : false);
-    psid->sid->enable_external_filter(filters_enabled ? true : false);
+		case 4:
+			/* resid-dtv has only the DTVSID model and no ext input*/
+			strcpy(model_text, "DTVSID");
+			break;
+	}
+	psid->sid->enable_filter(filters_enabled ? true : false);
+	psid->sid->enable_external_filter(filters_enabled ? true : false);
 
-    switch (sampling) {
-      default:
-      case 0:
-        method = SAMPLE_FAST;
-	strcpy(method_text, "fast");
-	break;
-      case 1:
-        method = SAMPLE_INTERPOLATE;
-	strcpy(method_text, "interpolating");
-	break;
-      case 2:
-        method = SAMPLE_RESAMPLE_INTERPOLATE;
-	sprintf(method_text, "resampling, pass to %dHz", (int)passband);
-	break;
-      case 3:
-        method = SAMPLE_RESAMPLE_FAST;
-	sprintf(method_text, "resampling, pass to %dHz", (int)passband);
-	break;
-    }
+	switch (sampling) {
+		default:
+		case 0:
+			method = SAMPLE_FAST;
+			strcpy(method_text, "fast");
+			break;
+		case 1:
+			method = SAMPLE_INTERPOLATE;
+			strcpy(method_text, "interpolating");
+			break;
+		case 2:
+			method = SAMPLE_RESAMPLE_INTERPOLATE;
+			sprintf(method_text, "resampling, pass to %dHz", (int)passband);
+			break;
+		case 3:
+			method = SAMPLE_RESAMPLE_FAST;
+			sprintf(method_text, "resampling, pass to %dHz", (int)passband);
+			break;
+	}
 
-    if (!psid->sid->set_sampling_parameters(cycles_per_sec, method,
-					   speed, passband, gain)) {
-        log_warning(LOG_DEFAULT,
-                    "reSID: Out of spec, increase sampling rate or decrease maximum speed");
-	return 0;
-    }
+	if (!psid->sid->set_sampling_parameters(cycles_per_sec, method, speed, passband, gain))
+	{
+#ifdef CELL_DEBUG
+		printf("WARNING: reSID: Out of spec, increase sampling rate or decrease maximum speed\n");
+#endif
+		return 0;
+	}
 
-    log_message(LOG_DEFAULT, "reSID: %s, filter %s, sampling rate %dHz - %s",
-		model_text,
-		filters_enabled ? "on" : "off",
-		speed, method_text);
+#ifdef CELL_DEBUG
+	printf("INFO: reSID: %s, filter %s, sampling rate %dHz - %s\n", model_text, filters_enabled ? "on" : "off", speed, method_text);
+#endif
 
-    return 1;
+	return 1;
 }
 
 static void resid_close(sound_t *psid)

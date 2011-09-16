@@ -41,7 +41,6 @@
 #include "ioutil.h"
 #include "joystick.h"
 #include "keyboard.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "sid-snapshot.h"
@@ -99,8 +98,11 @@ int c64_snapshot_read(const char *name, int event_mode)
         return -1;
     }
 
-    if (major != SNAP_MAJOR || minor != SNAP_MINOR) {
-        log_error(LOG_DEFAULT, "Snapshot version (%d.%d) not valid: expecting %d.%d.", major, minor, SNAP_MAJOR, SNAP_MINOR);
+    if (major != SNAP_MAJOR || minor != SNAP_MINOR)
+    {
+    	#ifdef CELL_DEBUG
+        printf("ERROR: Snapshot version (%d.%d) not valid: expecting %d.%d.\n", major, minor, SNAP_MAJOR, SNAP_MINOR);
+	#endif
         goto fail;
     }
 

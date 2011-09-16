@@ -31,7 +31,6 @@
 #include "sound.h"
 #include "types.h"
 #include "archdep.h"
-#include "log.h"
 
 static FILE *aiff_fd=NULL;
 static int samples=0;
@@ -144,9 +143,11 @@ fail:
     fclose(aiff_fd);
     aiff_fd=NULL;
 
+#if 0
     if (res < 0) {
         log_debug("ERROR aiff_close failed.");
     }
+#endif
 }
 
 static sound_device_t aiff_device =

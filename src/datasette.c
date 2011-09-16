@@ -36,7 +36,7 @@
 #include "cmdline.h"
 #include "datasette.h"
 #include "event.h"
-#include "log.h"
+//#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "network.h"
@@ -102,7 +102,7 @@ static int datasette_speed_tuning;
 static unsigned int fullwave = 0;
 static CLOCK fullwave_gap;
 
-static log_t datasette_log = LOG_ERR;
+//static log_t datasette_log = LOG_ERR;
 
 static void datasette_control_internal(int command);
 
@@ -225,7 +225,7 @@ inline static int datasette_move_buffer_forward(int offset)
     if (next_tap + offset >= last_tap) {
         if (fseek(current_image->fd, current_image->current_file_seek_position
             + current_image->offset, SEEK_SET)) {
-            log_error(datasette_log,"Cannot read in tap-file.");
+            //log_error(datasette_log,"Cannot read in tap-file.");
             return 0;
         }
         last_tap = (long)fread(tap_buffer, 1, TAP_BUFFER_LENGTH, current_image->fd);
@@ -248,7 +248,7 @@ inline static int datasette_move_buffer_back(int offset)
             next_tap = current_image->current_file_seek_position;
         if (fseek(current_image->fd, current_image->current_file_seek_position
             - next_tap + current_image->offset, SEEK_SET)) {
-            log_error(datasette_log,"Cannot read in tap-file.");
+            //log_error(datasette_log,"Cannot read in tap-file.");
             return 0;
         }
         last_tap = (long)fread(tap_buffer, 1, TAP_BUFFER_LENGTH, current_image->fd);
@@ -480,7 +480,7 @@ static void datasette_read_bit(CLOCK offset, void *data)
       case DATASETTE_CONTROL_STOP:
         return;
       default:
-        log_error(datasette_log, "Unknown datasette mode.");
+        //log_error(datasette_log, "Unknown datasette mode.");
         return;
     }
 
@@ -541,7 +541,7 @@ static void clk_overflow_callback(CLOCK sub, void *data)
 
 void datasette_init(void)
 {
-    datasette_log = log_open("Datasette");
+    //datasette_log = log_open("Datasette");
 
     datasette_alarm = alarm_new(maincpu_alarm_context, "Datasette",
                                 datasette_read_bit, NULL);
@@ -550,8 +550,7 @@ void datasette_init(void)
 
     datasette_cycles_per_second = machine_get_cycles_per_second();
     if (!datasette_cycles_per_second) {
-        log_error(datasette_log,
-                  "Cannot get cycles per second for this machine.");
+        //log_error(datasette_log, "Cannot get cycles per second for this machine.");
         datasette_cycles_per_second = 985248;
     }
 }
@@ -777,7 +776,7 @@ inline static void bit_write(void)
     } else {
         write_gap = 0;
         if (fwrite(&write_gap, 1, 1, current_image->fd) != 1) {
-            log_debug("datasette bit_write failed.");
+            //log_debug("datasette bit_write failed.");
         }
         current_image->current_file_seek_position++;
         if (current_image->version >= 1) {

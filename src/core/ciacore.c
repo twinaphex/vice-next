@@ -38,7 +38,6 @@
 #include "ciatimer.h"
 #include "interrupt.h"
 #include "lib.h"
-#include "log.h"
 #include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
@@ -1083,7 +1082,6 @@ static void ciacore_inttod(CLOCK offset, void *data)
 
 void ciacore_setup_context(cia_context_t *cia_context)
 {
-    cia_context->log = LOG_ERR;
     cia_context->read_clk = 0;
     cia_context->read_offset = 0;
     cia_context->last_read = 0;
@@ -1100,8 +1098,6 @@ void ciacore_init(cia_context_t *cia_context, alarm_context_t *alarm_context,
     cia_context->tb = lib_malloc(sizeof(ciat_t));
 
     ciat_init_table();
-
-    cia_context->log = log_open(cia_context->myname);
 
     buffer = lib_msprintf("%s_TA", cia_context->myname);
     cia_context->ta_alarm = alarm_new(alarm_context, buffer, ciacore_intta,
@@ -1321,10 +1317,11 @@ int ciacore_snapshot_read_module(cia_context_t *cia_context, snapshot_t *s)
     if (m == NULL)
         return -1;
 
-    if (vmajor != CIA_DUMP_VER_MAJOR) {
-        log_error(cia_context->log,
-                  "Snapshot module version (%d.%d) newer than %d.%d.",
-                  vmajor, vminor, CIA_DUMP_VER_MAJOR, CIA_DUMP_VER_MINOR);
+    if (vmajor != CIA_DUMP_VER_MAJOR)
+    {
+    	#ifdef CELL_DEBUG
+        printf("Snapshot module version (%d.%d) newer than %d.%d.\n", vmajor, vminor, CIA_DUMP_VER_MAJOR, CIA_DUMP_VER_MINOR);
+	#endif
         snapshot_module_close(m);
         return -1;
     }

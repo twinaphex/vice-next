@@ -37,13 +37,9 @@
 #include "fsimage-gcr.h"
 #include "fsimage.h"
 #include "lib.h"
-#include "log.h"
 #include "rawimage.h"
 #include "realimage.h"
 #include "types.h"
-
-
-static log_t disk_image_log = LOG_DEFAULT;
 
 
 /*-----------------------------------------------------------------------*/
@@ -117,39 +113,53 @@ static const char sector_map_d80[78] =
 unsigned int disk_image_sector_per_track(unsigned int format,
                                          unsigned int track)
 {
-    switch (format) {
-      case DISK_IMAGE_TYPE_D64:
-      case DISK_IMAGE_TYPE_X64:
-        if (track >= sizeof(sector_map_d64)) {
-            log_message(disk_image_log, "Track %i exceeds sector map.", track);
-            return 0;
-        }
-        return sector_map_d64[track];
-      case DISK_IMAGE_TYPE_D67:
-        if (track >= sizeof(sector_map_d67)) {
-            log_message(disk_image_log, "Track %i exceeds sector map.", track);
-            return 0;
-        }
-        return sector_map_d67[track];
-      case DISK_IMAGE_TYPE_D71:
-        if (track >= sizeof(sector_map_d71)) {
-            log_message(disk_image_log, "Track %i exceeds sector map.", track);
-            return 0;
-        }
-        return sector_map_d71[track];
-      case DISK_IMAGE_TYPE_D80:
-      case DISK_IMAGE_TYPE_D82:
-        if (track >= sizeof(sector_map_d80)) {
-            log_message(disk_image_log, "Track %i exceeds sector map.", track);
-            return 0;
-        }
-        return sector_map_d80[track];
-      default:
-        log_message(disk_image_log,
-                    "Unknown disk type %i.  Cannot calculate sectors per track",
-                    format);
-    }
-    return 0;
+	switch (format)
+	{
+		case DISK_IMAGE_TYPE_D64:
+		case DISK_IMAGE_TYPE_X64:
+			if (track >= sizeof(sector_map_d64))
+			{
+#ifdef CELL_DEBUG
+				printf("INFO: Track %i exceeds sector map.\n", track);
+#endif
+				return 0;
+			}
+			return sector_map_d64[track];
+		case DISK_IMAGE_TYPE_D67:
+			if (track >= sizeof(sector_map_d67))
+			{
+				#ifdef CELL_DEBUG
+				printf("INFO: Track %i exceeds sector map.\n", track);
+				#endif
+				return 0;
+			}
+			return sector_map_d67[track];
+		case DISK_IMAGE_TYPE_D71:
+			if (track >= sizeof(sector_map_d71))
+			{
+				#ifdef CELL_DEBUG
+				printf("INFO: Track %i exceeds sector map.\n", track);
+				#endif
+				return 0;
+			}
+			return sector_map_d71[track];
+		case DISK_IMAGE_TYPE_D80:
+		case DISK_IMAGE_TYPE_D82:
+			if (track >= sizeof(sector_map_d80))
+			{
+				#ifdef CELL_DEBUG
+				printf("INFO: Track %i exceeds sector map.\n", track);
+				#endif
+				return 0;
+			}
+			return sector_map_d80[track];
+		default:
+#ifdef CELL_DEBUG
+			printf("Unknown disk type %i.  Cannot calculate sectors per track\n", format);
+#endif
+			break;
+	}
+	return 0;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -167,84 +177,97 @@ int disk_image_check_sector(disk_image_t *image, unsigned int track,
 
 static const char *disk_image_type(disk_image_t *image)
 {
-    switch(image->type) {
-        case DISK_IMAGE_TYPE_D80: return "D80";
-        case DISK_IMAGE_TYPE_D82: return "D82";
-        case DISK_IMAGE_TYPE_D64: return "D64";
-        case DISK_IMAGE_TYPE_D67: return "D67";
-        case DISK_IMAGE_TYPE_G64: return "G64";
-        case DISK_IMAGE_TYPE_X64: return "X64";
-        case DISK_IMAGE_TYPE_D71: return "D71";
-        case DISK_IMAGE_TYPE_D81: return "D81";
-        default: return NULL;
-    }
+	switch(image->type)
+	{
+		case DISK_IMAGE_TYPE_D80:
+			return "D80";
+		case DISK_IMAGE_TYPE_D82:
+			return "D82";
+		case DISK_IMAGE_TYPE_D64:
+			return "D64";
+		case DISK_IMAGE_TYPE_D67:
+			return "D67";
+		case DISK_IMAGE_TYPE_G64:
+			return "G64";
+		case DISK_IMAGE_TYPE_X64:
+			return "X64";
+		case DISK_IMAGE_TYPE_D71:
+			return "D71";
+		case DISK_IMAGE_TYPE_D81:
+			return "D81";
+		default:
+			return NULL;
+	}
 }
 
 void disk_image_attach_log(disk_image_t *image, signed int lognum,
                            unsigned int unit)
 {
-    const char *type = disk_image_type(image);
+	const char *type = disk_image_type(image);
 
-    if (type == NULL) {
-        return;
-    }
+	if (type == NULL)
+		return;
 
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        log_verbose("Unit %d: %s disk image attached: %s.",
-                    unit, type, fsimage_name_get(image));
-        break;
+	#if 0
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			log_verbose("Unit %d: %s disk image attached: %s.",
+					unit, type, fsimage_name_get(image));
+			break;
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        log_verbose("Unit %d: %s disk attached (drive: %s).",
-                    unit, type, rawimage_name_get(image));
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			log_verbose("Unit %d: %s disk attached (drive: %s).",
+					unit, type, rawimage_name_get(image));
+			break;
 #endif
-    }
+	}
+	#endif
 }
 
-void disk_image_detach_log(disk_image_t *image, signed int lognum,
-                           unsigned int unit)
+void disk_image_detach_log(disk_image_t *image, signed int lognum, unsigned int unit)
 {
-    const char *type = disk_image_type(image);
+	const char *type = disk_image_type(image);
 
-    if (type == NULL) {
-        return;
-    }
+	if (type == NULL)
+		return;
 
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        log_verbose("Unit %d: %s disk image detached: %s.",
-                    unit, type, fsimage_name_get(image));
-        break;
+	#if 0
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			log_verbose("Unit %d: %s disk image detached: %s.",
+					unit, type, fsimage_name_get(image));
+			break;
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        log_verbose("Unit %d: %s disk detached (drive: %s).",
-                    unit, type, rawimage_name_get(image));
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			log_verbose("Unit %d: %s disk detached (drive: %s).",
+					unit, type, rawimage_name_get(image));
+			break;
 #endif
-    }
+	}
+	#endif
 }
 /*-----------------------------------------------------------------------*/
 
 void disk_image_fsimage_name_set(disk_image_t *image, char *name)
 {
-    fsimage_name_set(image, name);
+	fsimage_name_set(image, name);
 }
 
 char *disk_image_fsimage_name_get(disk_image_t *image)
 {
-    return fsimage_name_get(image);
+	return fsimage_name_get(image);
 }
 
 void *disk_image_fsimage_fd_get(disk_image_t *image)
 {
-    return fsimage_fd_get(image);
+	return fsimage_fd_get(image);
 }
 
 int disk_image_fsimage_create(const char *name, unsigned int type)
 {
-    return fsimage_create(name, type);
+	return fsimage_create(name, type);
 }
 
 /*-----------------------------------------------------------------------*/
@@ -252,14 +275,14 @@ int disk_image_fsimage_create(const char *name, unsigned int type)
 void disk_image_rawimage_name_set(disk_image_t *image, char *name)
 {
 #ifdef HAVE_RAWDRIVE
-    rawimage_name_set(image, name);
+	rawimage_name_set(image, name);
 #endif
 }
 
 void disk_image_rawimage_driver_name_set(disk_image_t *image)
 {
 #ifdef HAVE_RAWDRIVE
-    rawimage_driver_name_set(image);
+	rawimage_driver_name_set(image);
 #endif
 }
 
@@ -267,27 +290,29 @@ void disk_image_rawimage_driver_name_set(disk_image_t *image)
 
 void disk_image_name_set(disk_image_t *image, char *name)
 {
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        fsimage_name_set(image, name);
-        break;
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			fsimage_name_set(image, name);
+			break;
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        rawimage_name_set(image, name);
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			rawimage_name_set(image, name);
+			break;
 #endif
-    }
+	}
 }
 
 char *disk_image_name_get(disk_image_t *image)
 {
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        return fsimage_name_get(image);
-        break;
-    }
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			return fsimage_name_get(image);
+			break;
+	}
 
-    return NULL;
+	return NULL;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -306,23 +331,27 @@ void disk_image_destroy(disk_image_t *image)
 
 void disk_image_media_create(disk_image_t *image)
 {
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        fsimage_media_create(image);
-        break;
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			fsimage_media_create(image);
+			break;
 #ifdef HAVE_OPENCBM
-      case DISK_IMAGE_DEVICE_REAL:
-        realimage_media_create(image);
-        break;
+		case DISK_IMAGE_DEVICE_REAL:
+			realimage_media_create(image);
+			break;
 #endif
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        rawimage_media_create(image);
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			rawimage_media_create(image);
+			break;
 #endif
-      default:
-        log_error(disk_image_log, "Unknown image device %i.", image->device);
-    }
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown image device %i.\n", image->device);
+#endif
+			break;
+	}
 }
 
 void disk_image_media_destroy(disk_image_t *image)
@@ -330,81 +359,91 @@ void disk_image_media_destroy(disk_image_t *image)
 	if (image == NULL)
 		return;
 
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        fsimage_media_destroy(image);
-        break;
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			fsimage_media_destroy(image);
+			break;
 #ifdef HAVE_OPENCBM
-      case DISK_IMAGE_DEVICE_REAL:
-        realimage_media_destroy(image);
-        break;
+		case DISK_IMAGE_DEVICE_REAL:
+			realimage_media_destroy(image);
+			break;
 #endif
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        rawimage_media_destroy(image);
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			rawimage_media_destroy(image);
+			break;
 #endif
-      default:
-        log_error(disk_image_log, "Unknown image device %i.", image->device);
-    }
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown image device %i.\n", image->device);
+#endif
+			break;
+	}
 }
 
 /*-----------------------------------------------------------------------*/
 
 int disk_image_open(disk_image_t *image)
 {
-    int rc = 0;
+	int rc = 0;
 
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        rc = fsimage_open(image);
-        break;
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			rc = fsimage_open(image);
+			break;
 #ifdef HAVE_OPENCBM
-      case DISK_IMAGE_DEVICE_REAL:
-        rc = realimage_open(image);
-        break;
+		case DISK_IMAGE_DEVICE_REAL:
+			rc = realimage_open(image);
+			break;
 #endif
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        rc = rawimage_open(image);
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			rc = rawimage_open(image);
+			break;
 #endif
-      default:
-        log_error(disk_image_log, "Unknown image device %i.", image->device);
-        rc = -1;
-    }
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown image device %i.\n", image->device);
+#endif
+			rc = -1;
+	}
 
-    return rc;
+	return rc;
 }
 
 
 int disk_image_close(disk_image_t *image)
 {
-    int rc = 0;
+	int rc = 0;
 
 	if (image == NULL)
 		return 0;
 
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        rc = fsimage_close(image);
-        break;
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			rc = fsimage_close(image);
+			break;
 #ifdef HAVE_OPENCBM
-      case DISK_IMAGE_DEVICE_REAL:
-        rc = realimage_close(image);
-        break;
+		case DISK_IMAGE_DEVICE_REAL:
+			rc = realimage_close(image);
+			break;
 #endif
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        rc = rawimage_close(image);
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			rc = rawimage_close(image);
+			break;
 #endif
-      default:
-        log_error(disk_image_log, "Unknown image device %i.", image->device);
-        rc = -1;
-    }
+		default:
+		#ifdef CELL_DEBUG
+		printf("Unknown image device %i.\n", image->device);
+		#endif
+			rc = -1;
+	}
 
-    return rc;
+	return rc;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -412,55 +451,61 @@ int disk_image_close(disk_image_t *image)
 int disk_image_read_sector(disk_image_t *image, BYTE *buf, unsigned int track,
                            unsigned int sector)
 {
-    int rc = 0;
+	int rc = 0;
 
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        rc = fsimage_read_sector(image, buf, track, sector);
-        break;
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			rc = fsimage_read_sector(image, buf, track, sector);
+			break;
 #ifdef HAVE_OPENCBM
-      case DISK_IMAGE_DEVICE_REAL:
-        rc = realimage_read_sector(image, buf, track, sector);
-        break;
+		case DISK_IMAGE_DEVICE_REAL:
+			rc = realimage_read_sector(image, buf, track, sector);
+			break;
 #endif
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        rc = rawimage_read_sector(image, buf, track, sector);
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			rc = rawimage_read_sector(image, buf, track, sector);
+			break;
 #endif
-      default:
-        log_error(disk_image_log, "Unknown image device %i.", image->device); 
-        rc = -1;
-    }
+		default:
+		#ifdef CELL_DEBUG
+			printf("Unknown image device %i.\n", image->device); 
+		#endif
+			rc = -1;
+	}
 
-    return rc;
+	return rc;
 }
 
 int disk_image_write_sector(disk_image_t *image, BYTE *buf, unsigned int track,
                             unsigned int sector)
 {
-    int rc = 0;
+	int rc = 0;
 
-    switch (image->device) {
-      case DISK_IMAGE_DEVICE_FS:
-        rc = fsimage_write_sector(image, buf, track, sector);
-        break;
+	switch (image->device)
+	{
+		case DISK_IMAGE_DEVICE_FS:
+			rc = fsimage_write_sector(image, buf, track, sector);
+			break;
 #ifdef HAVE_OPENCBM
-      case DISK_IMAGE_DEVICE_REAL:
-        rc = realimage_write_sector(image, buf, track, sector);
-        break;
+		case DISK_IMAGE_DEVICE_REAL:
+			rc = realimage_write_sector(image, buf, track, sector);
+			break;
 #endif
 #ifdef HAVE_RAWDRIVE
-      case DISK_IMAGE_DEVICE_RAW:
-        rc = rawimage_write_sector(image, buf, track, sector);
-        break;
+		case DISK_IMAGE_DEVICE_RAW:
+			rc = rawimage_write_sector(image, buf, track, sector);
+			break;
 #endif
-      default:
-        log_error(disk_image_log, "Unknow image device %i.", image->device);
-        rc = -1;
-    }
+		default:
+#ifdef CELL_DEBUG
+			printf("ERROR: Unknown image device %i.\n", image->device);
+#endif
+			rc = -1;
+	}
 
-    return rc;
+	return rc;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -489,14 +534,13 @@ int disk_image_read_gcr_image(disk_image_t *image)
 
 void disk_image_init(void)
 {
-    disk_image_log = log_open("Disk Access");
-    fsimage_create_init();
-    fsimage_init();
+	fsimage_create_init();
+	fsimage_init();
 #ifdef HAVE_OPENCBM
-    realimage_init();
+	realimage_init();
 #endif
 #ifdef HAVE_RAWDRIVE
-    rawimage_init();
+	rawimage_init();
 #endif
 }
 

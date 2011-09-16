@@ -84,7 +84,6 @@
 #include "cartridge.h"
 #include "cmdline.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "mem.h"
 #include "plus256k.h"
@@ -103,8 +102,6 @@ static BYTE ramcart[2];
 /* RAMCART image.  */
 static BYTE *ramcart_ram = NULL;
 static int old_ramcart_ram_size = 0;
-
-static log_t ramcart_log = LOG_ERR;
 
 static int ramcart_activate(void);
 static int ramcart_deactivate(void);
@@ -127,45 +124,45 @@ static char *ramcart_filename = NULL;
 /* ------------------------------------------------------------------------- */
 int ramcart_cart_enabled(void)
 {
-    return ramcart_enabled;
+	return ramcart_enabled;
 }
 
 static BYTE REGPARM1 ramcart_reg_read(WORD addr)
 {
-    BYTE retval;
+	BYTE retval;
 
-    if (addr == 1 && ramcart_size_kb == 128) {
-        retval = vicii_read_phi1() & 0x7e;
-        retval += ramcart[addr];
-    } else {
-      retval = ramcart[addr];
-    }
+	if (addr == 1 && ramcart_size_kb == 128) 
+	{
+		retval = vicii_read_phi1() & 0x7e;
+		retval += ramcart[addr];
+	}
+	else
+		retval = ramcart[addr];
 
-    return retval;
+	return retval;
 }
 
 static void REGPARM2 ramcart_reg_store(WORD addr, BYTE byte)
 {
-    if (addr == 1 && ramcart_size_kb == 128) {
-        ramcart[1] = byte & 0x81;
-    }
-    if (addr == 0) {
-        ramcart[0] = byte;
-    }
+	if (addr == 1 && ramcart_size_kb == 128)
+		ramcart[1] = byte & 0x81;
+
+	if (addr == 0)
+		ramcart[0] = byte;
 }
 
 static BYTE REGPARM1 ramcart_window_read(WORD addr)
 {
-    BYTE retval;
+	BYTE retval;
 
-    retval = ramcart_ram[((ramcart[1] & 1) << 16) + (ramcart[0] * 256) + (addr & 0xff)];
+	retval = ramcart_ram[((ramcart[1] & 1) << 16) + (ramcart[0] * 256) + (addr & 0xff)];
 
-    return retval;
+	return retval;
 }
 
 static void REGPARM2 ramcart_window_store(WORD addr, BYTE byte)
 {
-    ramcart_ram[((ramcart[1] & 1) * 65536) + (ramcart[0] * 256) + (addr & 0xff)] = byte;
+	ramcart_ram[((ramcart[1] & 1) * 65536) + (ramcart[0] * 256) + (addr & 0xff)] = byte;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -207,148 +204,172 @@ static const c64export_resource_t export_res = {
 
 static int ramcart_activate(void)
 {
-    if (!ramcart_size) {
-        return 0;
-    }
+	if (!ramcart_size)
+		return 0;
 
-    ramcart_ram = lib_realloc((void *)ramcart_ram, (size_t)ramcart_size);
+	ramcart_ram = lib_realloc((void *)ramcart_ram, (size_t)ramcart_size);
 
-    /* Clear newly allocated RAM.  */
-    if (ramcart_size > old_ramcart_ram_size) {
-        memset(ramcart_ram, 0, (size_t)(ramcart_size - old_ramcart_ram_size));
-    }
+	/* Clear newly allocated RAM.  */
+	if (ramcart_size > old_ramcart_ram_size)
+		memset(ramcart_ram, 0, (size_t)(ramcart_size - old_ramcart_ram_size));
 
-    old_ramcart_ram_size = ramcart_size;
+	old_ramcart_ram_size = ramcart_size;
 
-    log_message(ramcart_log, "%dKB unit installed.", ramcart_size >> 10);
+	#ifdef CELL_DEBUG
+	printf("INFO: %dKB unit installed.\n", ramcart_size >> 10);
+	#endif
 
-    if (!util_check_null_string(ramcart_filename)) {
-        if (util_file_load(ramcart_filename, ramcart_ram, (size_t)ramcart_size, UTIL_FILE_LOAD_RAW) < 0) {
-            log_message(ramcart_log, "Reading RAMCART image %s failed.", ramcart_filename);
-            if (util_file_save(ramcart_filename, ramcart_ram, ramcart_size) < 0) {
-                log_message(ramcart_log, "Creating RAMCART image %s failed.", ramcart_filename);
-                return -1;
-            }
-            log_message(ramcart_log, "Creating RAMCART image %s.", ramcart_filename);
-            return 0;
-        }
-        log_message(ramcart_log, "Reading RAMCART image %s.", ramcart_filename);
-    }
+	if (!util_check_null_string(ramcart_filename))
+	{
+		if (util_file_load(ramcart_filename, ramcart_ram, (size_t)ramcart_size, UTIL_FILE_LOAD_RAW) < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: Reading RAMCART image %s failed.\n", ramcart_filename);
+			#endif
+			if (util_file_save(ramcart_filename, ramcart_ram, ramcart_size) < 0)
+			{
+				#ifdef CELL_DEBUG
+				printf("INFO: Creating RAMCART image %s failed.\n", ramcart_filename);
+				#endif
+				return -1;
+			}
+			#ifdef CELL_DEBUG
+			printf("INFO: Creating RAMCART image %s.\n", ramcart_filename);
+			#endif
+			return 0;
+		}
+		#ifdef CELL_DEBUG
+		printf("INFO: Reading RAMCART image %s.\n", ramcart_filename);
+		#endif
+	}
 
-    ramcart_reset();
-    return 0;
+	ramcart_reset();
+	return 0;
 }
 
 static int ramcart_deactivate(void)
 {
-    if (ramcart_ram == NULL) {
-        return 0;
-    }
+	if (ramcart_ram == NULL)
+		return 0;
 
-    if (!util_check_null_string(ramcart_filename)) {
-        if (util_file_save(ramcart_filename, ramcart_ram, ramcart_size) < 0) {
-            log_message(ramcart_log, "Writing RAMCART image %s failed.", ramcart_filename);
-            return -1;
-        }
-        log_message(ramcart_log, "Writing RAMCART image %s.", ramcart_filename);
-    }
+	if (!util_check_null_string(ramcart_filename))
+	{
+		if (util_file_save(ramcart_filename, ramcart_ram, ramcart_size) < 0)
+		{
+			#ifdef CELL_DEBUG
+			printf("INFO: Writing RAMCART image %s failed.\n", ramcart_filename);
+			#endif
+			return -1;
+		}
+		#ifdef CELL_DEBUG
+		printf("INFO: Writing RAMCART image %s.\n", ramcart_filename);
+		#endif
+	}
 
-    lib_free(ramcart_ram);
-    ramcart_ram = NULL;
-    old_ramcart_ram_size = 0;
+	lib_free(ramcart_ram);
+	ramcart_ram = NULL;
+	old_ramcart_ram_size = 0;
 
-    return 0;
+	return 0;
 }
 
 static int set_ramcart_enabled(int val, void *param)
 {
-    if(!ramcart_enabled && val) {
-        cart_power_off();
-        if (ramcart_activate() < 0) {
-            return -1;
-        }
-        if (c64export_add(&export_res) < 0) {
-            return -1;
-        }
-        ramcart_io1_list_item = c64io_register(&ramcart_io1_device);
-        ramcart_io2_list_item = c64io_register(&ramcart_io2_device);
-        ramcart_enabled = 1;
-        /* FIXME */
-        export.exrom = 1;
-        mem_pla_config_changed();
-    } else if(ramcart_enabled && !val) {
-        cart_power_off();
-        if (ramcart_deactivate() < 0) {
-            return -1;
-        }
-        c64io_unregister(ramcart_io1_list_item);
-        c64io_unregister(ramcart_io2_list_item);
-        ramcart_io1_list_item = NULL;
-        ramcart_io2_list_item = NULL;
-        c64export_remove(&export_res);
-        ramcart_enabled = 0;
-        /* FIXME */
-        export.exrom = 0;
-        mem_pla_config_changed();
-    }
-    return 0;
+	if(!ramcart_enabled && val)
+	{
+		cart_power_off();
+		if (ramcart_activate() < 0)
+			return -1;
+
+		if (c64export_add(&export_res) < 0)
+			return -1;
+
+		ramcart_io1_list_item = c64io_register(&ramcart_io1_device);
+		ramcart_io2_list_item = c64io_register(&ramcart_io2_device);
+		ramcart_enabled = 1;
+		/* FIXME */
+		export.exrom = 1;
+		mem_pla_config_changed();
+	}
+	else if(ramcart_enabled && !val)
+	{
+		cart_power_off();
+		if (ramcart_deactivate() < 0)
+			return -1;
+
+		c64io_unregister(ramcart_io1_list_item);
+		c64io_unregister(ramcart_io2_list_item);
+		ramcart_io1_list_item = NULL;
+		ramcart_io2_list_item = NULL;
+		c64export_remove(&export_res);
+		ramcart_enabled = 0;
+		/* FIXME */
+		export.exrom = 0;
+		mem_pla_config_changed();
+	}
+	return 0;
 }
 
 static int set_ramcart_readonly(int val, void *param)
 {
-  ramcart_readonly = val;
-  return 0;
+	ramcart_readonly = val;
+	return 0;
 }
 
 static int set_ramcart_size(int val, void *param)
 {
-    if (val == ramcart_size_kb) {
-        return 0;
-    }
+	if (val == ramcart_size_kb)
+		return 0;
 
-    switch (val) {
-        case 64:
-        case 128:
-            break;
-        default:
-            log_message(ramcart_log, "Unknown RAMCART size %d.", val);
-            return -1;
-    }
+	switch (val)
+	{
+		case 64:
+		case 128:
+			break;
+		default:
+			#ifdef CELL_DEBUG
+			printf("INFO: Unknown RAMCART size %d.\n", val);
+			#endif
+			return -1;
+	}
 
-    if (ramcart_enabled) {
-        ramcart_deactivate();
-        ramcart_size_kb = val;
-        ramcart_size = ramcart_size_kb << 10;
-        ramcart_activate();
-    } else {
-        ramcart_size_kb = val;
-        ramcart_size = ramcart_size_kb << 10;
-    }
+	if (ramcart_enabled)
+	{
+		ramcart_deactivate();
+		ramcart_size_kb = val;
+		ramcart_size = ramcart_size_kb << 10;
+		ramcart_activate();
+	}
+	else
+	{
+		ramcart_size_kb = val;
+		ramcart_size = ramcart_size_kb << 10;
+	}
 
-    return 0;
+	return 0;
 }
 
 static int set_ramcart_filename(const char *name, void *param)
 {
-    if (ramcart_filename != NULL && name != NULL && strcmp(name, ramcart_filename) == 0) {
-        return 0;
-    }
+	if (ramcart_filename != NULL && name != NULL && strcmp(name, ramcart_filename) == 0)
+		return 0;
 
-    if (name != NULL && *name != '\0') {
-        if (util_check_filename_access(name) < 0) {
-            return -1;
-        }
-    }
+	if (name != NULL && *name != '\0')
+	{
+		if (util_check_filename_access(name) < 0)
+			return -1;
+	}
 
-    if (ramcart_enabled) {
-        ramcart_deactivate();
-        util_string_set(&ramcart_filename, name);
-        ramcart_activate();
-    } else {
-        util_string_set(&ramcart_filename, name);
-    }
+	if (ramcart_enabled)
+	{
+		ramcart_deactivate();
+		util_string_set(&ramcart_filename, name);
+		ramcart_activate();
+	}
+	else
+		util_string_set(&ramcart_filename, name);
 
-    return 0;
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -371,17 +392,16 @@ static const resource_int_t resources_int[] = {
 
 int ramcart_resources_init(void)
 {
-    if (resources_register_string(resources_string) < 0) {
-        return -1;
-    }
+	if (resources_register_string(resources_string) < 0)
+		return -1;
 
-    return resources_register_int(resources_int);
+	return resources_register_int(resources_int);
 }
 
 void ramcart_resources_shutdown(void)
 {
-    lib_free(ramcart_filename);
-    ramcart_filename = NULL;
+	lib_free(ramcart_filename);
+	ramcart_filename = NULL;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -420,87 +440,87 @@ int ramcart_cmdline_options_init(void)
 
 const char *ramcart_get_file_name(void)
 {
-    return ramcart_filename;
+	return ramcart_filename;
 }
 
 void ramcart_init_config(void)
 {
-    if (ramcart_enabled) {
-        /* FIXME */
-        export.exrom = 1;
-        mem_pla_config_changed();
-    }
+	if (ramcart_enabled)
+	{
+		/* FIXME */
+		export.exrom = 1;
+		mem_pla_config_changed();
+	}
 }
 
 void ramcart_init(void)
 {
-    ramcart_log = log_open("RAMCART");
 }
 
 void ramcart_reset(void)
 {
-    ramcart[0] = 0;
-    ramcart[1] = 0;
+	ramcart[0] = 0;
+	ramcart[1] = 0;
 }
 
 void ramcart_config_setup(BYTE *rawcart)
 {
-    memcpy(ramcart_ram, rawcart, ramcart_size); /* FIXME */
+	memcpy(ramcart_ram, rawcart, ramcart_size); /* FIXME */
 }
 
 void ramcart_detach(void)
 {
-    resources_set_int("RAMCART", 0);
+	resources_set_int("RAMCART", 0);
 }
 
 int ramcart_enable(void)
 {
-    if (resources_set_int("RAMCART", 1) < 0) {
-        return -1;
-    }
-    return 0;
+	if (resources_set_int("RAMCART", 1) < 0)
+		return -1;
+
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */
 
 BYTE REGPARM1 ramcart_roml_read(WORD addr)
 {
-    if (ramcart_readonly == 1 && ramcart_size_kb == 128 && addr >= 0x8000 && addr <= 0x80ff) {
-        return ramcart_ram[((ramcart[1] & 1) * 65536) + (ramcart[0] * 256) + (addr & 0xff)];
-    }
-/* FIXME: intentionally breaking this, this code should be removed and
-          ram extensions should be handled in the generic interface */
+	if (ramcart_readonly == 1 && ramcart_size_kb == 128 && addr >= 0x8000 && addr <= 0x80ff)
+		return ramcart_ram[((ramcart[1] & 1) * 65536) + (ramcart[0] * 256) + (addr & 0xff)];
+
+	/* FIXME: intentionally breaking this, this code should be removed and
+	   ram extensions should be handled in the generic interface */
 #if 0
-    if (plus60k_enabled) {
-        return plus60k_ram_read(addr);
-    }
-    if (plus256k_enabled) {
-        return plus256k_ram_high_read(addr);
-    }
-    if (c64_256k_enabled) {
-        return c64_256k_ram_segment2_read(addr);
-    }
+	if (plus60k_enabled) {
+		return plus60k_ram_read(addr);
+	}
+	if (plus256k_enabled) {
+		return plus256k_ram_high_read(addr);
+	}
+	if (c64_256k_enabled) {
+		return c64_256k_ram_segment2_read(addr);
+	}
 #endif
-    return mem_ram[addr];
+	return mem_ram[addr];
 }
 
 void REGPARM2 ramcart_roml_store(WORD addr, BYTE byte)
 {
-/* FIXME: intentionally breaking this, this code should be removed and
-          ram extensions should be handled in the generic interface */
+	/* FIXME: intentionally breaking this, this code should be removed and
+	   ram extensions should be handled in the generic interface */
 #if 0
-    if (plus60k_enabled) {
-        plus60k_ram_store(addr, byte);
-        return;
-    }
-    if (plus256k_enabled) {
-        plus256k_ram_high_store(addr, byte);
-        return;
-    }
-    if (c64_256k_enabled) {
-        c64_256k_ram_segment2_store(addr, byte);
-        return;
-    }
+	if (plus60k_enabled) {
+		plus60k_ram_store(addr, byte);
+		return;
+	}
+	if (plus256k_enabled) {
+		plus256k_ram_high_store(addr, byte);
+		return;
+	}
+	if (c64_256k_enabled) {
+		c64_256k_ram_segment2_store(addr, byte);
+		return;
+	}
 #endif
-    mem_ram[addr] = byte;
+	mem_ram[addr] = byte;
 }

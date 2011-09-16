@@ -44,7 +44,6 @@
 #include "archdep.h"
 #include "ioutil.h"
 #include "lib.h"
-#include "log.h"
 #include "util.h"
 
 
@@ -344,7 +343,7 @@ int util_file_load(const char *name, BYTE *dest, size_t size,
     long start = 0;
 
     if (util_check_null_string(name)) {
-        log_error(LOG_ERR, "No file name given for load_file().");
+        //log_error(LOG_ERR, "No file name given for load_file().");
         return -1;
     }
 
@@ -397,7 +396,7 @@ int util_file_save(const char *name, BYTE *src, int size)
     size_t r;
 
     if (util_check_null_string(name)) {
-        log_error(LOG_ERR, "No file name given for save_file().");
+        //log_error(LOG_ERR, "No file name given for save_file().");
         return -1;
     }
 

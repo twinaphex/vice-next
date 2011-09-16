@@ -29,7 +29,6 @@
 
 #include <stdio.h>
 
-#include "log.h"
 #include "mouse.h"
 #include "mousedrv.h"
 #include "cell/mouse.h"

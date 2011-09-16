@@ -52,7 +52,6 @@ extern "C" {
 #include "common.h"
 #include "util.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "videoarch.h"
 #include "resources.h"
