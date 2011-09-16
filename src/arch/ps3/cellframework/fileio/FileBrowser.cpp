@@ -2,7 +2,7 @@
  *  -- Cellframework -  Open framework to abstract the common tasks related to
  *                      PS3 application development.
  *
- *  Copyright (C) 2010 - 2011
+ *  Copyright (C) 2010-2011
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -19,72 +19,105 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ********************************************************************************/
 
-#include "FileBrowser.h"
+/******************************************************************************* 
+ * FileBrowser.cpp - Cellframework
+ *
+ *  Created on:		Oct 29, 2010
+ *  Last updated:	 
+ ********************************************************************************/
+
+#include "FileBrowser.hpp"
 
 #include <algorithm>
 
+#define delete_current_entry_set() \
+	std::vector<DirectoryEntry*>::const_iterator iter; \
+	for(iter = _cur.begin(); iter != _cur.end(); ++iter) \
+		delete (*iter); \
+	\
+	_cur.clear();
 
-FileBrowser::FileBrowser(string startDir)
+// yeah sucks, not using const
+static bool less_than_key(DirectoryEntry* a, DirectoryEntry* b)
 {
-	_currentSelected = 0;
-	_dir.numEntries = 0;
+	// dir compare to file, let us always make the dir less than
+	if ((a->d_type == CELL_FS_TYPE_DIRECTORY && b->d_type == CELL_FS_TYPE_REGULAR))
+		return true;
+	else if (a->d_type == CELL_FS_TYPE_REGULAR && b->d_type == CELL_FS_TYPE_DIRECTORY)
+		return false;
 
-	PushDirectory(startDir, CELL_FS_TYPE_DIRECTORY | CELL_FS_TYPE_REGULAR, "");
+	// FIXME: add a way to customize sorting someday
+	// 	also add a ignore filename, sort by extension
+
+	// use this to ignore extension
+	if (a->d_type == CELL_FS_TYPE_REGULAR && b->d_type == CELL_FS_TYPE_REGULAR)
+	{
+		char *pIndex1 = strrchr(a->d_name, '.');
+		char *pIndex2 = strrchr(b->d_name, '.');
+
+		// null the dots
+		if (pIndex1 != NULL)
+			*pIndex1 = '\0';
+
+		if (pIndex2 != NULL)
+			*pIndex2 = '\0';
+
+		// compare
+		int retVal = strcasecmp(a->d_name, b->d_name);
+
+		// restore the dot
+		if (pIndex1 != NULL)
+			*pIndex1 = '.';
+
+		if (pIndex2 != NULL)
+			*pIndex2 = '.';
+		return retVal < 0;
+	}
+
+	// both dirs at this points btw
+	return strcasecmp(a->d_name, b->d_name) < 0;
 }
 
-
-FileBrowser::FileBrowser(string startDir, string extensions)
+FileBrowser::FileBrowser(const char * startDir, std::string extensions)
 {
 	_currentSelected = 0;
-	_dir.numEntries = 0;
+	_dirStackSize = 0;
+	_dir[_dirStackSize].numEntries = 0;
+	m_wrap = true;
 
-	PushDirectory(startDir, CELL_FS_TYPE_DIRECTORY | CELL_FS_TYPE_REGULAR, extensions);
+	ParseDirectory(startDir, CELL_FS_TYPE_DIRECTORY | CELL_FS_TYPE_REGULAR, extensions);
 }
-
-
-FileBrowser::FileBrowser(string startDir, int types, string extensions)
-{
-	_currentSelected = 0;
-	_dir.numEntries = 0;
-
-	PushDirectory(startDir, types, extensions);
-}
-
-
 
 FileBrowser::~FileBrowser()
 {
 	Destroy();
 }
 
+void FileBrowser::ResetStartDirectory(const char * startDir, std::string extensions)
+{
+	Destroy();
+   
+	_currentSelected = 0;
+	_dirStackSize = 0;
+	_dir[_dirStackSize].numEntries = 0;
+
+	ParseDirectory(startDir, CELL_FS_TYPE_DIRECTORY | CELL_FS_TYPE_REGULAR, extensions);
+}
+
 
 void FileBrowser::Destroy()
 {
-	// clean up
-	DeleteCurrentEntrySet();
-
-    while (!_dirStack.empty())
-    {
-    	_dirStack.pop();
-    }
+	delete_current_entry_set();
 }
 
-
-void FileBrowser::DeleteCurrentEntrySet()
+const char * FileBrowser::get_current_directory_name()
 {
-    std::vector<DirectoryEntry*>::const_iterator iter;
-    for(iter = _cur.begin(); iter != _cur.end(); ++iter)
-    {
-        delete (*iter);
-    }
-
-    _cur.clear();
+	return _dir[_dirStackSize].dir;
 }
 
-
-DirectoryInfo FileBrowser::GetCurrentDirectoryInfo()
+uint32_t FileBrowser::get_current_directory_file_count()
 {
-	return _dir;
+	return _dir[_dirStackSize].numEntries;
 }
 
 
@@ -94,81 +127,52 @@ void FileBrowser::GotoEntry(uint32_t i)
 	_currentSelected = i;
 }
 
-
-uint32_t FileBrowser::DirectoryStackCount()
+void FileBrowser::PushDirectory(const char * path, int types, std::string extensions)
 {
-	return _dirStack.size();
-}
-
-
-void FileBrowser::PushDirectory(string path, int types, string extensions)
-{
-	if (path.compare("..") == 0)
-	{
-		PopDirectory();
-	}
-	else if (ParseDirectory(path, types, extensions))
-	{
-		_dirStack.push(_dir);
-	}
+	_dirStackSize++;
+	ParseDirectory(path, types, extensions);
 }
 
 
 void FileBrowser::PopDirectory()
 {
-	if (_dirStack.empty())
-	{
-		return;
-	}
+	if (_dirStackSize > 0)
+		_dirStackSize--;
 
-	_dirStack.pop();
-
-	if (_dirStack.empty())
-	{
-		return;
-	}
-
-	if (ParseDirectory(_dirStack.top().dir, _dirStack.top().types, _dirStack.top().extensions))
-	{
-		return;
-	}
-	else
-	{
-		PopDirectory();
-	}
+	ParseDirectory(_dir[_dirStackSize].dir, _dir[_dirStackSize].types, _dir[_dirStackSize].extensions);
 }
 
 
-bool FileBrowser::ParseDirectory(string path, int types, string extensions)
+bool FileBrowser::ParseDirectory(const char * path, int types, std::string extensions)
 {
+	// current file descriptor, used for reading entries
+	int _fd;
 	// for extension parsing
 	uint32_t index = 0;
 	uint32_t lastIndex = 0;
 
 	// bad path
-	if (path.empty())
-	{
+	if (strcmp(path,"") == 0)
 		return false;
-	}
 
 	// delete old path
 	if (!_cur.empty())
 	{
-		DeleteCurrentEntrySet();
+		delete_current_entry_set();
 	}
 
 	// FIXME: add FsStat calls or use cellFsDirectoryEntry
-	if (cellFsOpendir(path.c_str(), &_fd) == CELL_FS_SUCCEEDED)
+	if (cellFsOpendir(path, &_fd) == CELL_FS_SUCCEEDED)
 	{
 		uint64_t nread = 0;
 
 		// set new dir
-		_dir.dir = path;
-		_dir.extensions = extensions;
-		_dir.types = types;
+		strcpy(_dir[_dirStackSize].dir, path);
+		_dir[_dirStackSize].extensions = extensions;
+		_dir[_dirStackSize].types = types;
 
 		// reset num entries
-		_dir.numEntries = 0;
+		_dir[_dirStackSize].numEntries = 0;
 
 		// reset cur selected for safety FIXME: side effect?
 		_currentSelected = 0;
@@ -179,23 +183,15 @@ bool FileBrowser::ParseDirectory(string path, int types, string extensions)
 		{
 			// no data read, something is wrong... FIXME: bad way to handle this
 			if (nread == 0)
-			{
 				break;
-			}
 
 			// check for valid types
-			if (dirent.d_type != (types & CELL_FS_TYPE_REGULAR)  &&
-				dirent.d_type != (types & CELL_FS_TYPE_DIRECTORY))
-			{
+			if (dirent.d_type != (types & CELL_FS_TYPE_REGULAR) && dirent.d_type != (types & CELL_FS_TYPE_DIRECTORY))
 				continue;
-			}
 
 			// skip cur dir
-			if (dirent.d_type == CELL_FS_TYPE_DIRECTORY &&
-				!(strcmp(dirent.d_name, ".")))
-			{
+			if (dirent.d_type == CELL_FS_TYPE_DIRECTORY && !(strcmp(dirent.d_name, ".")))
 				continue;
-			}
 
 			// validate extensions
 			if (dirent.d_type == CELL_FS_TYPE_REGULAR)
@@ -205,7 +201,7 @@ bool FileBrowser::ParseDirectory(string path, int types, string extensions)
 				lastIndex = 0;
 
 				// get this file extension
-				string ext = FileBrowser::GetExtension(dirent.d_name);
+				std::string ext = FileBrowser::GetExtension(dirent.d_name);
 
 				// assume to skip it, prove otherwise
 				bool bSkip = true;
@@ -216,22 +212,20 @@ bool FileBrowser::ParseDirectory(string path, int types, string extensions)
 					index = extensions.find('|', 0);
 
 					// only 1 extension
-					if (index == string::npos)
+					if (index == std::string::npos)
 					{
-						if (ext.compare(extensions.substr(0, extensions.length())) == 0)
-						{
+						if (strcmp(ext.c_str(), extensions.c_str()) == 0)
 							bSkip = false;
-						}
 					}
 					else
 					{
 						lastIndex = 0;
 						index = extensions.find('|', 0);
-						string tmp;
-						while (index != string::npos)
+						char tmp[1024];
+						while (index != std::string::npos)
 						{
-							tmp = extensions.substr(lastIndex, (index-lastIndex));
-							if (ext.compare(tmp) == 0)
+							strcpy(tmp,extensions.substr(lastIndex, (index-lastIndex)).c_str());
+							if (strcmp(ext.c_str(), tmp) == 0)
 							{
 								bSkip = false;
 								break;
@@ -242,18 +236,13 @@ bool FileBrowser::ParseDirectory(string path, int types, string extensions)
 						}
 
 						// grab the final extension
-						tmp = extensions.substr(lastIndex);
-						if (ext.compare(tmp) == 0)
-						{
+						strcpy(tmp, extensions.substr(lastIndex).c_str());
+						if (strcmp(ext.c_str(), tmp) == 0)
 							bSkip = false;
-						}
 					}
 				}
 				else
-				{
-					// no extensions we'll take as all extensions
-					bSkip = false;
-				}
+					bSkip = false; // no extensions we'll take as all extensions
 
 				if (bSkip)
 				{
@@ -270,7 +259,7 @@ bool FileBrowser::ParseDirectory(string path, int types, string extensions)
 			_cur.push_back(entry);
 
 			// next file
-			++_dir.numEntries;
+			++_dir[_dirStackSize].numEntries;
 
 			// FIXME: hack, implement proper caching + paging
 		}
@@ -278,46 +267,42 @@ bool FileBrowser::ParseDirectory(string path, int types, string extensions)
 		cellFsClosedir(_fd);
 	}
 	else
-	{
 		return false;
-	}
 
 	// FIXME: hack, forces '..' to stay on top by ignoring the first entry
 	// this is always '..' in dirs
-	std::sort(++_cur.begin(), _cur.end(), less_than_key());
+	std::sort(++_cur.begin(), _cur.end(), less_than_key);
 
 	return true;
 }
 
+void FileBrowser::SetEntryWrap(bool wrapvalue)
+{
+	m_wrap = wrapvalue;
+}
 
 void FileBrowser::IncrementEntry()
 {
 	_currentSelected++;
-	if (_currentSelected >= _cur.size())
-	{
+	if (_currentSelected >= _cur.size() && m_wrap)
 		_currentSelected = 0;
-	}
 }
 
 
 void FileBrowser::DecrementEntry()
 {
 	_currentSelected--;
-	if (_currentSelected >= _cur.size())
-	{
+	if (_currentSelected >= _cur.size() && m_wrap)
 		_currentSelected = _cur.size() - 1;
-	}
 }
 
 
-DirectoryEntry* FileBrowser::GetCurrentEntry()
+const char * FileBrowser::get_current_filename()
 {
 	if (_currentSelected >= _cur.size())
-	{
 		return NULL;
-	}
 
-	return _cur[_currentSelected];
+	return _cur[_currentSelected]->d_name;
 }
 
 
@@ -326,25 +311,18 @@ uint32_t FileBrowser::GetCurrentEntryIndex()
 	return _currentSelected;
 }
 
-
-string FileBrowser::GetExtension(string filename)
+std::string FileBrowser::GetExtension(std::string filename)
 {
 	uint32_t index = filename.find_last_of(".");
-	if (index != string::npos)
-	{
+	if (index != std::string::npos)
 		return filename.substr(index+1);
-	}
-
 	return "";
 }
-
 
 bool FileBrowser::IsCurrentAFile()
 {
 	if (_currentSelected >= _cur.size())
-	{
 		return false;
-	}
 
 	return _cur[_currentSelected]->d_type == CELL_FS_TYPE_REGULAR;
 }
@@ -353,26 +331,7 @@ bool FileBrowser::IsCurrentAFile()
 bool FileBrowser::IsCurrentADirectory()
 {
 	if (_currentSelected >= _cur.size())
-	{
 		return false;
-	}
 
 	return _cur[_currentSelected]->d_type == CELL_FS_TYPE_DIRECTORY;
 }
-
-
-/*
- *
-
-				// compare against wanted extensions
-				bool skip = true;
-				string ext = FileBrowser::GetExtension(dirent.d_name);
-				for (int i = 0; i < exts.size(); i++)
-				{
-					if (ext.compare(exts[i]) == 0)
-					{
-						skip = false;
-						break;
-					}
-				}*/
-

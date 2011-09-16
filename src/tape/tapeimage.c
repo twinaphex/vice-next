@@ -31,7 +31,6 @@
 #include <string.h>
 
 #include "lib.h"
-#include "log.h"
 #include "t64.h"
 #include "tap.h"
 #include "tape.h"

@@ -37,7 +37,7 @@
 #include <cell/dbgfont.h>
 #include <sysutil/sysutil_sysparam.h>
 
-#include "cellframework/fileio/FileBrowser.h"
+#include "cellframework/fileio/FileBrowser.hpp"
 #include "cellframework/input/cellInput.h"
 
 #include "ps3video.hpp"
@@ -72,7 +72,8 @@ extern "C" {
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
-#define NUM_ENTRY_PER_PAGE 23
+#define NUM_ENTRY_PER_PAGE 19
+#define MAX_PATH_LENGTH 1024
 
 // forward declaration
 void do_controller_settings(void);
@@ -100,6 +101,12 @@ int16_t currently_selected_osk_entry = MIN_KEY_INDEX;
 int16_t currently_selected_controller_setting = 0;
 int16_t currently_selected_datasette_control = 0;
 
+#define FILEBROWSER_DELAY              100000
+#define FILEBROWSER_DELAY_DIVIDED_BY_3 33333
+#define SETTINGS_DELAY                 150000	
+
+#define ROM_EXTENSIONS "d64|d71|d80|d81|d82|g64||g41|x64|t64|tap|prg|p00|crt|bin|D64|D71|D81|D82|G64|G41|X64|T64|TAP|PRG|P00|CRT|BIN|zip|ZIP|gz|GZ|d6z|D6Z|d7z|D7Z|d8z|D8Z|g6z|G6Z|g4z|G4Z|x6z|X6Z"
+
 void MenuStop()
 {
 	menuRunning = false;
@@ -116,17 +123,25 @@ void UpdateBrowser(FileBrowser* b)
 {
 	if (CellInput->WasButtonPressed(0, CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0, CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )    // down to next setting
 	{
-		b->IncrementEntry();
-		selection_changed=true;
+		if(b->GetCurrentEntryIndex() < b->get_current_directory_file_count()-1)
+		{
+			b->IncrementEntry();
+			selection_changed=true;
+			sys_timer_usleep(FILEBROWSER_DELAY);
+		}
 	}
 	if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
 	{
-		b->DecrementEntry();
-		selection_changed=true;
+		if(b->GetCurrentEntryIndex() > 0)
+		{
+			b->DecrementEntry();
+			selection_changed=true;
+			sys_timer_usleep(FILEBROWSER_DELAY);
+		}
 	}
 	if (CellInput->WasButtonPressed(0,CTRL_RIGHT) | CellInput->IsAnalogPressedRight(0,CTRL_LSTICK))
 	{
-		b->GotoEntry(MIN(b->GetCurrentEntryIndex()+5, b->GetCurrentDirectoryInfo().numEntries-1));
+		b->GotoEntry(MIN(b->GetCurrentEntryIndex()+5, b->get_current_directory_file_count()-1));
 		selection_changed=true;
 	}
 	if (CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->IsAnalogPressedLeft(0,CTRL_LSTICK))
@@ -141,11 +156,13 @@ void UpdateBrowser(FileBrowser* b)
 			b->GotoEntry(b->GetCurrentEntryIndex()-5);
 			selection_changed=true;
 		}
+		sys_timer_usleep(FILEBROWSER_DELAY);
 	}
 	if (CellInput->WasButtonPressed(0,CTRL_R1) && !(CellInput->IsButtonPressed(0,CTRL_TRIANGLE)) )
 	{
-		b->GotoEntry(MIN(b->GetCurrentEntryIndex()+NUM_ENTRY_PER_PAGE, b->GetCurrentDirectoryInfo().numEntries-1));
+		b->GotoEntry(MIN(b->GetCurrentEntryIndex()+NUM_ENTRY_PER_PAGE, b->get_current_directory_file_count()-1));
 		selection_changed=true;
+		sys_timer_usleep(FILEBROWSER_DELAY);
 	}
 	if (CellInput->WasButtonPressed(0,CTRL_L1) && !(CellInput->IsButtonPressed(0,CTRL_TRIANGLE)) )
 	{
@@ -159,56 +176,46 @@ void UpdateBrowser(FileBrowser* b)
 			b->GotoEntry(b->GetCurrentEntryIndex()-NUM_ENTRY_PER_PAGE);
 			selection_changed=true;
 		}
+		sys_timer_usleep(FILEBROWSER_DELAY);
 	}
 
 	if (CellInput->WasButtonPressed(0, CTRL_CIRCLE))
 	{
-		// don't let people back out past root
-		if (b->DirectoryStackCount() > 1)
-		{
-			b->PopDirectory();
-			selection_changed=true;
-		}
+		b->PopDirectory();
+		selection_changed=true;
 	}
 }
 
 void RenderBrowser(FileBrowser* b)
 {
-	uint32_t file_count = b->GetCurrentDirectoryInfo().numEntries;
+	uint32_t file_count = b->get_current_directory_file_count();
 	int current_index = b->GetCurrentEntryIndex();
 
-	if (file_count <= 0)
+	int page_number = current_index / NUM_ENTRY_PER_PAGE;
+	int page_base = page_number * NUM_ENTRY_PER_PAGE;
+	float currentX = 0.09f;
+	float currentY = 0.09f;
+	float ySpacing = 0.035f;
+
+	for (int i = page_base; i < file_count && i < page_base + NUM_ENTRY_PER_PAGE; ++i)
 	{
-	}
-	else if (current_index > file_count)
-	{
-	}
-	else
-	{
-		int page_number = current_index / NUM_ENTRY_PER_PAGE;
-		int page_base = page_number * NUM_ENTRY_PER_PAGE;
-		float currentX = 0.05f;
-		float currentY = 0.00f;
-		float ySpacing = 0.035f;
-		for (int i = page_base; i < file_count && i < page_base + NUM_ENTRY_PER_PAGE; ++i)
-		{
-			currentY = currentY + ySpacing;
-			cellDbgFontPuts(currentX, currentY, Emulator_GetFontSize(),
-					i == current_index ? RED : (*b)[i]->d_type == CELL_FS_TYPE_DIRECTORY ? GREEN : WHITE,
-					(*b)[i]->d_name);
-			cellDbgFontDraw();
-		}
+		currentY = currentY + ySpacing;
+		cellDbgFontPuts(currentX, currentY, Emulator_GetFontSize(),
+				i == current_index ? RED : b->_cur[i]->d_type == CELL_FS_TYPE_DIRECTORY ? GREEN : WHITE,
+				b->_cur[i]->d_name);
+		cellDbgFontDraw();
 	}
 
 	// Locate any screenshots for the currently selected file
 	if (selection_changed) {
 		selection_changed=false;
 
-		if ((*b)[current_index]->d_type == CELL_FS_TYPE_REGULAR) {
+		#if 0
+		if (b->_cur[current_index]->d_type == CELL_FS_TYPE_REGULAR) {
 			// TODO check file extension
 
-			string ext = FileBrowser::GetExtension((*b)[current_index]->d_name);
-			string path = b->GetCurrentDirectoryInfo().dir + "/" + (*b)[current_index]->d_name;
+			std::string ext = FileBrowser::GetExtension(b->_cur[current_index]->d_name);
+			std::string path = b->GetCurrentDirectoryInfo().dir + "/" + b->_cur[current_index]->d_name;
 
 			if ( ((ext == "zip") || (ext == "ZIP")) && (zipfile_entries(path.c_str()) != 1) ) {
 				// Do nothing
@@ -221,6 +228,7 @@ void RenderBrowser(FileBrowser* b)
 
 			}
 		}
+		#endif
 	}
 
 
@@ -229,12 +237,12 @@ void RenderBrowser(FileBrowser* b)
 
 void do_shaderChoice()
 {
-	string path;
+	char path[MAX_PATH_LENGTH];
 
 	if (tmpBrowser == NULL)
 	{
 		char *tmppath = util_concat(VICE_USRDIR, "shaders", NULL);
-		tmpBrowser = new FileBrowser(tmppath);
+		tmpBrowser = new FileBrowser(tmppath, "cg|CG");
 		lib_free(tmppath);
 	}
 
@@ -246,20 +254,19 @@ void do_shaderChoice()
 		{
 			if(tmpBrowser->IsCurrentADirectory())
 			{
-				tmpBrowser->PushDirectory(    tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name,
-						CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, "cg");
+                                const char * separatorslash = (strcmp(tmpBrowser->get_current_directory_name(),"/") == 0) ? "" : "/";
+				snprintf(path, sizeof(path), "%s%s%s", tmpBrowser->get_current_directory_name(), separatorslash, tmpBrowser->get_current_filename());
+				tmpBrowser->PushDirectory(path, CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, "cg|CG");
 			}
 			else if (tmpBrowser->IsCurrentAFile())
 			{
-				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name;
+				snprintf(path, sizeof(path), "%s/%s", tmpBrowser->get_current_directory_name(), tmpBrowser->get_current_filename());
 
 				//load shader
 				Graphics->LoadFragmentShader(path);
 				Graphics->SetSmooth(false);
 				resources_set_int("PS3HardwareFilter", false);
 				menuStack.pop();
-
-
 
 				// Display the screen render for a moment, so we know we want this shader
 				// render was previously saved before the menu was launched.
@@ -285,10 +292,10 @@ void do_shaderChoice()
 
 void do_pathChoice()
 {
-	string path;
+	char path[MAX_PATH_LENGTH];
 
 	if (tmpBrowser == NULL)
-		tmpBrowser = new FileBrowser("/\0");
+                tmpBrowser = new FileBrowser("/\0", "empty");
 
 	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
 	{
@@ -297,11 +304,11 @@ void do_pathChoice()
 		{
 			if(tmpBrowser->IsCurrentADirectory())
 			{
-				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name + "/";
+				snprintf(path, sizeof(path), "%s/%s", tmpBrowser->get_current_directory_name(), tmpBrowser->get_current_filename());
 				switch(currently_selected_path_setting)
 				{
 					case SETTING_PATH_DEFAULT_ROM_DIRECTORY:
-						resources_set_string("PS3PathRomDir", path.c_str());
+						resources_set_string("PS3PathRomDir", path);
 						break;
 				}
 				menuStack.pop();
@@ -309,11 +316,11 @@ void do_pathChoice()
 		}
 		if (CellInput->WasButtonPressed(0, CTRL_TRIANGLE))
 		{
-			path = VICE_USRDIR;
+			snprintf(path, sizeof(path), VICE_USRDIR);
 			switch(currently_selected_path_setting)
 			{
 				case SETTING_PATH_DEFAULT_ROM_DIRECTORY:
-					resources_set_string("PS3PathRomDir", path.c_str());
+					resources_set_string("PS3PathRomDir", path);
 					break;
 			}
 			menuStack.pop();
@@ -322,7 +329,9 @@ void do_pathChoice()
 		{
 			if(tmpBrowser->IsCurrentADirectory())
 			{
-				tmpBrowser->PushDirectory(tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name, CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, "empty");
+                                const char * separatorslash = (strcmp(tmpBrowser->get_current_directory_name(),"/") == 0) ? "" : "/";
+                                snprintf(path, sizeof(path), "%s%s%s", tmpBrowser->get_current_directory_name(), separatorslash, tmpBrowser->get_current_filename());
+                                tmpBrowser->PushDirectory(path, CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, "empty");
 			}
 		}
 	}
@@ -1947,7 +1956,8 @@ void do_general_settings(void)
 void do_ROMMenu()
 {
 	static const char *footer = NULL;
-	string rom_path;
+	char rom_path[MAX_PATH_LENGTH];
+	char newpath[MAX_PATH_LENGTH];
 	int res_int;
 
 	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
@@ -1963,14 +1973,15 @@ void do_ROMMenu()
 		{
 			if(browser->IsCurrentADirectory())
 			{
-				browser->PushDirectory( browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name,
-						CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY,
-						"d64|d71|d80|d81|d82|g64||g41|x64|t64|tap|prg|p00|crt|bin|D64|D71|D81|D82|G64|G41|X64|T64|TAP|PRG|P00|CRT|BIN|zip|ZIP|gz|GZ|d6z|D6Z|d7z|D7Z|d8z|D8Z|g6z|G6Z|g4z|G4Z|x6z|X6Z");
+				//if 'filename' is in fact '..' - then pop back directory instead of adding '..' to filename path
+				const char * separatorslash = (strcmp(browser->get_current_directory_name(),"/") == 0) ? "" : "/";
+				snprintf(newpath, sizeof(newpath), "%s%s%s", browser->get_current_directory_name(), separatorslash, browser->get_current_filename());
+				browser->PushDirectory(newpath, CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, ROM_EXTENSIONS);
 			}
 			else if (browser->IsCurrentAFile())
 			{
 				// load game (standard controls), go back to main loop
-				rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
+				snprintf(rom_path, sizeof(rom_path), "%s/%s", browser->get_current_directory_name(), browser->get_current_filename());
 
 				MenuStop();
 
@@ -1978,7 +1989,7 @@ void do_ROMMenu()
 				Emulator_StartROMRunning();
 
 
-				Emulator_RequestLoadROM(rom_path.c_str(), true, false);
+				Emulator_RequestLoadROM(rom_path, true, false);
 
 				return;
 			}
@@ -1990,12 +2001,12 @@ void do_ROMMenu()
 				// Load the disk image.
 				// Reset the emulator with FastLoad disabled
 
-				rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
+				snprintf(rom_path, sizeof(rom_path), "%s/%s", browser->get_current_directory_name(), browser->get_current_filename());
 				MenuStop();
 
 				// switch emulator to emulate mode
 				Emulator_StartROMRunning();
-				Emulator_RequestLoadROM(rom_path.c_str(), true, true);
+				Emulator_RequestLoadROM(rom_path, true, true);
 				return;
 			}
 		}
@@ -2010,7 +2021,7 @@ void do_ROMMenu()
 
 		// switch emulator to emulate mode
 		Emulator_StartROMRunning();
-		Emulator_RequestLoadROM((char*)rom_path.c_str(), false, true);
+		Emulator_RequestLoadROM((char*)rom_path, false, true);
 		return;
 		}
 		}
@@ -2030,60 +2041,61 @@ void do_ROMMenu()
 				resources_get_int("Drive11Type", &res_int);
 				drive_count+= (res_int == DRIVE_TYPE_NONE) ? 0:1;
 
-				if ( (drive_count == 1) || (CellInput->WasButtonPressed(0,CTRL_L1)) ) {
+				if ( (drive_count == 1) || (CellInput->WasButtonPressed(0,CTRL_L1)) )
+				{
 					// Insert the disk into Drive8
-					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(8, rom_path.c_str()) < 0)
+					snprintf(rom_path, sizeof(rom_path), "%s/%s", browser->get_current_directory_name(), browser->get_current_filename());
+					if (file_system_attach_disk(8, rom_path) < 0)
 					{
-						#ifdef CELL_DEBUG
-						printf("could not attach image to device 8 : %s\n", rom_path.c_str());
-						#endif
+#ifdef CELL_DEBUG
+						printf("could not attach image to device 8 : %s\n", rom_path);
+#endif
 					}
-					#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 					printf(LOG_DEFAULT, "Attached disk image to device %d\n", 8);
-					#endif
+#endif
 				} 
 				else if (CellInput->WasButtonPressed(0,CTRL_L2))
 				{
 					// Insert the disk into Drive9
-					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(9, rom_path.c_str()) < 0)
+					snprintf(rom_path, sizeof(rom_path), "%s/%s", browser->get_current_directory_name(), browser->get_current_filename());
+					if (file_system_attach_disk(9, rom_path) < 0)
 					{
-						#ifdef CELL_DEBUG
-						printf("could not attach image to device 9 : %s\n", rom_path.c_str());
-						#endif
+#ifdef CELL_DEBUG
+						printf("could not attach image to device 9 : %s\n", rom_path);
+#endif
 					}
-					#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 					printf("Attached disk image to device %d\n", 9);
-					#endif
+#endif
 				}
 				else if (CellInput->WasButtonPressed(0,CTRL_L2))
 				{
 					// Insert the disk into Drive10
-					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(10, rom_path.c_str()) < 0)
+					snprintf(rom_path, sizeof(rom_path), "%s/%s", browser->get_current_directory_name(), browser->get_current_filename());
+					if (file_system_attach_disk(10, rom_path) < 0)
 					{
-						#ifdef CELL_DEBUG
-						printf("could not attach image to device 10 : %s\n", rom_path.c_str());
-						#endif
+#ifdef CELL_DEBUG
+						printf("could not attach image to device 10 : %s\n", rom_path);
+#endif
 					}
-					#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 					printf("Attached disk image to device %d\n", 10);
-					#endif
+#endif
 				}
 				else if (CellInput->WasButtonPressed(0,CTRL_L2))
 				{
 					// Insert the disk into Drive11
-					rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
-					if (file_system_attach_disk(11, rom_path.c_str()) < 0)
+					snprintf(rom_path, sizeof(rom_path), "%s/%s", browser->get_current_directory_name(), browser->get_current_filename());
+					if (file_system_attach_disk(11, rom_path) < 0)
 					{
-						#ifdef CELL_DEBUG
-						printf("could not attach image to device 11 : %s\n", rom_path.c_str());
-						#endif
+#ifdef CELL_DEBUG
+						printf("could not attach image to device 11 : %s\n", rom_path);
+#endif
 					}
-					#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 					printf("Attached disk image to device %d\n", 11);
-					#endif
+#endif
 				}
 
 			}
@@ -2258,7 +2270,8 @@ void MenuMainLoop(void)
 	if (browser == NULL)
 	{
 		resources_get_string ("PS3PathRomDir", &res_string);
-		browser = new FileBrowser(res_string);
+		browser = new FileBrowser(res_string, ROM_EXTENSIONS);
+		browser->SetEntryWrap(false);
 	}
 
 

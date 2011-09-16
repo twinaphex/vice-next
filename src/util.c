@@ -53,56 +53,56 @@
 char *util_concat(const char *s, ...)
 {
 #define _CONCAT_MAX_ARGS 128
-    const char *arg;
-    char *newp, *ptr;
-    int num_args;
-    size_t arg_len[_CONCAT_MAX_ARGS], tot_len;
-    int i;
-    va_list ap;
+	const char *arg;
+	char *newp, *ptr;
+	int num_args;
+	size_t arg_len[_CONCAT_MAX_ARGS], tot_len;
+	int i;
+	va_list ap;
 
-    arg_len[0] = tot_len = strlen(s);
+	arg_len[0] = tot_len = strlen(s);
 
-    va_start(ap, s);
-    for (i = 1;
-        i < _CONCAT_MAX_ARGS && (arg = va_arg(ap, const char *)) != NULL;
-        i++) {
-        arg_len[i] = strlen(arg);
-        tot_len += arg_len[i];
-    }
-    num_args = i;
+	va_start(ap, s);
+	for (i = 1;
+			i < _CONCAT_MAX_ARGS && (arg = va_arg(ap, const char *)) != NULL;
+			i++) {
+		arg_len[i] = strlen(arg);
+		tot_len += arg_len[i];
+	}
+	num_args = i;
 
-    newp = lib_malloc(tot_len + 1);
+	newp = lib_malloc(tot_len + 1);
 
-    if (arg_len[0] > 0)
-        memcpy(newp, s, arg_len[0]);
-    ptr = newp + arg_len[0];
+	if (arg_len[0] > 0)
+		memcpy(newp, s, arg_len[0]);
+	ptr = newp + arg_len[0];
 
-    va_start(ap, s);
-    for (i = 1; i < num_args; i++) {
-        memcpy(ptr, va_arg(ap, const char *), arg_len[i]);
-        ptr += arg_len[i];
-    }
-    *ptr = '\0';
+	va_start(ap, s);
+	for (i = 1; i < num_args; i++) {
+		memcpy(ptr, va_arg(ap, const char *), arg_len[i]);
+		ptr += arg_len[i];
+	}
+	*ptr = '\0';
 
-    va_end(ap);
+	va_end(ap);
 
 #ifdef AMIGA_SUPPORT
-    /* util_concat is often used to build complete paths, but the AmigaOS paths
-     * are a little special as they should look like <device>:<directory>/<file>
-     * but VICE doesn't handle this and will add a slash "/" after the colon
-     * making VICE fail to open files. I know this isn't the place to fix this,
-     * but I'm lazy and don't feel like changing a lot of places right now.
-     *     An alternative would be to override the fopen commands to make it
-     * possible to make this change as needed when opening the file.
-     */
+	/* util_concat is often used to build complete paths, but the AmigaOS paths
+	 * are a little special as they should look like <device>:<directory>/<file>
+	 * but VICE doesn't handle this and will add a slash "/" after the colon
+	 * making VICE fail to open files. I know this isn't the place to fix this,
+	 * but I'm lazy and don't feel like changing a lot of places right now.
+	 *     An alternative would be to override the fopen commands to make it
+	 * possible to make this change as needed when opening the file.
+	 */
 
-    while ((ptr = strstr(newp, ":/")) != NULL) {
-        strcpy(ptr + 1, ptr + 2);
-    }
+	while ((ptr = strstr(newp, ":/")) != NULL) {
+		strcpy(ptr + 1, ptr + 2);
+	}
 
 #endif
 
-    return newp;
+	return newp;
 }
 
 /* Add a line to a string.  */

@@ -31,7 +31,6 @@
 
 #ifdef USE_COLOR_MANAGEMENT
 #include "lib.h"
-#include "log.h"
 #include "palette.h"
 #include "types.h"
 #include "uicolor.h"
@@ -60,8 +59,6 @@ struct color_list_s {
 typedef struct color_list_s color_list_t;
 
 static color_list_t *color_alloced = NULL;
-
-static log_t color_log = LOG_ERR;
 
 /*-----------------------------------------------------------------------*/
 
@@ -404,8 +401,6 @@ static void color_free_old_colors(color_list_t *list)
 
 void color_init(void)
 {
-    color_log = log_open("Color");
-
     color_create_empty_entry(&color_alloced);
 }
 
