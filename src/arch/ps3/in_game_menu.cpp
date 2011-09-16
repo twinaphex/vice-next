@@ -47,7 +47,6 @@ extern "C" {
 #include "machine.h"
 }
 
-#include "menu_common.h"
 #include "in_game_menu.h"
 #include "ui_snapshot.h"
 
@@ -143,10 +142,7 @@ void do_ingame_menu()
 			return;
 		}
 
-		menu_vert_scroll_speed = CellInput->IsAnalogPressedDownPercentage(0, CTRL_LSTICK);
-		menu_vert_scroll_speed += CellInput->IsAnalogPressedUpPercentage(0, CTRL_LSTICK);
-
-		if (CellInput->WasButtonPressed(0, CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0, CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )    // down to next setting
+		if (CellInput->WasButtonPressed(0, CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0, CTRL_LSTICK) > 0.10))    // down to next setting
 		{
 			currently_selected_option++;
 
@@ -169,7 +165,7 @@ void do_ingame_menu()
 			}
 		}
 
-		if (CellInput->WasButtonPressed(0, CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0, CTRL_LSTICK) > 0.10 && !menu_ignore_analog ))    // up to previous setting
+		if (CellInput->WasButtonPressed(0, CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0, CTRL_LSTICK) > 0.10))    // up to previous setting
 		{
 			currently_selected_option--;
 
@@ -318,11 +314,6 @@ void InGameMenuLoop(void)
 			// Emulator_Shutdown will be called by our atexit handler
 			exit(0);
 		}
-
-		// Slow down our key-repeat
-		// in order to accelerate the scroll
-
-		attenuate_scroll_speed();
 	}
 }
 

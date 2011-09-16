@@ -64,7 +64,6 @@ extern "C" {
 #include "zfile.h"
 }
 
-#include "menu_common.h"
 #include "menu.hpp"
 
 #include "common.h"
@@ -121,7 +120,7 @@ static bool selection_changed=false;
 
 void UpdateBrowser(FileBrowser* b)
 {
-	if (CellInput->WasButtonPressed(0, CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0, CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )    // down to next setting
+	if (CellInput->WasButtonPressed(0, CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0, CTRL_LSTICK) > 0.10) )    // down to next setting
 	{
 		if(b->GetCurrentEntryIndex() < b->get_current_directory_file_count()-1)
 		{
@@ -130,7 +129,7 @@ void UpdateBrowser(FileBrowser* b)
 			sys_timer_usleep(FILEBROWSER_DELAY);
 		}
 	}
-	if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+	if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10) )
 	{
 		if(b->GetCurrentEntryIndex() > 0)
 		{
@@ -368,7 +367,7 @@ void do_path_settings()
 		}
 
 
-		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			// down to next setting
 			currently_selected_path_setting++;
@@ -385,7 +384,7 @@ void do_path_settings()
 			return;
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			// up to previous setting
 			currently_selected_path_setting--;
@@ -480,7 +479,7 @@ void do_controller_settings()
 			return;
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_controller_setting++;
 			if (currently_selected_controller_setting >= MAX_NO_OF_CONTROLLER_SETTINGS)
@@ -496,7 +495,7 @@ void do_controller_settings()
 			return;
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_controller_setting--;
 			if (currently_selected_controller_setting < 0)
@@ -992,7 +991,7 @@ void do_datasette_controls(void)
 			return;
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_datasette_control++;
 			if (currently_selected_datasette_control >= MAX_NO_OF_DATASETTE_CONTROLS)
@@ -1009,7 +1008,7 @@ void do_datasette_controls(void)
 		}
 
 
-		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_datasette_control--;
 			if (currently_selected_datasette_control < 0)
@@ -1155,7 +1154,7 @@ void do_vice_settings()
 			return;
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_vice_setting++;
 			if (currently_selected_vice_setting >= MAX_NO_OF_VICE_SETTINGS)
@@ -1163,7 +1162,7 @@ void do_vice_settings()
 				currently_selected_vice_setting = 0;
 			}
 		}
-		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_vice_setting--;
 			if (currently_selected_vice_setting < 0)
@@ -1643,7 +1642,7 @@ void do_general_settings(void)
 			return;
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_setting++;
 			if (currently_selected_setting >= MAX_NO_OF_SETTINGS)
@@ -1652,7 +1651,7 @@ void do_general_settings(void)
 			}
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_setting--;
 			if (currently_selected_setting < 0)
@@ -2206,14 +2205,14 @@ void do_OSKMenu()
 	static const char *footer = NULL;
 	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
 	{
-		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog))
+		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0,CTRL_LSTICK) > 0.10))
 		{
 			currently_selected_osk_entry++;
 			if (currently_selected_osk_entry > MAX_KEY_INDEX)
 				currently_selected_osk_entry = MIN_KEY_INDEX;
 		}
 
-		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10 && !menu_ignore_analog) )
+		if (CellInput->WasButtonPressed(0,CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0,CTRL_LSTICK) > 0.10) )
 		{
 			currently_selected_osk_entry--;
 			if (currently_selected_osk_entry < MIN_KEY_INDEX)
@@ -2303,10 +2302,5 @@ void MenuMainLoop(void)
 			// Emulator_Shutdown will be called by our atexit handler
 			exit(0);
 		}
-
-		// Slow down our key-repeat
-		// in order to accelerate the scroll
-
-		attenuate_scroll_speed();
 	}
 }

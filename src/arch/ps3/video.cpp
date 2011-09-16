@@ -294,3 +294,7 @@ void force_redraw (void)
 	if (active_canvas->parent_raster != NULL)
 		raster_force_repaint(active_canvas->parent_raster);
 }
+
+#ifdef __cplusplus
+}
+#endif
