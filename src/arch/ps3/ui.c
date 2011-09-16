@@ -178,6 +178,7 @@ int ui_callback(void)
 		// We need to force a redraw, if we haven't seen one for a while
 		// This ensures the sysutil_callback draws regularly enough,
 		// since the C64 implementation only draws if it needs to.
+		sysutil_callback_redraw();
 	}
 	else if (one_more_redraw)
 	{

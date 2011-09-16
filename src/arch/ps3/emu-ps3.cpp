@@ -224,13 +224,11 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata)
 
 void sysutil_callback_redraw(void)
 {
-	#if 0
 	if (Graphics->TimeSinceLastDraw() >= 20000)
 	{
 		// Refresh the display. 
 		Graphics->Refresh();
 	}
-	#endif
 }
 
 int main (void)

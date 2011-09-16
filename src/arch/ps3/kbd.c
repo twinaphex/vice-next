@@ -129,8 +129,10 @@ void kbd_process(void)
 		#endif
 	}
 
-	// even the mkey shows kdata.len == 1
-	if (cellKbRead (0, &kdata) != CELL_KB_OK || (kdata.len == 0))
+	if (cellKbRead (0, &kdata) != CELL_KB_OK)
+		return;
+
+	if ( (kdata.len == 0) )   // even the mkey shows kdata.len == 1
 		return;
 
 	// First, check for modifier keys and apply them.
