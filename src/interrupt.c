@@ -41,116 +41,127 @@
 
 
 /* Initialization.  */
-void interrupt_cpu_status_init(interrupt_cpu_status_t *cs,
-                               unsigned int *last_opcode_info_ptr)
+void interrupt_cpu_status_init(interrupt_cpu_status_t *cs, unsigned int *last_opcode_info_ptr)
 {
-    cs->num_ints = 0;
-    cs->pending_int = NULL;
-    cs->int_name = NULL;
-    cs->last_opcode_info_ptr = last_opcode_info_ptr;
+	cs->num_ints = 0;
+	cs->pending_int = NULL;
+	cs->int_name = NULL;
+	cs->last_opcode_info_ptr = last_opcode_info_ptr;
 }
 
 void interrupt_cpu_status_reset(interrupt_cpu_status_t *cs)
 {
-    unsigned int num_ints, *pending_int, *last_opcode_info_ptr;
-    char **int_name;
+	unsigned int num_ints, *pending_int, *last_opcode_info_ptr;
+	char **int_name;
 
-    num_ints = cs->num_ints;
-    pending_int = cs->pending_int;
-    int_name = cs->int_name;
-    last_opcode_info_ptr = cs->last_opcode_info_ptr;
-    if (num_ints > 0)
-        memset(pending_int, 0, num_ints * sizeof(*(cs->pending_int)));
-    memset(cs, 0, sizeof(interrupt_cpu_status_t));
-    cs->num_ints = num_ints;
-    cs->pending_int = pending_int;
-    cs->int_name = int_name;
-    cs->last_opcode_info_ptr = last_opcode_info_ptr;
+	num_ints = cs->num_ints;
+	pending_int = cs->pending_int;
+	int_name = cs->int_name;
+	last_opcode_info_ptr = cs->last_opcode_info_ptr;
+	if (num_ints > 0)
+		memset(pending_int, 0, num_ints * sizeof(*(cs->pending_int)));
+	memset(cs, 0, sizeof(interrupt_cpu_status_t));
+	cs->num_ints = num_ints;
+	cs->pending_int = pending_int;
+	cs->int_name = int_name;
+	cs->last_opcode_info_ptr = last_opcode_info_ptr;
 
-    cs->num_last_stolen_cycles = 0;
-    cs->last_stolen_cycles_clk = (CLOCK)0;
-    cs->num_dma_per_opcode = 0;
-    cs->irq_delay_cycles = 0;
-    cs->nmi_delay_cycles = 0;
-    cs->global_pending_int = IK_NONE;
-    cs->nmi_trap_func = NULL;
-    cs->reset_trap_func = NULL;
+	cs->num_last_stolen_cycles = 0;
+	cs->last_stolen_cycles_clk = (CLOCK)0;
+	cs->num_dma_per_opcode = 0;
+	cs->irq_delay_cycles = 0;
+	cs->nmi_delay_cycles = 0;
+	cs->global_pending_int = IK_NONE;
+	cs->nmi_trap_func = NULL;
+	cs->reset_trap_func = NULL;
 }
 
-unsigned int interrupt_cpu_status_int_new(interrupt_cpu_status_t *cs,
-                                          const char *name)
+unsigned int interrupt_cpu_status_int_new(interrupt_cpu_status_t *cs, const char *name)
 {
-    cs->num_ints += 1;
+	cs->num_ints += 1;
 
-    cs->pending_int = lib_realloc(cs->pending_int, cs->num_ints * sizeof(*(cs->pending_int)));
-    cs->pending_int[cs->num_ints - 1] = 0;
+	cs->pending_int = lib_realloc(cs->pending_int, cs->num_ints * sizeof(*(cs->pending_int)));
+	cs->pending_int[cs->num_ints - 1] = 0;
 
-    cs->int_name = lib_realloc(cs->int_name, cs->num_ints * sizeof(char *));
-    cs->int_name[cs->num_ints - 1] = lib_stralloc(name);
+	cs->int_name = lib_realloc(cs->int_name, cs->num_ints * sizeof(char *));
+	cs->int_name[cs->num_ints - 1] = lib_stralloc(name);
 
-    return cs->num_ints - 1;
+	return cs->num_ints - 1;
 }
 
 interrupt_cpu_status_t *interrupt_cpu_status_new(void)
 {
-    return (interrupt_cpu_status_t *)lib_calloc(1, sizeof(interrupt_cpu_status_t));
+	return (interrupt_cpu_status_t *)lib_calloc(1, sizeof(interrupt_cpu_status_t));
 }
 
 void interrupt_cpu_status_destroy(interrupt_cpu_status_t *cs)
 {
-    if (cs != NULL) {
-        unsigned int num;
+	if (cs != NULL)
+	{
+		unsigned int num;
 
-        for (num = 0; num < cs->num_ints; num++)
-            lib_free(cs->int_name[num]);
+		for (num = 0; num < cs->num_ints; num++)
+			lib_free(cs->int_name[num]);
 
-        lib_free(cs->int_name);
-        lib_free(cs->pending_int);
-    }
+		lib_free(cs->int_name);
+		lib_free(cs->pending_int);
+	}
 
-    lib_free(cs);
+	lib_free(cs);
 }
 
-void interrupt_set_nmi_trap_func(interrupt_cpu_status_t *cs,
-                                 void (*nmi_trap_func)(void))
+void interrupt_set_nmi_trap_func(interrupt_cpu_status_t *cs, void (*nmi_trap_func)(void))
 {
-    cs->nmi_trap_func = nmi_trap_func;
+	cs->nmi_trap_func = nmi_trap_func;
 }
 
-void interrupt_set_reset_trap_func(interrupt_cpu_status_t *cs,
-                                 void (*reset_trap_func)(void))
+void interrupt_set_reset_trap_func(interrupt_cpu_status_t *cs, void (*reset_trap_func)(void))
 {
-    cs->reset_trap_func = reset_trap_func;
+	cs->reset_trap_func = reset_trap_func;
 }
 
 /* Move all the CLOCK time references forward/backward.  */
 void interrupt_cpu_status_time_warp(interrupt_cpu_status_t *cs,
                                     CLOCK warp_amount, int warp_direction)
 {
-    if (warp_direction == 0)
-        return;
+	if (warp_direction == 0)
+		return;
 
-    if (warp_direction > 0) {
-        cs->irq_clk += warp_amount;
-        cs->nmi_clk += warp_amount;
-        cs->last_stolen_cycles_clk += warp_amount;
-    } else {
-        if (cs->irq_clk > warp_amount) {
-            cs->irq_clk -= warp_amount;
-        } else {
-            cs->irq_clk = (CLOCK) 0;
-        }
-        if (cs->nmi_clk > warp_amount) {
-            cs->nmi_clk -= warp_amount;
-        } else {
-            cs->nmi_clk = (CLOCK) 0;
-        }
-        if (cs->last_stolen_cycles_clk > warp_amount) {
-            cs->last_stolen_cycles_clk -= warp_amount;
-        } else {
-            cs->last_stolen_cycles_clk = (CLOCK) 0;
-        }
-    }
+	if (warp_direction > 0)
+	{
+		cs->irq_clk += warp_amount;
+		cs->nmi_clk += warp_amount;
+		cs->last_stolen_cycles_clk += warp_amount;
+	}
+	else
+	{
+		if (cs->irq_clk > warp_amount)
+		{
+			cs->irq_clk -= warp_amount;
+		}
+		else
+		{
+			cs->irq_clk = (CLOCK) 0;
+		}
+
+		if (cs->nmi_clk > warp_amount)
+		{
+			cs->nmi_clk -= warp_amount;
+		}
+		else
+		{
+			cs->nmi_clk = (CLOCK) 0;
+		}
+
+		if (cs->last_stolen_cycles_clk > warp_amount)
+		{
+			cs->last_stolen_cycles_clk -= warp_amount;
+		}
+		else
+		{
+			cs->last_stolen_cycles_clk = (CLOCK) 0;
+		}
+	}
 }
 
 void interrupt_log_wrong_nirq(void)
@@ -177,30 +188,28 @@ void interrupt_log_wrong_nnmi(void)
 
 void interrupt_restore_irq(interrupt_cpu_status_t *cs, int int_num, int value)
 {
-    if (value) {
-        cs->pending_int[int_num] |= IK_IRQ;
-    } else {
-        cs->pending_int[int_num] &= ~IK_IRQ;
-    }
+	if (value)
+		cs->pending_int[int_num] |= IK_IRQ;
+	else
+		cs->pending_int[int_num] &= ~IK_IRQ;
 }
 
 void interrupt_restore_nmi(interrupt_cpu_status_t *cs, int int_num, int value)
 {
-    if (value) {
-        cs->pending_int[int_num] |= IK_NMI;
-    } else {
-        cs->pending_int[int_num] &= ~IK_NMI;
-    }
+	if (value)
+		cs->pending_int[int_num] |= IK_NMI;
+	else
+		cs->pending_int[int_num] &= ~IK_NMI;
 }
 
 int interrupt_get_irq(interrupt_cpu_status_t *cs, int int_num)
 {
-    return cs->pending_int[int_num] & IK_IRQ;
+	return cs->pending_int[int_num] & IK_IRQ;
 }
 
 int interrupt_get_nmi(interrupt_cpu_status_t *cs, int int_num)
 {
-    return cs->pending_int[int_num] & IK_NMI;
+	return cs->pending_int[int_num] & IK_NMI;
 }
 
 void interrupt_fixup_int_clk(interrupt_cpu_status_t *cs, CLOCK cpu_clk, CLOCK *int_clk)
@@ -283,18 +292,18 @@ void interrupt_maincpu_trigger_trap(void (*trap_func)(WORD, void *data), void *d
 /* Dispatch the TRAP condition.  */
 void interrupt_do_trap(interrupt_cpu_status_t *cs, WORD address)
 {
-    cs->global_pending_int &= ~IK_TRAP;
-    cs->trap_func(address, cs->trap_data);
+	cs->global_pending_int &= ~IK_TRAP;
+	cs->trap_func(address, cs->trap_data);
 }
 
 void interrupt_monitor_trap_on(interrupt_cpu_status_t *cs)
 {
-    cs->global_pending_int |= IK_MONITOR;
+	cs->global_pending_int |= IK_MONITOR;
 }
 
 void interrupt_monitor_trap_off(interrupt_cpu_status_t *cs)
 {
-    cs->global_pending_int &= ~IK_MONITOR;
+	cs->global_pending_int &= ~IK_MONITOR;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -312,27 +321,20 @@ int interrupt_write_snapshot(interrupt_cpu_status_t *cs, snapshot_module_t *m)
 	return 0;
 }
 
-int interrupt_write_new_snapshot(interrupt_cpu_status_t *cs,
-                                 snapshot_module_t *m)
+int interrupt_write_new_snapshot(interrupt_cpu_status_t *cs, snapshot_module_t *m)
 {
-    if (SMW_DW(m, cs->nirq) < 0
-        || SMW_DW(m, cs->nnmi) < 0
-        || SMW_DW(m, cs->global_pending_int) < 0) {
-        return -1;
-    }
+	if (SMW_DW(m, cs->nirq) < 0 || SMW_DW(m, cs->nnmi) < 0 || SMW_DW(m, cs->global_pending_int) < 0)
+		return -1;
 
-    return 0;
+	return 0;
 }
 
-int interrupt_write_sc_snapshot(interrupt_cpu_status_t *cs,
-                                snapshot_module_t *m)
+int interrupt_write_sc_snapshot(interrupt_cpu_status_t *cs, snapshot_module_t *m)
 {
-    if (SMW_DW(m, cs->irq_delay_cycles) < 0
-        || SMW_DW(m, cs->nmi_delay_cycles) < 0) {
-        return -1;
-    }
+	if (SMW_DW(m, cs->irq_delay_cycles) < 0 || SMW_DW(m, cs->nmi_delay_cycles) < 0)
+		return -1;
 
-    return 0;
+	return 0;
 }
 
 int interrupt_read_snapshot(interrupt_cpu_status_t *cs, snapshot_module_t *m)
@@ -368,22 +370,17 @@ int interrupt_read_snapshot(interrupt_cpu_status_t *cs, snapshot_module_t *m)
 
 int interrupt_read_new_snapshot(interrupt_cpu_status_t *cs, snapshot_module_t *m)
 {
-    if (SMR_DW_INT(m, &cs->nirq) < 0
-        || SMR_DW_INT(m, &cs->nnmi) < 0
-        || SMR_DW_UINT(m, &cs->global_pending_int) < 0) {
-        return -1;
-    }
+	if (SMR_DW_INT(m, &cs->nirq) < 0 || SMR_DW_INT(m, &cs->nnmi) < 0 || SMR_DW_UINT(m, &cs->global_pending_int) < 0)
+		return -1;
 
-    return 0;
+	return 0;
 }
 
 int interrupt_read_sc_snapshot(interrupt_cpu_status_t *cs, snapshot_module_t *m)
 {
-    if (SMR_DW_UINT(m, &cs->irq_delay_cycles) < 0
-        || SMR_DW_UINT(m, &cs->nmi_delay_cycles) < 0) {
-        return -1;
-    }
+	if (SMR_DW_UINT(m, &cs->irq_delay_cycles) < 0 || SMR_DW_UINT(m, &cs->nmi_delay_cycles) < 0)
+		return -1;
 
-    return 0;
+	return 0;
 }
 

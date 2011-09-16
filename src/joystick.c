@@ -85,23 +85,15 @@ static int joykeys[3][9];
 
 static void joystick_latch_matrix(CLOCK offset)
 {
-    BYTE idx;
+	BYTE idx;
 
-    if (network_connected()) {
-        idx = network_joystick_value[0];
-        if (idx > 0)
-            joystick_value[idx] = network_joystick_value[idx];
-        else
-            memcpy(joystick_value, network_joystick_value, sizeof(joystick_value));
-    } else {
-        memcpy(joystick_value, latch_joystick_value, sizeof(joystick_value));
-    }
+	memcpy(joystick_value, latch_joystick_value, sizeof(joystick_value));
 
-    if (joystick_machine_func != NULL) {
-        joystick_machine_func();
-    }
+	if (joystick_machine_func != NULL) {
+		joystick_machine_func();
+	}
 
-    ui_display_joyport(joystick_value);
+	ui_display_joyport(joystick_value);
 }
 
 /*-----------------------------------------------------------------------*/
@@ -151,17 +143,7 @@ void joystick_register_delay(unsigned int delay)
 /*-----------------------------------------------------------------------*/
 static void joystick_process_latch(void)
 {
-    if (network_connected()) {
-        CLOCK joystick_delay = JOYSTICK_RAND();
-        network_event_record(EVENT_JOYSTICK_DELAY,
-                (void *)&joystick_delay, sizeof(joystick_delay));
-        network_event_record(EVENT_JOYSTICK_VALUE, 
-                (void *)latch_joystick_value, sizeof(latch_joystick_value));
-    } 
-    else
-    {
-        alarm_set(joystick_alarm, maincpu_clk + JOYSTICK_RAND());
-    }
+	alarm_set(joystick_alarm, maincpu_clk + JOYSTICK_RAND());
 }
 
 void joystick_set_value_absolute(unsigned int joyport, BYTE value)

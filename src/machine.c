@@ -126,15 +126,11 @@ static void machine_trigger_reset_internal(const unsigned int mode)
 
 void machine_trigger_reset(const unsigned int mode)
 {
-    if (event_playback_active())
-        return;
+	if (event_playback_active())
+		return;
 
-    if (network_connected()) {
-        network_event_record(EVENT_RESETCPU, (void *)&mode, sizeof(mode));
-    } else {
-        event_record(EVENT_RESETCPU, (void *)&mode, sizeof(mode));
-        machine_trigger_reset_internal(mode);
-    }
+	event_record(EVENT_RESETCPU, (void *)&mode, sizeof(mode));
+	machine_trigger_reset_internal(mode);
 }
 
 void machine_reset_event_playback(CLOCK offset, void *data)
@@ -252,7 +248,6 @@ void machine_shutdown(void)
 
     event_shutdown();
 
-    network_shutdown();
 
     autostart_resources_shutdown();
     fsdevice_resources_shutdown();

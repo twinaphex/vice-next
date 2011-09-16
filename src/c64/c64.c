@@ -64,7 +64,6 @@
 #include "kbdbuf.h"
 #include "keyboard.h"
 #include "lightpen.h"
-#include "log.h"
 #include "machine-drive.h"
 #include "machine-printer.h"
 #include "machine-video.h"
@@ -163,7 +162,6 @@ static const tape_init_t tapeinit = {
     100 * 8
 };
 
-static log_t c64_log = LOG_ERR;
 static machine_timing_t machine_timing;
 
 /* ------------------------------------------------------------------------ */
@@ -269,199 +267,185 @@ int machine_cmdline_options_init(void)
 
 static void c64_monitor_init(void)
 {
-    unsigned int dnr;
-    monitor_cpu_type_t asm6502;
-    monitor_interface_t *drive_interface_init[DRIVE_NUM];
-    monitor_cpu_type_t *asmarray[2];
+	unsigned int dnr;
+	monitor_cpu_type_t asm6502;
+	monitor_interface_t *drive_interface_init[DRIVE_NUM];
+	monitor_cpu_type_t *asmarray[2];
 
-    asmarray[0]=&asm6502;
-    asmarray[1]=NULL;
+	asmarray[0]=&asm6502;
+	asmarray[1]=NULL;
 
-    asm6502_init(&asm6502);
+	asm6502_init(&asm6502);
 
-    for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
-        drive_interface_init[dnr] = drivecpu_monitor_interface_get(dnr);
-    }
+	for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
+		drive_interface_init[dnr] = drivecpu_monitor_interface_get(dnr);
+	}
 
-    /* Initialize the monitor.  */
-    monitor_init(maincpu_monitor_interface_get(), drive_interface_init, asmarray);
+	/* Initialize the monitor.  */
+	monitor_init(maincpu_monitor_interface_get(), drive_interface_init, asmarray);
 }
 
 void machine_setup_context(void)
 {
-    cia1_setup_context(&machine_context);
-    cia2_setup_context(&machine_context);
-    cartridge_setup_context(&machine_context);
-    machine_printer_setup_context(&machine_context);
+	cia1_setup_context(&machine_context);
+	cia2_setup_context(&machine_context);
+	cartridge_setup_context(&machine_context);
+	machine_printer_setup_context(&machine_context);
 }
 
 /* C64-specific initialization.  */
 int machine_specific_init(void)
 {
-    c64_log = log_open("C64");
+	if (mem_load() < 0)
+		return -1;
 
-    if (mem_load() < 0) {
-        return -1;
-    }
+	if (vsid_mode)
+		psid_init_driver();
 
-    if (vsid_mode) {
-        psid_init_driver();
-    }
+	if (!vsid_mode) {
+		/* Setup trap handling.  */
+		traps_init();
 
-    if (!vsid_mode) {
-        /* Setup trap handling.  */
-        traps_init();
+		/* Initialize serial traps.  */
+		if (serial_init(c64_serial_traps) < 0) {
+			return -1;
+		}
 
-        /* Initialize serial traps.  */
-        if (serial_init(c64_serial_traps) < 0) {
-            return -1;
-        }
+		serial_trap_init(0xa4);
+		serial_iec_bus_init();
 
-        serial_trap_init(0xa4);
-        serial_iec_bus_init();
+		/* Initialize RS232 handler.  */
+		rs232drv_init();
+		c64_rsuser_init();
 
-        /* Initialize RS232 handler.  */
-        rs232drv_init();
-        c64_rsuser_init();
+		/* Initialize print devices.  */
+		printer_init();
 
-        /* Initialize print devices.  */
-        printer_init();
+		/* Initialize the tape emulation.  */
+		tape_init(&tapeinit);
 
-        /* Initialize the tape emulation.  */
-        tape_init(&tapeinit);
+		/* Initialize the datasette emulation.  */
+		datasette_init();
 
-        /* Initialize the datasette emulation.  */
-        datasette_init();
+		/* Fire up the hardware-level drive emulation.  */
+		drive_init();
 
-        /* Fire up the hardware-level drive emulation.  */
-        drive_init();
+		/* Initialize autostart.  */
+		autostart_init((CLOCK)(3 * C64_PAL_RFSH_PER_SEC * C64_PAL_CYCLES_PER_RFSH), 1, 0xcc, 0xd1, 0xd3, 0xd5);
+	}
 
-        /* Initialize autostart.  */
-        autostart_init((CLOCK)(3 * C64_PAL_RFSH_PER_SEC * C64_PAL_CYCLES_PER_RFSH), 1, 0xcc, 0xd1, 0xd3, 0xd5);
-    }
+	if (vicii_init(VICII_STANDARD) == NULL && !video_disabled_mode) {
+		return -1;
+	}
 
-    if (vicii_init(VICII_STANDARD) == NULL && !video_disabled_mode) {
-        return -1;
-    }
+	c64_mem_init();
 
-    c64_mem_init();
+	cia1_init(machine_context.cia1);
+	cia2_init(machine_context.cia2);
 
-    cia1_init(machine_context.cia1);
-    cia2_init(machine_context.cia2);
-
-    if (!vsid_mode) {
+	if (!vsid_mode) {
 
 #ifndef COMMON_KBD
-        /* Initialize the keyboard.  */
-        if (c64_kbd_init() < 0) {
-            return -1;
-        }
+		/* Initialize the keyboard.  */
+		if (c64_kbd_init() < 0) {
+			return -1;
+		}
 #endif
 
-        c64keyboard_init();
-    }
+		c64keyboard_init();
+	}
 
-    c64_monitor_init();
+	c64_monitor_init();
 
-    /* Initialize vsync and register our hook function.  */
-    vsync_init(machine_vsync_hook);
-    vsync_set_machine_parameter(machine_timing.rfsh_per_sec, machine_timing.cycles_per_sec);
+	/* Initialize vsync and register our hook function.  */
+	vsync_init(machine_vsync_hook);
+	vsync_set_machine_parameter(machine_timing.rfsh_per_sec, machine_timing.cycles_per_sec);
 
-    /* Initialize sound.  Notice that this does not really open the audio
-       device yet.  */
-    sound_init(machine_timing.cycles_per_sec, machine_timing.cycles_per_rfsh);
+	/* Initialize sound.  Notice that this does not really open the audio
+	   device yet.  */
+	sound_init(machine_timing.cycles_per_sec, machine_timing.cycles_per_rfsh);
 
-    /* Initialize keyboard buffer.  */
-    kbdbuf_init(631, 198, 10, (CLOCK)(machine_timing.rfsh_per_sec * machine_timing.cycles_per_rfsh));
+	/* Initialize keyboard buffer.  */
+	kbdbuf_init(631, 198, 10, (CLOCK)(machine_timing.rfsh_per_sec * machine_timing.cycles_per_rfsh));
 
-    /* Initialize the C64-specific part of the UI.  */
-    if (!console_mode) {
-        if (vsid_mode) {
-            vsid_ui_init();
-        } else if (machine_class == VICE_MACHINE_C64SC) {
-            c64scui_init();
-        } else {
-            c64ui_init();
-        }
-    }
+	/* Initialize the C64-specific part of the UI.  */
+	if (!console_mode) {
+		if (vsid_mode) {
+			vsid_ui_init();
+		} else if (machine_class == VICE_MACHINE_C64SC) {
+			c64scui_init();
+		} else {
+			c64ui_init();
+		}
+	}
 
-    /* Initialize glue logic.  */
-    c64_glue_init();
+	/* Initialize glue logic.  */
+	c64_glue_init();
 
-    if (!vsid_mode) {
-        /* Initialize the +60K.  */
-        plus60k_init();
+	if (!vsid_mode) {
+		/* Initialize the +60K.  */
+		plus60k_init();
 
-        /* Initialize the +256K.  */
-        plus256k_init();
+		/* Initialize the +256K.  */
+		plus256k_init();
 
-        /* Initialize the C64 256K.  */
-        c64_256k_init();
+		/* Initialize the C64 256K.  */
+		c64_256k_init();
 
 #ifdef HAVE_MOUSE
-        /* Initialize mouse support (if present).  */
-        mouse_init();
+		/* Initialize mouse support (if present).  */
+		mouse_init();
 
-        /* Initialize lightpen support and register VICII callbacks */
-        lightpen_init();
-        lightpen_register_timing_callback(vicii_lightpen_timing, 0);
-        lightpen_register_trigger_callback(vicii_trigger_light_pen);
+		/* Initialize lightpen support and register VICII callbacks */
+		lightpen_init();
+		lightpen_register_timing_callback(vicii_lightpen_timing, 0);
+		lightpen_register_trigger_callback(vicii_trigger_light_pen);
 #endif
-        c64iec_init();
-        c64fastiec_init();
+		c64iec_init();
+		c64fastiec_init();
 
-        cartridge_init();
-    }
+		cartridge_init();
+	}
 
-    machine_drive_stub();
-#if defined (USE_XF86_EXTENSIONS) && (defined(USE_XF86_VIDMODE_EXT) || defined (HAVE_XRANDR))
-    {
-        /* set fullscreen if user used `-fullscreen' on cmdline */
-        int fs;
-        resources_get_int("UseFullscreen", &fs);
-        if (fs) {
-            resources_set_int("VICIIFullscreen", 1);
-        }
-    }
-#endif
+	machine_drive_stub();
 
-    return 0;
+	return 0;
 }
 
 /* C64-specific reset sequence.  */
 void machine_specific_reset(void)
 {
-    serial_traps_reset();
+	serial_traps_reset();
 
-    ciacore_reset(machine_context.cia1);
-    ciacore_reset(machine_context.cia2);
-    sid_reset();
+	ciacore_reset(machine_context.cia1);
+	ciacore_reset(machine_context.cia2);
+	sid_reset();
 
-    if (!vsid_mode) {
+	if (!vsid_mode)
+	{
+		rs232drv_reset(); /* driver is used by both user- and expansion port ? */
+		rsuser_reset();
 
-        rs232drv_reset(); /* driver is used by both user- and expansion port ? */
-        rsuser_reset();
+		printer_reset();
 
-        printer_reset();
+		/* FIXME: whats actually broken here? */
+		/* reset_reu(); */
+	}
 
-        /* FIXME: whats actually broken here? */
-        /* reset_reu(); */
-    }
+	/* The VIC-II must be the *last* to be reset.  */
+	vicii_reset();
 
-    /* The VIC-II must be the *last* to be reset.  */
-    vicii_reset();
+	if (vsid_mode) {
+		psid_init_tune();
+		return;
+	}
 
-    if (vsid_mode) {
-        psid_init_tune();
-        return;
-    }
-
-    cartridge_reset();
-    drive_reset();
-    datasette_reset();
-    plus60k_reset();
-    plus256k_reset();
-    c64_256k_reset();
+	cartridge_reset();
+	drive_reset();
+	datasette_reset();
+	plus60k_reset();
+	plus256k_reset();
+	c64_256k_reset();
 }
 
 void machine_specific_powerup(void)
@@ -471,34 +455,34 @@ void machine_specific_powerup(void)
 
 void machine_specific_shutdown(void)
 {
-    /* and the tape */
-    tape_image_detach_internal(1);
+	/* and the tape */
+	tape_image_detach_internal(1);
 
-    /* and cartridge */
-    cartridge_detach_image(-1);
+	/* and cartridge */
+	cartridge_detach_image(-1);
 
-    ciacore_shutdown(machine_context.cia1);
-    ciacore_shutdown(machine_context.cia2);
+	ciacore_shutdown(machine_context.cia1);
+	ciacore_shutdown(machine_context.cia2);
 
-    /* close the video chip(s) */
-    vicii_shutdown();
+	/* close the video chip(s) */
+	vicii_shutdown();
 
-    plus60k_shutdown();
-    plus256k_shutdown();
-    c64_256k_shutdown();
+	plus60k_shutdown();
+	plus256k_shutdown();
+	c64_256k_shutdown();
 
-    cartridge_shutdown();
+	cartridge_shutdown();
 
-    if (vsid_mode) {
-        vsid_ui_close();
-    }
+	if (vsid_mode) {
+		vsid_ui_close();
+	}
 
-    c64ui_shutdown();
+	c64ui_shutdown();
 }
 
 void machine_handle_pending_alarms(int num_write_cycles)
 {
-    vicii_handle_pending_alarms_external(num_write_cycles);
+	vicii_handle_pending_alarms_external(num_write_cycles);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -506,44 +490,43 @@ void machine_handle_pending_alarms(int num_write_cycles)
 /* This hook is called at the end of every frame.  */
 static void machine_vsync_hook(void)
 {
-    CLOCK sub;
+	CLOCK sub;
 
-    if (vsid_mode) {
-        unsigned int playtime;
-        static unsigned int time = 0;
+	if (vsid_mode)
+	{
+		unsigned int playtime;
+		static unsigned int time = 0;
 
-        playtime = (psid_increment_frames() * machine_timing.cycles_per_rfsh) / machine_timing.cycles_per_sec;
-        if (playtime != time) {
-            vsid_ui_display_time(playtime);
-            time = playtime;
-        }
-        clk_guard_prevent_overflow(maincpu_clk_guard);
-        return;
-    }
+		playtime = (psid_increment_frames() * machine_timing.cycles_per_rfsh) / machine_timing.cycles_per_sec;
+		if (playtime != time) {
+			vsid_ui_display_time(playtime);
+			time = playtime;
+		}
+		clk_guard_prevent_overflow(maincpu_clk_guard);
+		return;
+	}
 
-    network_hook();
+	drive_vsync_hook();
 
-    drive_vsync_hook();
+	autostart_advance();
 
-    autostart_advance();
+	screenshot_record();
 
-    screenshot_record();
+	sub = clk_guard_prevent_overflow(maincpu_clk_guard);
 
-    sub = clk_guard_prevent_overflow(maincpu_clk_guard);
-
-    /* The drive has to deal both with our overflowing and its own one, so
-       it is called even when there is no overflowing in the main CPU.  */
-    drivecpu_prevent_clk_overflow_all(sub);
+	/* The drive has to deal both with our overflowing and its own one, so
+	   it is called even when there is no overflowing in the main CPU.  */
+	drivecpu_prevent_clk_overflow_all(sub);
 }
 
 void machine_set_restore_key(int v)
 {
-    c64keyboard_restore_key(v);
+	c64keyboard_restore_key(v);
 }
 
 int machine_has_restore_key(void)
 {
-    return 1;
+	return 1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -567,103 +550,107 @@ void machine_get_line_cycle(unsigned int *line, unsigned int *cycle, int *half_c
 
 void machine_change_timing(int timeval)
 {
-    int border_mode;
+	int border_mode;
 
-    switch (timeval) {
-        default:
-        case MACHINE_SYNC_PAL ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
-        case MACHINE_SYNC_NTSC ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
-        case MACHINE_SYNC_NTSCOLD ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
-        case MACHINE_SYNC_PALN ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
-            timeval ^= VICII_BORDER_MODE(VICII_NORMAL_BORDERS);
-            border_mode = VICII_NORMAL_BORDERS;
-            break;
-        case MACHINE_SYNC_PAL ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
-        case MACHINE_SYNC_NTSC ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
-        case MACHINE_SYNC_NTSCOLD ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
-        case MACHINE_SYNC_PALN ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
-            timeval ^= VICII_BORDER_MODE(VICII_FULL_BORDERS);
-            border_mode = VICII_FULL_BORDERS;
-            break;
-        case MACHINE_SYNC_PAL ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
-        case MACHINE_SYNC_NTSC ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
-        case MACHINE_SYNC_NTSCOLD ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
-        case MACHINE_SYNC_PALN ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
-            timeval ^= VICII_BORDER_MODE(VICII_DEBUG_BORDERS);
-            border_mode = VICII_DEBUG_BORDERS;
-            break;
-    }
+	switch (timeval)
+	{
+		default:
+		case MACHINE_SYNC_PAL ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
+		case MACHINE_SYNC_NTSC ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
+		case MACHINE_SYNC_NTSCOLD ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
+		case MACHINE_SYNC_PALN ^ VICII_BORDER_MODE(VICII_NORMAL_BORDERS):
+			timeval ^= VICII_BORDER_MODE(VICII_NORMAL_BORDERS);
+			border_mode = VICII_NORMAL_BORDERS;
+			break;
+		case MACHINE_SYNC_PAL ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
+		case MACHINE_SYNC_NTSC ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
+		case MACHINE_SYNC_NTSCOLD ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
+		case MACHINE_SYNC_PALN ^ VICII_BORDER_MODE(VICII_FULL_BORDERS):
+			timeval ^= VICII_BORDER_MODE(VICII_FULL_BORDERS);
+			border_mode = VICII_FULL_BORDERS;
+			break;
+		case MACHINE_SYNC_PAL ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
+		case MACHINE_SYNC_NTSC ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
+		case MACHINE_SYNC_NTSCOLD ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
+		case MACHINE_SYNC_PALN ^ VICII_BORDER_MODE(VICII_DEBUG_BORDERS):
+			timeval ^= VICII_BORDER_MODE(VICII_DEBUG_BORDERS);
+			border_mode = VICII_DEBUG_BORDERS;
+			break;
+	}
 
-    switch (timeval) {
-        case MACHINE_SYNC_PAL:
-            machine_timing.cycles_per_sec = C64_PAL_CYCLES_PER_SEC;
-            machine_timing.cycles_per_rfsh = C64_PAL_CYCLES_PER_RFSH;
-            machine_timing.rfsh_per_sec = C64_PAL_RFSH_PER_SEC;
-            machine_timing.cycles_per_line = C64_PAL_CYCLES_PER_LINE;
-            machine_timing.screen_lines = C64_PAL_SCREEN_LINES;
-            break;
-        case MACHINE_SYNC_NTSC:
-            machine_timing.cycles_per_sec = C64_NTSC_CYCLES_PER_SEC;
-            machine_timing.cycles_per_rfsh = C64_NTSC_CYCLES_PER_RFSH;
-            machine_timing.rfsh_per_sec = C64_NTSC_RFSH_PER_SEC;
-            machine_timing.cycles_per_line = C64_NTSC_CYCLES_PER_LINE;
-            machine_timing.screen_lines = C64_NTSC_SCREEN_LINES;
-            break;
-        case MACHINE_SYNC_NTSCOLD:
-            machine_timing.cycles_per_sec = C64_NTSCOLD_CYCLES_PER_SEC;
-            machine_timing.cycles_per_rfsh = C64_NTSCOLD_CYCLES_PER_RFSH;
-            machine_timing.rfsh_per_sec = C64_NTSCOLD_RFSH_PER_SEC;
-            machine_timing.cycles_per_line = C64_NTSCOLD_CYCLES_PER_LINE;
-            machine_timing.screen_lines = C64_NTSCOLD_SCREEN_LINES;
-            break;
-        case MACHINE_SYNC_PALN:
-            machine_timing.cycles_per_sec = C64_PALN_CYCLES_PER_SEC;
-            machine_timing.cycles_per_rfsh = C64_PALN_CYCLES_PER_RFSH;
-            machine_timing.rfsh_per_sec = C64_PALN_RFSH_PER_SEC;
-            machine_timing.cycles_per_line = C64_PALN_CYCLES_PER_LINE;
-            machine_timing.screen_lines = C64_PALN_SCREEN_LINES;
-            break;
-        default:
-            log_error(c64_log, "Unknown machine timing.");
-    }
+	switch (timeval)
+	{
+		case MACHINE_SYNC_PAL:
+			machine_timing.cycles_per_sec = C64_PAL_CYCLES_PER_SEC;
+			machine_timing.cycles_per_rfsh = C64_PAL_CYCLES_PER_RFSH;
+			machine_timing.rfsh_per_sec = C64_PAL_RFSH_PER_SEC;
+			machine_timing.cycles_per_line = C64_PAL_CYCLES_PER_LINE;
+			machine_timing.screen_lines = C64_PAL_SCREEN_LINES;
+			break;
+		case MACHINE_SYNC_NTSC:
+			machine_timing.cycles_per_sec = C64_NTSC_CYCLES_PER_SEC;
+			machine_timing.cycles_per_rfsh = C64_NTSC_CYCLES_PER_RFSH;
+			machine_timing.rfsh_per_sec = C64_NTSC_RFSH_PER_SEC;
+			machine_timing.cycles_per_line = C64_NTSC_CYCLES_PER_LINE;
+			machine_timing.screen_lines = C64_NTSC_SCREEN_LINES;
+			break;
+		case MACHINE_SYNC_NTSCOLD:
+			machine_timing.cycles_per_sec = C64_NTSCOLD_CYCLES_PER_SEC;
+			machine_timing.cycles_per_rfsh = C64_NTSCOLD_CYCLES_PER_RFSH;
+			machine_timing.rfsh_per_sec = C64_NTSCOLD_RFSH_PER_SEC;
+			machine_timing.cycles_per_line = C64_NTSCOLD_CYCLES_PER_LINE;
+			machine_timing.screen_lines = C64_NTSCOLD_SCREEN_LINES;
+			break;
+		case MACHINE_SYNC_PALN:
+			machine_timing.cycles_per_sec = C64_PALN_CYCLES_PER_SEC;
+			machine_timing.cycles_per_rfsh = C64_PALN_CYCLES_PER_RFSH;
+			machine_timing.rfsh_per_sec = C64_PALN_RFSH_PER_SEC;
+			machine_timing.cycles_per_line = C64_PALN_CYCLES_PER_LINE;
+			machine_timing.screen_lines = C64_PALN_SCREEN_LINES;
+			break;
+		default:
+			#ifdef CELL_DEBUG
+			printf("ERROR: Unknown machine timing.\n");
+			#endif
+			break;
+	}
 
-    vsync_set_machine_parameter(machine_timing.rfsh_per_sec, machine_timing.cycles_per_sec);
-    sound_set_machine_parameter(machine_timing.cycles_per_sec, machine_timing.cycles_per_rfsh);
-    debug_set_machine_parameter(machine_timing.cycles_per_line, machine_timing.screen_lines);
-    drive_set_machine_parameter(machine_timing.cycles_per_sec);
-    serial_iec_device_set_machine_parameter(machine_timing.cycles_per_sec);
-    sid_set_machine_parameter(machine_timing.cycles_per_sec);
-    clk_guard_set_clk_base(maincpu_clk_guard, machine_timing.cycles_per_rfsh);
+	vsync_set_machine_parameter(machine_timing.rfsh_per_sec, machine_timing.cycles_per_sec);
+	sound_set_machine_parameter(machine_timing.cycles_per_sec, machine_timing.cycles_per_rfsh);
+	debug_set_machine_parameter(machine_timing.cycles_per_line, machine_timing.screen_lines);
+	drive_set_machine_parameter(machine_timing.cycles_per_sec);
+	serial_iec_device_set_machine_parameter(machine_timing.cycles_per_sec);
+	sid_set_machine_parameter(machine_timing.cycles_per_sec);
+	clk_guard_set_clk_base(maincpu_clk_guard, machine_timing.cycles_per_rfsh);
 
-    vicii_change_timing(&machine_timing, border_mode);
+	vicii_change_timing(&machine_timing, border_mode);
 
-    cia1_set_timing(machine_context.cia1, machine_timing.cycles_per_rfsh);
-    cia2_set_timing(machine_context.cia2, machine_timing.cycles_per_rfsh);
+	cia1_set_timing(machine_context.cia1, machine_timing.cycles_per_rfsh);
+	cia2_set_timing(machine_context.cia2, machine_timing.cycles_per_rfsh);
 
-    machine_trigger_reset(MACHINE_RESET_MODE_HARD);
+	machine_trigger_reset(MACHINE_RESET_MODE_HARD);
 }
 
 /* ------------------------------------------------------------------------- */
 
 int machine_write_snapshot(const char *name, int save_roms, int save_disks, int event_mode)
 {
-    return c64_snapshot_write(name, save_roms, save_disks, event_mode);
+	return c64_snapshot_write(name, save_roms, save_disks, event_mode);
 }
 
 int machine_read_snapshot(const char *name, int event_mode)
 {
-    return c64_snapshot_read(name, event_mode);
+	return c64_snapshot_read(name, event_mode);
 }
 
 /* ------------------------------------------------------------------------- */
 
 int machine_autodetect_psid(const char *name)
 {
-    if (name == NULL) {
-        return -1;
-    }
+	if (name == NULL)
+		return -1;
 
-    return psid_load_file(name);
+	return psid_load_file(name);
 }
 
 void machine_play_psid(int tune)
@@ -673,37 +660,35 @@ void machine_play_psid(int tune)
 
 int machine_screenshot(screenshot_t *screenshot, struct video_canvas_s *canvas)
 {
-    if (canvas != vicii_get_canvas()) {
-        return -1;
-    }
+	if (canvas != vicii_get_canvas())
+		return -1;
 
-    vicii_screenshot(screenshot);
-    return 0;
+	vicii_screenshot(screenshot);
+	return 0;
 }
 
 int machine_canvas_async_refresh(struct canvas_refresh_s *refresh, struct video_canvas_s *canvas)
 {
-    if (canvas != vicii_get_canvas()) {
-        return -1;
-    }
+	if (canvas != vicii_get_canvas())
+		return -1;
 
-    vicii_async_refresh(refresh);
-    return 0;
+	vicii_async_refresh(refresh);
+	return 0;
 }
 
 void machine_update_memory_ptrs(void)
 {
-    vicii_update_memory_ptrs_external();
+	vicii_update_memory_ptrs_external();
 }
 
 int machine_num_keyboard_mappings(void)
 {
-    return NUM_KEYBOARD_MAPPINGS;
+	return NUM_KEYBOARD_MAPPINGS;
 }
 
 struct image_contents_s *machine_diskcontents_bus_read(unsigned int unit)
 {
-    return diskcontents_iec_read(unit);
+	return diskcontents_iec_read(unit);
 }
 
 BYTE machine_tape_type_default(void)
@@ -713,22 +698,20 @@ BYTE machine_tape_type_default(void)
 
 static int get_cart_emulation_state(void)
 {
-    int value;
+	int value;
 
-    if (resources_get_int("CartridgeType", &value) < 0) {
-        return CARTRIDGE_NONE;
-    }
+	if (resources_get_int("CartridgeType", &value) < 0)
+		return CARTRIDGE_NONE;
 
-    return value;
+	return value;
 }
 
 static int check_cart_range(unsigned int addr)
 {
-    if (get_cart_emulation_state() == CARTRIDGE_NONE) {
-        return 1;
-    }
+	if (get_cart_emulation_state() == CARTRIDGE_NONE)
+		return 1;
 
-    return (!(addr >= 0x8000 && addr < 0xa000));
+	return (!(addr >= 0x8000 && addr < 0xa000));
 }
 
 int machine_addr_in_ram(unsigned int addr)
@@ -738,13 +721,11 @@ int machine_addr_in_ram(unsigned int addr)
 
 const char *machine_get_name(void)
 {
-    if (vsid_mode) {
-        return "VSID";
-    }
+	if (vsid_mode)
+		return "VSID";
 
-    if (machine_class == VICE_MACHINE_C64SC) {
-        return "C64SC";
-    }
+	if (machine_class == VICE_MACHINE_C64SC)
+		return "C64SC";
 
-    return machine_name;
+	return machine_name;
 }

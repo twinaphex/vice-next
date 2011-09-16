@@ -473,11 +473,6 @@ int tape_image_detach(unsigned int unit)
     if (event_playback_active())
         return -1;
 
-    if (network_connected()) {
-        network_event_record(EVENT_ATTACHTAPE, (void *)event_data, 2);
-        return 0;
-    }
-
    return tape_image_detach_internal(unit);
 }
 
@@ -536,11 +531,6 @@ int tape_image_attach(unsigned int unit, const char *name)
 {
    if (event_playback_active())
         return -1;
-
-    if (network_connected()) {
-        network_attach_image(unit, name);
-        return 0;
-    }
 
    return tape_image_attach_internal(unit, name);
 }

@@ -652,14 +652,11 @@ static void datasette_start_motor(void)
 
 static void datasette_event_record(int command)
 {
-    DWORD rec_cmd;
+	DWORD rec_cmd;
 
-    rec_cmd = (DWORD)command;
+	rec_cmd = (DWORD)command;
 
-    if (network_connected())
-        network_event_record(EVENT_DATASETTE, (void *)&rec_cmd, sizeof(DWORD));
-    else
-        event_record(EVENT_DATASETTE, (void *)&rec_cmd, sizeof(DWORD));
+	event_record(EVENT_DATASETTE, (void *)&rec_cmd, sizeof(DWORD));
 }
 
 void datasette_event_playback(CLOCK offset, void *data)
@@ -723,12 +720,11 @@ static void datasette_control_internal(int command)
 
 void datasette_control(int command)
 {
-    if (event_playback_active())
-        return;
+	if (event_playback_active())
+		return;
 
-    datasette_event_record(command);
-    if (!network_connected())
-        datasette_control_internal(command);
+	datasette_event_record(command);
+	datasette_control_internal(command);
 }
 
 void datasette_set_motor(int flag)

@@ -279,7 +279,6 @@ int vsync_disable_timer(void)
    emulation happens, so that we don't display bogus speed values. */
 void vsync_suspend_speed_eval(void)
 {
-	network_suspend();
 	sound_suspend();
 	vsync_sync_reset();
 	speed_eval_suspended = 1;
@@ -340,21 +339,7 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 	 */
 	vsyncarch_presync();
 
-	/* Run vsync jobs. */
-	if (network_connected())
-		network_hook_time = vsyncarch_gettime();
-
 	vsync_hook();
-
-	if (network_connected())
-	{
-		network_hook_time = vsyncarch_gettime() - network_hook_time;
-
-		if (network_hook_time > (unsigned long)frame_ticks) {
-			next_frame_start += network_hook_time;
-			now += network_hook_time;
-		}
-	}
 
 #ifdef DEBUG
 	/* switch between recording and playback in history debug mode */
@@ -509,8 +494,8 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 	}
 
 	/* Adjust audio-video sync */
-	if (!network_connected()
-			&& (signed long)(now - adjust_start) >= vsyncarch_freq / 5) {
+	if ((signed long)(now - adjust_start) >= vsyncarch_freq / 5)
+	{
 		signed long adjust;
 		avg_sdelay /= frames_adjust;
 		/* Account for both relative and absolute delay. */

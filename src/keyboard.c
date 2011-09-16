@@ -79,18 +79,11 @@ static alarm_t *restore_alarm = NULL; /* restore key alarm context */
 
 static void keyboard_latch_matrix(CLOCK offset)
 {
-    if (network_connected())
-    {
-        memcpy(keyarr, network_keyarr, sizeof(keyarr));
-        memcpy(rev_keyarr, network_rev_keyarr, sizeof(rev_keyarr));
-    }
-    else
-    {
-        memcpy(keyarr, latch_keyarr, sizeof(keyarr));
-        memcpy(rev_keyarr, latch_rev_keyarr, sizeof(rev_keyarr));
-    }
-    if (keyboard_machine_func != NULL)
-        keyboard_machine_func(keyarr);
+	memcpy(keyarr, latch_keyarr, sizeof(keyarr));
+	memcpy(rev_keyarr, latch_rev_keyarr, sizeof(rev_keyarr));
+
+	if (keyboard_machine_func != NULL)
+		keyboard_machine_func(keyarr);
 }
 
 static int keyboard_set_latch_keyarr(int row, int col, int value)
@@ -357,38 +350,34 @@ static void restore_alarm_triggered(CLOCK offset, void *data)
 
 static void keyboard_restore_pressed(void)
 {
-    DWORD event_data;
-    event_data = (DWORD)1;
-    if (network_connected()) {
-        network_event_record(EVENT_KEYBOARD_RESTORE,
-                (void*)&event_data, sizeof(DWORD));
-    } else {
-        if (restore_raw == 0) {
-            restore_delayed = 1;
-            restore_quick_release = 0;
-            alarm_set(restore_alarm, maincpu_clk + KEYBOARD_RAND());
-        }
-    }
-    restore_raw = 1;
+	DWORD event_data;
+	event_data = (DWORD)1;
+
+	if (restore_raw == 0)
+	{
+		restore_delayed = 1;
+		restore_quick_release = 0;
+		alarm_set(restore_alarm, maincpu_clk + KEYBOARD_RAND());
+	}
+	restore_raw = 1;
 }
 
 static void keyboard_restore_released(void)
 {
-    DWORD event_data;
-    event_data = (DWORD)0;
-    if (network_connected()) {
-        network_event_record(EVENT_KEYBOARD_RESTORE,
-                (void*)&event_data, sizeof(DWORD));
-    } else {
-        if (restore_raw == 1) {
-            if (restore_delayed) {
-                restore_quick_release = 1;
-            } else {
-                alarm_set(restore_alarm, maincpu_clk + KEYBOARD_RAND());
-            }
-        }
-    }
-    restore_raw = 0;
+	DWORD event_data;
+	event_data = (DWORD)0;
+	if (restore_raw == 1)
+	{
+		if (restore_delayed)
+		{
+			restore_quick_release = 1;
+		}
+		else
+		{
+			alarm_set(restore_alarm, maincpu_clk + KEYBOARD_RAND());
+		}
+	}
+	restore_raw = 0;
 }
 
 void keyboard_key_pressed(signed long key)
@@ -459,17 +448,7 @@ void keyboard_key_pressed(signed long key)
 		printf ("set_latch_keyarr %d, %d, 1\n", key_latch_row, key_latch_column, 1);
 		#endif
 		keyboard_set_latch_keyarr(key_latch_row, key_latch_column, 1);
-		if (network_connected()) {
-			CLOCK keyboard_delay = KEYBOARD_RAND();
-			network_event_record(EVENT_KEYBOARD_DELAY,
-					(void *)&keyboard_delay, sizeof(keyboard_delay));
-			network_event_record(EVENT_KEYBOARD_MATRIX, 
-					(void *)latch_keyarr, sizeof(latch_keyarr));
-		}
-		else
-		{
-			alarm_set(keyboard_alarm, maincpu_clk + KEYBOARD_RAND());
-		}
+		alarm_set(keyboard_alarm, maincpu_clk + KEYBOARD_RAND());
 	}
 }
 
@@ -507,86 +486,72 @@ static int keyboard_key_released_matrix(int row, int column, int shift)
 
 void keyboard_key_released(signed long key)
 {
-    int i, latch;
+	int i, latch;
 
-    if (event_playback_active())
-        return;
+	if (event_playback_active())
+		return;
 
-    /* Restore */
-    if (((key == key_ctrl_restore1) || (key == key_ctrl_restore2))
-        && machine_has_restore_key())
-    {
-        keyboard_restore_released();
-        return;
-    }
+	/* Restore */
+	if (((key == key_ctrl_restore1) || (key == key_ctrl_restore2))
+			&& machine_has_restore_key())
+	{
+		keyboard_restore_released();
+		return;
+	}
 
-    for (i = 0; i < JOYSTICK_NUM; ++i) {
-        if (joystick_port_map[i] == JOYDEV_NUMPAD
-         || joystick_port_map[i] == JOYDEV_KEYSET1
-         || joystick_port_map[i] == JOYDEV_KEYSET2) {
-            if (joystick_check_clr(key, joystick_port_map[i] - JOYDEV_NUMPAD, 1+i)) {
-                return;
-            }
-        }
-    }
+	for (i = 0; i < JOYSTICK_NUM; ++i) {
+		if (joystick_port_map[i] == JOYDEV_NUMPAD
+				|| joystick_port_map[i] == JOYDEV_KEYSET1
+				|| joystick_port_map[i] == JOYDEV_KEYSET2) {
+			if (joystick_check_clr(key, joystick_port_map[i] - JOYDEV_NUMPAD, 1+i)) {
+				return;
+			}
+		}
+	}
 
-    if (keyconvmap == NULL)
-        return;
+	if (keyconvmap == NULL)
+		return;
 
-    latch = 0;
+	latch = 0;
 
-    for (i = 0; i < keyc_num; i++) {
-        if (key == keyconvmap[i].sym) {
-            if ((keyconvmap[i].shift & ALT_MAP) && !key_alternative)
-                continue;
+	for (i = 0; i < keyc_num; i++) {
+		if (key == keyconvmap[i].sym) {
+			if ((keyconvmap[i].shift & ALT_MAP) && !key_alternative)
+				continue;
 
-            if (keyboard_key_released_matrix(keyconvmap[i].row,
-                                             keyconvmap[i].column,
-                                             keyconvmap[i].shift)) {
-                latch = 1;
-                keyboard_set_latch_keyarr(keyconvmap[i].row,
-                                          keyconvmap[i].column, 0);
-                if (!(keyconvmap[i].shift & ALLOW_OTHER)
-                    /*|| (right_shift_down + left_shift_down) == 0*/)
-                    break;
-            }
-        }
-    }
+			if (keyboard_key_released_matrix(keyconvmap[i].row,
+						keyconvmap[i].column,
+						keyconvmap[i].shift)) {
+				latch = 1;
+				keyboard_set_latch_keyarr(keyconvmap[i].row,
+						keyconvmap[i].column, 0);
+				if (!(keyconvmap[i].shift & ALLOW_OTHER)
+						/*|| (right_shift_down + left_shift_down) == 0*/)
+					break;
+			}
+		}
+	}
 
-    if (latch) {
-        if (network_connected()) {
-            CLOCK keyboard_delay = KEYBOARD_RAND();
-            network_event_record(EVENT_KEYBOARD_DELAY,
-                        (void *)&keyboard_delay, sizeof(keyboard_delay));
-            network_event_record(EVENT_KEYBOARD_MATRIX, 
-                        (void *)latch_keyarr, sizeof(latch_keyarr));
-        }
-        else
-        {
-            alarm_set(keyboard_alarm, maincpu_clk + KEYBOARD_RAND());
-        }
-    }
+	if (latch)
+	{
+		alarm_set(keyboard_alarm, maincpu_clk + KEYBOARD_RAND());
+	}
 }
 
 static void keyboard_key_clear_internal(void)
 {
-    keyboard_clear_keymatrix();
-    joystick_clear_all();
-    virtual_shift_down = left_shift_down = right_shift_down = 0;
-    joystick_joypad_clear();
+	keyboard_clear_keymatrix();
+	joystick_clear_all();
+	virtual_shift_down = left_shift_down = right_shift_down = 0;
+	joystick_joypad_clear();
 }
 
 void keyboard_key_clear(void)
 {
-    if (event_playback_active())
-        return;
+	if (event_playback_active())
+		return;
 
-    if (network_connected()) {
-        network_event_record(EVENT_KEYBOARD_CLEAR, NULL, 0);
-        return;
-    }
-
-    keyboard_key_clear_internal();
+	keyboard_key_clear_internal();
 }
 
 void keyboard_set_keyarr_any(int row, int col, int value)

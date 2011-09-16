@@ -455,16 +455,6 @@ int resources_set_value(const char *name, resource_value_t value)
         return -1;
     }
 
-    if (r->event_relevant == RES_EVENT_STRICT
-        && network_get_mode() != NETWORK_IDLE)
-        return -2;
-
-    if (r->event_relevant == RES_EVENT_SAME && network_connected())
-    {
-        resource_record_event(r, value);
-        return 0;
-    }
-
     return resources_set_value_internal(r, value);
 }
 
@@ -507,50 +497,31 @@ static int resources_set_internal_string(resource_ram_t *r,
 
 int resources_set_int(const char *name, int value)
 {
-    resource_ram_t *r = lookup(name);
+	resource_ram_t *r = lookup(name);
 
-    if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to assign value to unknown "
-                    "resource `%s'.", name);
-        return -1;
-    }
+	if (r == NULL) {
+		log_warning(LOG_DEFAULT,
+				"Trying to assign value to unknown "
+				"resource `%s'.", name);
+		return -1;
+	}
 
-    if (r->event_relevant == RES_EVENT_STRICT
-        && network_get_mode() != NETWORK_IDLE)
-        return -2;
-
-    if (r->event_relevant == RES_EVENT_SAME && network_connected())
-    {
-        resource_record_event(r, uint_to_void_ptr(value));
-        return 0;
-    }
-
-    return resources_set_internal_int(r, value);
+	return resources_set_internal_int(r, value);
 }
 
 int resources_set_string(const char *name, const char *value)
 {
-    resource_ram_t *r = lookup(name);
+	resource_ram_t *r = lookup(name);
 
-    if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to assign value to unknown "
-                    "resource `%s'.", name);
-        return -1;
-    }
+	if (r == NULL) {
+		log_warning(LOG_DEFAULT,
+				"Trying to assign value to unknown "
+				"resource `%s'.", name);
+		return -1;
+	}
 
-    if (r->event_relevant == RES_EVENT_STRICT
-        && network_get_mode() != NETWORK_IDLE)
-        return -2;
 
-    if (r->event_relevant == RES_EVENT_SAME && network_connected())
-    {
-        resource_record_event(r, (resource_value_t)value);
-        return 0;
-    }
-
-    return resources_set_internal_string(r, value);
+	return resources_set_internal_string(r, value);
 }
 
 void resources_set_value_event(void *data, int size)
@@ -857,31 +828,22 @@ void resources_get_event_safe_list(event_list_state_t *list)
 
 int resources_toggle(const char *name, int *new_value_return)
 {
-    resource_ram_t *r = lookup(name);
-    int value;
+	resource_ram_t *r = lookup(name);
+	int value;
 
-    if (r == NULL) {
-        log_warning(LOG_DEFAULT,
-                    "Trying to toggle boolean value of unknown "
-                    "resource `%s'.", name);
-        return -1;
-    }
+	if (r == NULL) {
+		log_warning(LOG_DEFAULT,
+				"Trying to toggle boolean value of unknown "
+				"resource `%s'.", name);
+		return -1;
+	}
 
-    value = !(*(int *)r->value_ptr);
+	value = !(*(int *)r->value_ptr);
 
-    if (r->event_relevant == RES_EVENT_STRICT
-        && network_get_mode() != NETWORK_IDLE)
-        return -2;
+	if (new_value_return != NULL)
+		*new_value_return = value;
 
-    if (new_value_return != NULL)
-        *new_value_return = value;
-
-    if (r->event_relevant == RES_EVENT_SAME && network_connected()) {
-        resource_record_event(r, uint_to_void_ptr(value));
-        return 0;
-    }
-
-    return resources_set_internal_int(r, value);
+	return resources_set_internal_int(r, value);
 }
 
 int resources_touch(const char *name)
