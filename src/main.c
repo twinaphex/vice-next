@@ -180,10 +180,14 @@ int main_program(int argc, char **argv)
 	init_done = 1;
 
 	/* Let's go...  */
-	log_message(LOG_DEFAULT, "Main CPU: starting at ($FFFC).");
+	#ifdef CELL_DEBUG
+	printf("Main CPU: starting at ($FFFC).\n");
+	#endif
 	maincpu_mainloop();
 
-	log_error(LOG_DEFAULT, "perkele!");
+	#ifdef CELL_DEBUG
+	printf("perkele!\n");
+	#endif
 
 	return 0;
 }

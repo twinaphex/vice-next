@@ -44,7 +44,6 @@
 #include "kbd.h"
 #include "keyboard.h"
 #include "lib.h"
-#include "log.h"
 #include "machine.h"
 #include "maincpu.h"
 #include "network.h"
@@ -69,8 +68,6 @@ static int network_keyarr[KBD_ROWS];
 static int network_rev_keyarr[KBD_COLS];
 
 static alarm_t *keyboard_alarm;
-
-static log_t keyboard_log = LOG_DEFAULT;
 
 static keyboard_machine_func_t keyboard_machine_func = NULL;
 
@@ -818,280 +815,299 @@ static int keyboard_parse_set_neg_row(signed long sym, int row, int col)
 
 static void keyboard_parse_entry(char *buffer)
 {
-    char *key, *p;
-    signed long sym;
-    int row, col;
-    int shift = 0;
+	char *key, *p;
+	signed long sym;
+	int row, col;
+	int shift = 0;
 
-    key = strtok(buffer, " \t:");
+	key = strtok(buffer, " \t:");
 
-    sym = kbd_arch_keyname_to_keynum(key);
+	sym = kbd_arch_keyname_to_keynum(key);
 
-    if (sym < 0) {
-        log_error(keyboard_log, "Could not find key `%s'!", key);
-        return;
-    }
+	if (sym < 0)
+	{
+#ifdef CELL_DEBUG
+		printf("ERROR: Could not find key `%s'!\n", key);
+#endif
+		return;
+	}
 
-    p = strtok(NULL, " \t,");
-    if (p != NULL) {
-        row = strtol(p, NULL, 10);
-        p = strtok(NULL, " \t,");
-        if (p != NULL) {
-            col = atoi(p);
-            p = strtok(NULL, " \t");
-            if (p != NULL || row < 0) {
-                if (p != NULL)
-                    shift = atoi(p);
+	p = strtok(NULL, " \t,");
+	if (p != NULL) {
+		row = strtol(p, NULL, 10);
+		p = strtok(NULL, " \t,");
+		if (p != NULL) {
+			col = atoi(p);
+			p = strtok(NULL, " \t");
+			if (p != NULL || row < 0) {
+				if (p != NULL)
+					shift = atoi(p);
 
-                if (row >= 0) {
-                    keyboard_parse_set_pos_row(sym, row, col, shift);
-                } else {
-                    if (keyboard_parse_set_neg_row(sym, row, col) < 0)
-                        log_error(keyboard_log,
-                            "Bad row/column value (%d/%d) for keysym `%s'.",
-                            row, col, key);
-                }
-            }
-        }
-    }
+				if (row >= 0)
+				{
+					keyboard_parse_set_pos_row(sym, row, col, shift);
+				}
+				else
+				{
+					if (keyboard_parse_set_neg_row(sym, row, col) < 0)
+					{
+						#ifdef CELL_DEBUG
+						printf("ERROR: Bad row/column value (%d/%d) for keysym `%s'.\n", row, col, key);
+						#endif
+					}
+				}
+			}
+		}
+	}
 }
 
 
 static int keyboard_parse_keymap(const char *filename)
 {
-    FILE *fp;
-    char *complete_path;
-    char buffer[1000];
+	FILE *fp;
+	char *complete_path;
+	char buffer[1000];
 
-    fp = sysfile_open(filename, &complete_path, MODE_READ_TEXT);
+	fp = sysfile_open(filename, &complete_path, MODE_READ_TEXT);
 
-    if (fp == NULL)
-        return -1;
+	if (fp == NULL)
+		return -1;
 
-    log_message(keyboard_log, "Loading keymap `%s'.", complete_path);
+	#ifdef CELL_DEBUG
+	printf("INFO: Loading keymap `%s'.\n", complete_path);
+	#endif
 
-    do {
-        buffer[0] = 0;
-        if (fgets(buffer, 999, fp)) {
-  	    char *p;
+	do {
+		buffer[0] = 0;
+		if (fgets(buffer, 999, fp)) {
+			char *p;
 
-            if (strlen(buffer) == 0)
-                break;
+			if (strlen(buffer) == 0)
+				break;
 
-            buffer[strlen(buffer) - 1] = 0; /* remove newline */
-	    /* remove comments */
-	    if ((p = strchr(buffer, '#')))
-	        *p=0;
+			buffer[strlen(buffer) - 1] = 0; /* remove newline */
+			/* remove comments */
+			if ((p = strchr(buffer, '#')))
+				*p=0;
 
-            switch(*buffer) {
-              case 0:
-                break;
-              case '!':
-                /* keyword handling */
-                keyboard_parse_keyword(buffer);
-                break;
-              default:
-                /* table entry handling */
-                keyboard_parse_entry(buffer);
-                break;
-            }
-        }
-    } while (!feof(fp));
-    fclose(fp);
+			switch(*buffer)
+			{
+				case 0:
+					break;
+				case '!':
+					/* keyword handling */
+					keyboard_parse_keyword(buffer);
+					break;
+				default:
+					/* table entry handling */
+					keyboard_parse_entry(buffer);
+					break;
+			}
+		}
+	} while (!feof(fp));
+	fclose(fp);
 
-    lib_free(complete_path);
+	lib_free(complete_path);
 
-    return 0;
+	return 0;
 }
 
 static int keyboard_keymap_load(const char *filename)
 {
-    if (filename == NULL)
-        return -1;
+	if (filename == NULL)
+		return -1;
 
-    if (keyconvmap != NULL)
-        keyboard_keyconvmap_free();
+	if (keyconvmap != NULL)
+		keyboard_keyconvmap_free();
 
-    keyboard_keyconvmap_alloc();
+	keyboard_keyconvmap_alloc();
 
-    return keyboard_parse_keymap(filename);
+	return keyboard_parse_keymap(filename);
 }
 
 /*-----------------------------------------------------------------------*/
 
 void keyboard_set_map_any(signed long sym, int row, int col, int shift)
 {
-    if (row >= 0) {
-        keyboard_parse_set_pos_row(sym, row, col, shift);
-    } else {
-        keyboard_parse_set_neg_row(sym, row, col);
-    }
+	if (row >= 0)
+	{
+		keyboard_parse_set_pos_row(sym, row, col, shift);
+	}
+	else
+	{
+		keyboard_parse_set_neg_row(sym, row, col);
+	}
 }
 
 void keyboard_set_unmap_any(signed long sym)
 {
-    keyboard_keysym_undef(sym);
+	keyboard_keysym_undef(sym);
 }
 
 int keyboard_keymap_dump(const char *filename)
 {
-    FILE *fp;
-    int i;
+	FILE *fp;
+	int i;
 
-    if (filename == NULL)
-        return -1;
+	if (filename == NULL)
+		return -1;
 
-    fp = fopen(filename, MODE_WRITE_TEXT);
+	fp = fopen(filename, MODE_WRITE_TEXT);
 
-    if (fp == NULL)
-        return -1;
+	if (fp == NULL)
+		return -1;
 
-    fprintf(fp, "# VICE keyboard mapping file\n"
-            "#\n"
-            "# A Keyboard map is read in as patch to the current map.\n"
-            "#\n"
-            "# File format:\n"
-            "# - comment lines start with '#'\n"
-            "# - keyword lines start with '!keyword'\n"
-            "# - normal line has 'keysym/scancode row column shiftflag'\n"
-            "#\n"
-            "# Keywords and their lines are:\n"
-            "# '!CLEAR'               clear whole table\n"
-            "# '!INCLUDE filename'    read file as mapping file\n"
-            "# '!LSHIFT row col'      left shift keyboard row/column\n"
-            "# '!RSHIFT row col'      right shift keyboard row/column\n"
-            "# '!VSHIFT shiftkey'     virtual shift key (RSHIFT or LSHIFT)\n"
-            "# '!UNDEF keysym'        remove keysym from table\n"
-            "#\n"
-            "# Shiftflag can have the values:\n"
-            "# 0      key is not shifted for this keysym/scancode\n"
-            "# 1      key is shifted for this keysym/scancode\n"
-            "# 2      left shift\n"
-            "# 4      right shift\n"
-            "# 8      key can be shifted or not with this keysym/scancode\n"
-            "# 16     deshift key for this keysym/scancode\n"
-            "# 32     another definition for this keysym/scancode follows\n"
-            "# 256    key is used for an alternative keyboard mapping\n"
-            "#\n"
-            "# Negative row values:\n"
-            "# 'keysym -1 n' joystick #1, direction n\n"
-            "# 'keysym -2 n' joystick #2, direction n\n"
-            "# 'keysym -3 0' first RESTORE key\n"
-            "# 'keysym -3 1' second RESTORE key\n"
-            "# 'keysym -4 0' 40/80 column key\n"
-            "# 'keysym -4 1' CAPS (ASCII/DIN) key\n"
-            "#\n\n"
-        );
-    fprintf(fp, "!CLEAR\n");
-    fprintf(fp, "!LSHIFT %d %d\n", kbd_lshiftrow, kbd_lshiftcol);
-    fprintf(fp, "!RSHIFT %d %d\n", kbd_rshiftrow, kbd_rshiftcol);
-    if (vshift != KEY_NONE)
-        fprintf(fp, "!VSHIFT %s\n",
-                (vshift == KEY_RSHIFT) ? "RSHIFT" : "LSHIFT");
-    fprintf(fp, "\n");
+	fprintf(fp, "# VICE keyboard mapping file\n"
+			"#\n"
+			"# A Keyboard map is read in as patch to the current map.\n"
+			"#\n"
+			"# File format:\n"
+			"# - comment lines start with '#'\n"
+			"# - keyword lines start with '!keyword'\n"
+			"# - normal line has 'keysym/scancode row column shiftflag'\n"
+			"#\n"
+			"# Keywords and their lines are:\n"
+			"# '!CLEAR'               clear whole table\n"
+			"# '!INCLUDE filename'    read file as mapping file\n"
+			"# '!LSHIFT row col'      left shift keyboard row/column\n"
+			"# '!RSHIFT row col'      right shift keyboard row/column\n"
+			"# '!VSHIFT shiftkey'     virtual shift key (RSHIFT or LSHIFT)\n"
+			"# '!UNDEF keysym'        remove keysym from table\n"
+			"#\n"
+			"# Shiftflag can have the values:\n"
+			"# 0      key is not shifted for this keysym/scancode\n"
+			"# 1      key is shifted for this keysym/scancode\n"
+			"# 2      left shift\n"
+			"# 4      right shift\n"
+			"# 8      key can be shifted or not with this keysym/scancode\n"
+			"# 16     deshift key for this keysym/scancode\n"
+			"# 32     another definition for this keysym/scancode follows\n"
+			"# 256    key is used for an alternative keyboard mapping\n"
+			"#\n"
+			"# Negative row values:\n"
+			"# 'keysym -1 n' joystick #1, direction n\n"
+			"# 'keysym -2 n' joystick #2, direction n\n"
+			"# 'keysym -3 0' first RESTORE key\n"
+			"# 'keysym -3 1' second RESTORE key\n"
+			"# 'keysym -4 0' 40/80 column key\n"
+			"# 'keysym -4 1' CAPS (ASCII/DIN) key\n"
+			"#\n\n"
+			);
+	fprintf(fp, "!CLEAR\n");
+	fprintf(fp, "!LSHIFT %d %d\n", kbd_lshiftrow, kbd_lshiftcol);
+	fprintf(fp, "!RSHIFT %d %d\n", kbd_rshiftrow, kbd_rshiftcol);
+	if (vshift != KEY_NONE)
+		fprintf(fp, "!VSHIFT %s\n",
+				(vshift == KEY_RSHIFT) ? "RSHIFT" : "LSHIFT");
+	fprintf(fp, "\n");
 
-    for (i = 0; keyconvmap[i].sym != ARCHDEP_KEYBOARD_SYM_NONE; i++) {
-        fprintf(fp, "%s %d %d %d\n",
-                kbd_arch_keynum_to_keyname(keyconvmap[i].sym),
-                keyconvmap[i].row, keyconvmap[i].column,
-                keyconvmap[i].shift);
-    }
-    fprintf(fp, "\n");
+	for (i = 0; keyconvmap[i].sym != ARCHDEP_KEYBOARD_SYM_NONE; i++) {
+		fprintf(fp, "%s %d %d %d\n",
+				kbd_arch_keynum_to_keyname(keyconvmap[i].sym),
+				keyconvmap[i].row, keyconvmap[i].column,
+				keyconvmap[i].shift);
+	}
+	fprintf(fp, "\n");
 
-    if (key_ctrl_restore1 != -1 || key_ctrl_restore2 != -1) {
-        fprintf(fp, "#\n"
-                "# Restore key mappings\n"
-                "#\n");
-        if (key_ctrl_restore1 != -1)
-            fprintf(fp, "%s -3 0\n",
-                    kbd_arch_keynum_to_keyname(key_ctrl_restore1));
-        if (key_ctrl_restore2 != -1)
-            fprintf(fp, "%s -3 1\n",
-                    kbd_arch_keynum_to_keyname(key_ctrl_restore2));
-        fprintf(fp, "\n");
-    }
+	if (key_ctrl_restore1 != -1 || key_ctrl_restore2 != -1) {
+		fprintf(fp, "#\n"
+				"# Restore key mappings\n"
+				"#\n");
+		if (key_ctrl_restore1 != -1)
+			fprintf(fp, "%s -3 0\n",
+					kbd_arch_keynum_to_keyname(key_ctrl_restore1));
+		if (key_ctrl_restore2 != -1)
+			fprintf(fp, "%s -3 1\n",
+					kbd_arch_keynum_to_keyname(key_ctrl_restore2));
+		fprintf(fp, "\n");
+	}
 
-    if (key_ctrl_column4080 != -1) {
-        fprintf(fp, "#\n"
-                "# 40/80 column key mapping\n"
-                "#\n");
-        fprintf(fp, "%s -4 0\n",
-                kbd_arch_keynum_to_keyname(key_ctrl_restore1));
-        fprintf(fp, "\n");
-    }
+	if (key_ctrl_column4080 != -1) {
+		fprintf(fp, "#\n"
+				"# 40/80 column key mapping\n"
+				"#\n");
+		fprintf(fp, "%s -4 0\n",
+				kbd_arch_keynum_to_keyname(key_ctrl_restore1));
+		fprintf(fp, "\n");
+	}
 
-    if (key_ctrl_caps != -1) {
-        fprintf(fp, "#\n"
-                "# CAPS (ASCII/DIN) key mapping\n"
-                "#\n");
-        fprintf(fp, "%s -4 1\n",
-                kbd_arch_keynum_to_keyname(key_ctrl_restore1));
-        fprintf(fp, "\n");
-    }
+	if (key_ctrl_caps != -1) {
+		fprintf(fp, "#\n"
+				"# CAPS (ASCII/DIN) key mapping\n"
+				"#\n");
+		fprintf(fp, "%s -4 1\n",
+				kbd_arch_keynum_to_keyname(key_ctrl_restore1));
+		fprintf(fp, "\n");
+	}
 
-    fclose(fp);
+	fclose(fp);
 
-    return 0;
+	return 0;
 }
 
 /*-----------------------------------------------------------------------*/
 
 int keyboard_set_keymap_index(int val, void *param)
 {
-    const char *name, *resname;
+	const char *name, *resname;
 
-    resname = machine_keymap_res_name_list[val];
+	resname = machine_keymap_res_name_list[val];
 
-    if (resources_get_string(resname, &name) < 0)
-        return -1;
+	if (resources_get_string(resname, &name) < 0)
+		return -1;
 
-    if (load_keymap_ok) {
-        if (keyboard_keymap_load(name) >= 0) {
-            machine_keymap_index = val;
-            return 0;
-        } else {
-            log_error(keyboard_log, "Cannot load keymap `%s'.",
-                      name ? name : "(null)");
-        }
-        return -1;
-    }
+	if (load_keymap_ok)
+	{
+		if (keyboard_keymap_load(name) >= 0)
+		{
+			machine_keymap_index = val;
+			return 0;
+		}
+		#ifdef CELL_DEBUG
+		else
+		{
+			printf("ERROR: Cannot load keymap `%s'.\n", name ? name : "(null)");
+		}
+		#endif
+		return -1;
+	}
 
-    machine_keymap_index = val;
-    return 0;
+	machine_keymap_index = val;
+	return 0;
 }
 
 int keyboard_set_keymap_file(const char *val, void *param)
 {
-    int oldindex, newindex;
+	int oldindex, newindex;
 
-    newindex = vice_ptr_to_int(param);
+	newindex = vice_ptr_to_int(param);
 
-    if (newindex >= machine_num_keyboard_mappings())
-        return -1;
+	if (newindex >= machine_num_keyboard_mappings())
+		return -1;
 
-    if (resources_get_int("KeymapIndex", &oldindex) < 0)
-        return -1;
+	if (resources_get_int("KeymapIndex", &oldindex) < 0)
+		return -1;
 
-    if (util_string_set(&machine_keymap_file_list[newindex], val))
-        return 0;
+	if (util_string_set(&machine_keymap_file_list[newindex], val))
+		return 0;
 
-    /* reset oldindex -> reload keymap file if this keymap is active */
-    if (oldindex == newindex)
-        resources_set_int("KeymapIndex", oldindex);
+	/* reset oldindex -> reload keymap file if this keymap is active */
+	if (oldindex == newindex)
+		resources_set_int("KeymapIndex", oldindex);
 
-    return 0;
+	return 0;
 }
 
 /*-----------------------------------------------------------------------*/
 
 void keyboard_register_column4080_key(key_ctrl_column4080_func_t func)
 {
-    key_ctrl_column4080_func = func;
+	key_ctrl_column4080_func = func;
 }
 
 void keyboard_register_caps_key(key_ctrl_caps_func_t func)
 {
-    key_ctrl_caps_func = func;
+	key_ctrl_caps_func = func;
 }
 #endif
 
@@ -1099,69 +1115,62 @@ void keyboard_register_caps_key(key_ctrl_caps_func_t func)
 
 void keyboard_init(void)
 {
-    keyboard_log = log_open("Keyboard");
-
-    keyboard_alarm = alarm_new(maincpu_alarm_context, "Keyboard",
-                               keyboard_latch_handler, NULL);
-    restore_alarm = alarm_new(maincpu_alarm_context, "Restore",
-                                restore_alarm_triggered, NULL);
+	keyboard_alarm = alarm_new(maincpu_alarm_context, "Keyboard",
+			keyboard_latch_handler, NULL);
+	restore_alarm = alarm_new(maincpu_alarm_context, "Restore",
+			restore_alarm_triggered, NULL);
 #ifdef COMMON_KBD
-    kbd_arch_init();
+	kbd_arch_init();
 
-    load_keymap_ok = 1;
-    keyboard_set_keymap_index(machine_keymap_index, NULL);
+	load_keymap_ok = 1;
+	keyboard_set_keymap_index(machine_keymap_index, NULL);
 #endif
 }
 
 void keyboard_shutdown(void)
 {
 #ifdef COMMON_KBD
-    keyboard_keyconvmap_free();
+	keyboard_keyconvmap_free();
 #endif
 }
 
 /*--------------------------------------------------------------------------*/
 int keyboard_snapshot_write_module(snapshot_t *s)
 {
-    snapshot_module_t *m;
+	snapshot_module_t *m;
 
-    m = snapshot_module_create(s, "KEYBOARD", 1, 0);
-    if (m == NULL)
-       return -1;
+	m = snapshot_module_create(s, "KEYBOARD", 1, 0);
+	if (m == NULL)
+		return -1;
 
-    if (0
-        || SMW_DWA(m, (DWORD *)keyarr, KBD_ROWS) < 0
-        || SMW_DWA(m, (DWORD *)rev_keyarr, KBD_COLS) < 0)
-    {
-        snapshot_module_close(m);
-        return -1;
-    }
+	if (0 || SMW_DWA(m, (DWORD *)keyarr, KBD_ROWS) < 0 || SMW_DWA(m, (DWORD *)rev_keyarr, KBD_COLS) < 0)
+	{
+		snapshot_module_close(m);
+		return -1;
+	}
 
-    if (snapshot_module_close(m) < 0)
-        return -1;
+	if (snapshot_module_close(m) < 0)
+		return -1;
 
-    return 0;
+	return 0;
 }
 
 int keyboard_snapshot_read_module(snapshot_t *s)
 {
-    BYTE major_version, minor_version;
-    snapshot_module_t *m;
+	BYTE major_version, minor_version;
+	snapshot_module_t *m;
 
-    m = snapshot_module_open(s, "KEYBOARD",
-                             &major_version, &minor_version);
-    if (m == NULL) {
-        return 0;
-    }
+	m = snapshot_module_open(s, "KEYBOARD", &major_version, &minor_version);
 
-    if (0
-        || SMR_DWA(m, (DWORD *)keyarr, KBD_ROWS) < 0
-        || SMR_DWA(m, (DWORD *)rev_keyarr, KBD_COLS) < 0)
-    {
-        snapshot_module_close(m);
-        return -1;
-    }
+	if (m == NULL)
+		return 0;
 
-    snapshot_module_close(m);
-    return 0;
+	if (0 || SMR_DWA(m, (DWORD *)keyarr, KBD_ROWS) < 0 || SMR_DWA(m, (DWORD *)rev_keyarr, KBD_COLS) < 0)
+	{
+		snapshot_module_close(m);
+		return -1;
+	}
+
+	snapshot_module_close(m);
+	return 0;
 }

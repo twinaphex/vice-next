@@ -29,125 +29,115 @@
 #include <stdio.h>
 
 #include "lib.h"
-#include "log.h"
 #include "machine-bus.h"
 #include "serial.h"
 #include "types.h"
 
-/* #define DEBUG_BUS */
-
-#ifdef DEBUG_BUS
-#define DBG(x)  printf x
-#else
-#define DBG(x)
-#endif
-
 /* Call this if device is not attached: -128 == device not present.  */
 static int fn(void)
 {
-    return 0x80;
+	return 0x80;
 }
 
 void machine_bus_init(void)
 {
-    unsigned int i;
+	unsigned int i;
 
-    for (i = 0; i < SERIAL_MAXDEVICES; i++) {
-        serial_t *p;
+	for (i = 0; i < SERIAL_MAXDEVICES; i++)
+	{
+		serial_t *p;
 
-        p = serial_device_get(i);
+		p = serial_device_get(i);
 
-        p->inuse = 0;
-        p->getf = (int (*)(struct vdrive_s *, BYTE *, unsigned int))fn;
-        p->putf = (int (*)(struct vdrive_s *, BYTE, unsigned int))fn;
-        p->openf = (int (*)(struct vdrive_s *, const BYTE *, unsigned int,
-                   unsigned int, struct cbmdos_cmd_parse_s *))fn;
-        p->closef = (int (*)(struct vdrive_s *, unsigned int))fn;
-        p->flushf = (void (*)(struct vdrive_s *, unsigned int))NULL;
-        p->listenf = (void (*)(struct vdrive_s *, unsigned int))NULL;
-    }
+		p->inuse = 0;
+		p->getf = (int (*)(struct vdrive_s *, BYTE *, unsigned int))fn;
+		p->putf = (int (*)(struct vdrive_s *, BYTE, unsigned int))fn;
+		p->openf = (int (*)(struct vdrive_s *, const BYTE *, unsigned int,
+					unsigned int, struct cbmdos_cmd_parse_s *))fn;
+		p->closef = (int (*)(struct vdrive_s *, unsigned int))fn;
+		p->flushf = (void (*)(struct vdrive_s *, unsigned int))NULL;
+		p->listenf = (void (*)(struct vdrive_s *, unsigned int))NULL;
+	}
 
-    //debug_printf ("machine_bus_init_machine()");
-    machine_bus_init_machine();
+	machine_bus_init_machine();
 }
 
-int machine_bus_device_attach(unsigned int unit, const char *name,
-                              int (*getf)(struct vdrive_s *, BYTE *,
-                              unsigned int),
-                              int (*putf)(struct vdrive_s *, BYTE,
-                              unsigned int),
-                              int (*openf)(struct vdrive_s *, const BYTE *,
-                              unsigned int, unsigned int,
-                              struct cbmdos_cmd_parse_s *),
-                              int (*closef)(struct vdrive_s *, unsigned int),
-                              void (*flushf)(struct vdrive_s *, unsigned int),
-                              void (*listenf)(struct vdrive_s *, unsigned int))
+int machine_bus_device_attach(unsigned int unit, const char *name, int (*getf)(struct vdrive_s *, BYTE *, unsigned int), int (*putf)(struct vdrive_s *, BYTE, unsigned int), int (*openf)(struct vdrive_s *, const BYTE *, unsigned int, unsigned int, struct cbmdos_cmd_parse_s *), int (*closef)(struct vdrive_s *, unsigned int), void (*flushf)(struct vdrive_s *, unsigned int), void (*listenf)(struct vdrive_s *, unsigned int))
 {
-    serial_t *p;
-    int i;
+	serial_t *p;
+	int i;
 
-    if (unit >= SERIAL_MAXDEVICES)
-        return 1;
+	if (unit >= SERIAL_MAXDEVICES)
+		return 1;
 
-    p = serial_device_get(unit);
+	p = serial_device_get(unit);
 
-    DBG(("machine_bus_device_attach unit %d devtype:%d inuse:%d\n", unit, p->device, p->inuse));
+	#ifdef CELL_DEBUG
+	printf("machine_bus_device_attach unit %d devtype:%d inuse:%d\n", unit, p->device, p->inuse);
+	#endif
 
-    if (p->inuse != 0) {
-        machine_bus_device_detach(unit);
-    }
+	if (p->inuse != 0) {
+		machine_bus_device_detach(unit);
+	}
 
-    if (p->device != SERIAL_DEVICE_NONE) {
-        p->getf = getf;
-        p->putf = putf;
-        p->openf = openf;
-        p->closef = closef;
-        p->flushf = flushf;
-        p->listenf = listenf;
-        p->inuse = 1;
-        if (p->name) {
-            lib_free(p->name);
-        }
-        p->name = lib_stralloc(name);
-    }
+	if (p->device != SERIAL_DEVICE_NONE) {
+		p->getf = getf;
+		p->putf = putf;
+		p->openf = openf;
+		p->closef = closef;
+		p->flushf = flushf;
+		p->listenf = listenf;
+		p->inuse = 1;
+		if (p->name) {
+			lib_free(p->name);
+		}
+		p->name = lib_stralloc(name);
+	}
 
-    for (i = 0; i < 16; i++) {
-        p->nextok[i] = 0;
-        p->isopen[i] = 0;
-    }
+	for (i = 0; i < 16; i++) {
+		p->nextok[i] = 0;
+		p->isopen[i] = 0;
+	}
 
-    return 0;
+	return 0;
 }
 
 /* Detach and kill serial devices.  */
 int machine_bus_device_detach(unsigned int unit)
 {
-    serial_t *p;
+	serial_t *p;
 
-    DBG(("machine_bus_device_detach unit %d\n", unit));
+	#ifdef CELL_DEBUG
+	printf("machine_bus_device_detach unit %d\n", unit);
+	#endif
 
-    if (unit >= SERIAL_MAXDEVICES) {
-        log_error(LOG_DEFAULT, "Illegal device number %d.", unit);
-        return -1;
-    }
+	if (unit >= SERIAL_MAXDEVICES)
+	{
+	#ifdef CELL_DEBUG
+		printf("ERROR: Illegal device number %d.\n", unit);
+	#endif
+		return -1;
+	}
 
-    p = serial_device_get(unit);
+	p = serial_device_get(unit);
 
-    if (p != NULL && p->inuse != 0) {
-        p->inuse = 0;
-        if (p->name) {
-            lib_free(p->name);
-        }
-        p->name = NULL;
-        p->getf = (int (*)(struct vdrive_s *, BYTE *, unsigned int))fn;
-        p->putf = (int (*)(struct vdrive_s *, BYTE, unsigned int))fn;
-        p->openf = (int (*)(struct vdrive_s *, const BYTE *, unsigned int,
-                   unsigned int, struct cbmdos_cmd_parse_s *))fn;
-        p->closef = (int (*)(struct vdrive_s *, unsigned int))fn;
-        p->flushf = (void (*)(struct vdrive_s *, unsigned int))NULL;
-        p->listenf = (void (*)(struct vdrive_s *, unsigned int))NULL;
-    }
+	if (p != NULL && p->inuse != 0)
+	{
+		p->inuse = 0;
+		if (p->name)
+		{
+			lib_free(p->name);
+		}
+		p->name = NULL;
+		p->getf = (int (*)(struct vdrive_s *, BYTE *, unsigned int))fn;
+		p->putf = (int (*)(struct vdrive_s *, BYTE, unsigned int))fn;
+		p->openf = (int (*)(struct vdrive_s *, const BYTE *, unsigned int,
+					unsigned int, struct cbmdos_cmd_parse_s *))fn;
+		p->closef = (int (*)(struct vdrive_s *, unsigned int))fn;
+		p->flushf = (void (*)(struct vdrive_s *, unsigned int))NULL;
+		p->listenf = (void (*)(struct vdrive_s *, unsigned int))NULL;
+	}
 
-    return 0;
+	return 0;
 }
 
