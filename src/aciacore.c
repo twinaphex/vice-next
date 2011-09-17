@@ -87,16 +87,16 @@ typedef struct acia_struct {
     int fd;             /*!< file descriptor used to access the RS232 physical device on the host machine */
     enum acia_tx_state in_tx;   /*!< indicates that a transmit is currently ongoing */
     int irq;
-    unsigned char cmd;        /*!< value of the 6551 command register */
-    unsigned char ctrl;       /*!< value of the 6551 control register */
-    unsigned char rxdata;     /*!< data that has been received last */
-    unsigned char txdata;     /*!< data prepared to be send */
-    unsigned char status;     /*!< value of the 6551 status register */
-    unsigned char ectrl;      /*!< value of the extended control register of the turbo232 card */
+    BYTE cmd;        /*!< value of the 6551 command register */
+    BYTE ctrl;       /*!< value of the 6551 control register */
+    BYTE rxdata;     /*!< data that has been received last */
+    BYTE txdata;     /*!< data prepared to be send */
+    BYTE status;     /*!< value of the 6551 status register */
+    BYTE ectrl;      /*!< value of the extended control register of the turbo232 card */
     int alarm_active_tx;    /*!< 1 if TX alarm is set; else 0 */
     int alarm_active_rx;    /*!< 1 if RX alarm is set; else 0 */
 
-    unsigned char last_read;  /*!< the byte read the last time (for RMW) */
+    BYTE last_read;  /*!< the byte read the last time (for RMW) */
 
     /******************************************************************/
 
@@ -663,17 +663,17 @@ void myacia_reset(void)
 /*
  * Layout of the dump data:
  *
- * Uunsigned char        TDR     Transmit Data Register
- * Uunsigned char        RDR     Receiver Data Register
- * Uunsigned char        SR      Status Register (includes state of IRQ line)
- * Uunsigned char        CMD     Command Register
- * Uunsigned char        CTRL    Control Register
+ * UBYTE        TDR     Transmit Data Register
+ * UBYTE        RDR     Receiver Data Register
+ * UBYTE        SR      Status Register (includes state of IRQ line)
+ * UBYTE        CMD     Command Register
+ * UBYTE        CTRL    Control Register
  *
- * Uunsigned char        IN_TX   0 = no data to tx; 2 = TDR valid; 1 = in transmit (cf. enum acia_tx_state)
+ * UBYTE        IN_TX   0 = no data to tx; 2 = TDR valid; 1 = in transmit (cf. enum acia_tx_state)
  *
- * unsigned long        TICKSTX ticks till the next TDR empty interrupt
+ * DWORD        TICKSTX ticks till the next TDR empty interrupt
  *
- * unsigned long        TICKSRX ticks till the next RDF empty interrupt
+ * DWORD        TICKSRX ticks till the next RDF empty interrupt
  *                      TICKSRX has been added with 2.0.9; if it does not
  *                      exist on read, it is assumed that it has the same
  *                      value as TICKSTX to emulate the old behaviour.
@@ -703,17 +703,17 @@ int myacia_snapshot_write_module(snapshot_t *p)
 {
     snapshot_module_t *m;
 
-    m = snapshot_module_create(p, module_name, (unsigned char)ACIA_DUMP_VER_MAJOR,
-                               (unsigned char)ACIA_DUMP_VER_MINOR);
+    m = snapshot_module_create(p, module_name, (BYTE)ACIA_DUMP_VER_MAJOR,
+                               (BYTE)ACIA_DUMP_VER_MINOR);
     if (m == NULL)
         return -1;
 
     SMW_B(m, acia.txdata);
     SMW_B(m, acia.rxdata);
-    SMW_B(m, (unsigned char)(acia_get_status() | (acia.irq ? ACIA_SR_BITS_IRQ : 0)));
+    SMW_B(m, (BYTE)(acia_get_status() | (acia.irq ? ACIA_SR_BITS_IRQ : 0)));
     SMW_B(m, acia.cmd);
     SMW_B(m, acia.ctrl);
-    SMW_B(m, (unsigned char)(acia.in_tx));
+    SMW_B(m, (BYTE)(acia.in_tx));
 
     if (acia.alarm_active_tx) {
         SMW_DW(m, (acia.alarm_clk_tx - myclk));
@@ -756,9 +756,9 @@ int myacia_snapshot_write_module(snapshot_t *p)
 */
 int myacia_snapshot_read_module(snapshot_t *p)
 {
-    unsigned char vmajor, vminor;
-    unsigned char byte;
-    unsigned long dword;
+    BYTE vmajor, vminor;
+    BYTE byte;
+    DWORD dword;
     snapshot_module_t *m;
 
     alarm_unset(acia.alarm_tx);   /* just in case we don't find module */
@@ -855,7 +855,7 @@ int myacia_snapshot_read_module(snapshot_t *p)
   \param byte
     The value to set the register to
 */
-void REGPARM2 myacia_store(WORD addr, unsigned char byte)
+void REGPARM2 myacia_store(WORD addr, BYTE byte)
 {
 	int acia_register_size;
 
@@ -950,13 +950,13 @@ void REGPARM2 myacia_store(WORD addr, unsigned char byte)
   \return
     The value the register has
 */
-unsigned char REGPARM1 myacia_read(WORD addr)
+BYTE REGPARM1 myacia_read(WORD addr)
 {
 #if 0 /* def DEBUG */
-    static unsigned char myacia_read_(WORD);
-    unsigned char byte = myacia_read_(addr);
+    static BYTE myacia_read_(WORD);
+    BYTE byte = myacia_read_(addr);
     static WORD last_addr = 0;
-    static unsigned char last_byte = 0;
+    static BYTE last_byte = 0;
 
     if ((addr != last_addr) || (byte != last_byte)) {
         DEBUG_LOG_MESSAGE((acia.log, "read_myacia(%04x) -> %02x", addr, byte));
@@ -964,7 +964,7 @@ unsigned char REGPARM1 myacia_read(WORD addr)
     last_addr = addr; last_byte = byte;
     return byte;
 }
-static unsigned char myacia_read_(WORD addr)
+static BYTE myacia_read_(WORD addr)
 {
 #endif
     int acia_register_size;
@@ -981,7 +981,7 @@ static unsigned char myacia_read_(WORD addr)
         return acia.rxdata;
       case ACIA_SR:
         {
-            unsigned char c = acia_get_status() | (acia.irq ? ACIA_SR_BITS_IRQ : 0);
+            BYTE c = acia_get_status() | (acia.irq ? ACIA_SR_BITS_IRQ : 0);
             acia_set_int(acia.irq_type, acia.int_num, IK_NONE);
             acia.irq = 0;
             acia.last_read = c;
@@ -1021,14 +1021,14 @@ static unsigned char myacia_read_(WORD addr)
   \todo
     Currently unused
 */
-unsigned char myacia_peek(WORD addr)
+BYTE myacia_peek(WORD addr)
 {
     switch(addr & 3) {
       case ACIA_DR:
         return acia.rxdata;
       case ACIA_SR:
         {
-            unsigned char c = acia.status | (acia.irq ? ACIA_SR_BITS_IRQ : 0);
+            BYTE c = acia.status | (acia.irq ? ACIA_SR_BITS_IRQ : 0);
             return c;
         }
       case ACIA_CTRL:
@@ -1143,7 +1143,7 @@ static void int_acia_rx(CLOCK offset, void *data)
 
     do
     {
-	    unsigned char received_byte;
+	    BYTE received_byte;
 
 	    if (acia.fd < 0)
 		    break;

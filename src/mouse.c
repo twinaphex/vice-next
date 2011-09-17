@@ -50,7 +50,7 @@ int mouse_type;
 /* POT input selection */
 
 /* POT input port. Defaults to 1 for xvic. */
-static unsigned char input_port = 1;
+static BYTE input_port = 1;
 
 void mouse_set_input(int port)
 {
@@ -61,12 +61,12 @@ void mouse_set_input(int port)
 /* --------------------------------------------------------- */
 /* 1351 mouse */
 
-static unsigned char mouse_get_1351_x(void)
+static BYTE mouse_get_1351_x(void)
 {
 	return mousedrv_get_x();
 }
 
-static unsigned char mouse_get_1351_y(void)
+static BYTE mouse_get_1351_y(void)
 {
 	return mousedrv_get_y();
 }
@@ -80,10 +80,10 @@ struct alarm_s *neosmouse_alarm;
 static int neos_and_amiga_buttons;
 static int neos_prev;
 
-static unsigned char neos_x;
-static unsigned char neos_y;
-static unsigned char neos_lastx;
-static unsigned char neos_lasty;
+static BYTE neos_x;
+static BYTE neos_y;
+static BYTE neos_lastx;
+static BYTE neos_lasty;
 
 enum {
     NEOS_IDLE = 0,
@@ -96,7 +96,7 @@ enum {
 
 static void neos_get_new_movement(void)
 {
-    unsigned char new_x, new_y;
+    BYTE new_x, new_y;
 
     new_x = mousedrv_get_x();
     new_y = mousedrv_get_y();
@@ -130,7 +130,7 @@ static void neos_get_new_movement(void)
     neos_x = -neos_x;
 }
 
-void neos_mouse_store(unsigned char val)
+void neos_mouse_store(BYTE val)
 {
     switch (neos_state) {
         case NEOS_IDLE:
@@ -165,7 +165,7 @@ void neos_mouse_store(unsigned char val)
     neos_prev = val;
 }
 
-unsigned char neos_mouse_read(void)
+BYTE neos_mouse_read(void)
 {
     switch (neos_state) {
         case NEOS_XH:
@@ -189,7 +189,7 @@ unsigned char neos_mouse_read(void)
 }
 
 
-static void neosmouse_alarm_handler(unsigned long offset, void *data)
+static void neosmouse_alarm_handler(CLOCK offset, void *data)
 {
     alarm_unset(neosmouse_alarm);
     neos_state = NEOS_IDLE;
@@ -199,20 +199,20 @@ static void neosmouse_alarm_handler(unsigned long offset, void *data)
 /* --------------------------------------------------------- */
 /* Amiga mouse support (currently experimental) */
 
-static const unsigned char amiga_mouse_table[4] = { 0x0, 0x1, 0x5, 0x4 };
+static const BYTE amiga_mouse_table[4] = { 0x0, 0x1, 0x5, 0x4 };
 
 /* the alternate method below doesn't keep track of the speed of
    the mouse movements, just the direction.
  */
 
-static unsigned char old_x = 0;
-static unsigned char old_y = 0;
-static unsigned char x_count = 0;
-static unsigned char y_count = 0;
+static BYTE old_x = 0;
+static BYTE old_y = 0;
+static BYTE x_count = 0;
+static BYTE y_count = 0;
 
-unsigned char amiga_mouse_read(void)
+BYTE amiga_mouse_read(void)
 {
-    unsigned char new_x, new_y;
+    BYTE new_x, new_y;
     signed char dir_x, dir_y;
 
     /* get the new mouse values */
@@ -279,7 +279,7 @@ unsigned char amiga_mouse_read(void)
 /* --------------------------------------------------------- */
 /* Paddle support */
 
-static unsigned char paddle_val[] = {
+static BYTE paddle_val[] = {
 /*  x     y  */
     0x00, 0xff, /* no port */
     0x00, 0xff, /* port 1 */
@@ -287,7 +287,7 @@ static unsigned char paddle_val[] = {
     0x00, 0xff  /* both ports */
 };
 
-static unsigned char paddle_old[] = {
+static BYTE paddle_old[] = {
     0xff, 0xff,
     0xff, 0xff,
     0xff, 0xff,
@@ -295,10 +295,10 @@ static unsigned char paddle_old[] = {
 };
 
 
-static inline unsigned char mouse_paddle_update(unsigned char paddle_v, unsigned char *old_v, unsigned char new_v)
+static inline BYTE mouse_paddle_update(BYTE paddle_v, BYTE *old_v, BYTE new_v)
 {
-    unsigned char diff = new_v - *old_v;
-    unsigned char new_paddle;
+    BYTE diff = new_v - *old_v;
+    BYTE new_paddle;
 
     if (new_v < *old_v) {
         if (*old_v > 0x6f && new_v < 0x10) {
@@ -321,7 +321,7 @@ static inline unsigned char mouse_paddle_update(unsigned char paddle_v, unsigned
     return new_paddle;
 }
 
-static unsigned char mouse_get_paddle_x(void)
+static BYTE mouse_get_paddle_x(void)
 {
     int i = (input_port << 1);
 
@@ -332,7 +332,7 @@ static unsigned char mouse_get_paddle_x(void)
     return 0xff - paddle_val[i];
 }
 
-static unsigned char mouse_get_paddle_y(void)
+static BYTE mouse_get_paddle_y(void)
 {
     int i = (input_port << 1) + 1;
 
@@ -466,12 +466,12 @@ void mouse_init(void)
 
 void mouse_button_left(int pressed)
 {
-    unsigned char joypin = ((mouse_type == MOUSE_TYPE_PADDLE) ? 4 : 16);
+    BYTE joypin = ((mouse_type == MOUSE_TYPE_PADDLE) ? 4 : 16);
 
     if (pressed) {
         joystick_set_value_or(mouse_port, joypin);
     } else {
-        joystick_set_value_and(mouse_port, (unsigned char)~joypin);
+        joystick_set_value_and(mouse_port, (BYTE)~joypin);
     }
 }
 
@@ -505,7 +505,7 @@ void mouse_button_right(int pressed)
     }
 }
 
-unsigned char mouse_get_x(void)
+BYTE mouse_get_x(void)
 {
     switch (mouse_type) {
         case MOUSE_TYPE_1351:
@@ -522,7 +522,7 @@ unsigned char mouse_get_x(void)
     return 0xff;
 }
 
-unsigned char mouse_get_y(void)
+BYTE mouse_get_y(void)
 {
     switch (mouse_type) {
         case MOUSE_TYPE_1351:
