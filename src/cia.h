@@ -78,34 +78,34 @@ struct snapshot_s;
 #define CIA_IM_FLG      16      /* Handshake */
 
 typedef struct cia_context_s {
-    BYTE c_cia[16];
+    unsigned char c_cia[16];
     struct alarm_s *ta_alarm;
     struct alarm_s *tb_alarm;
     struct alarm_s *tod_alarm;
     int irqflags;
-    BYTE irq_enabled;
+    unsigned char irq_enabled;
     CLOCK rdi;
     unsigned int tat;
     unsigned int tbt;
     CLOCK todclk;
     unsigned int sr_bits;
     int sdr_valid;
-    BYTE shifter;
-    BYTE old_pa;
-    BYTE old_pb;
+    unsigned char shifter;
+    unsigned char old_pa;
+    unsigned char old_pb;
     char todstopped;
     char todlatched;
-    BYTE todalarm[4];
-    BYTE todlatch[4];
+    unsigned char todalarm[4];
+    unsigned char todlatch[4];
     int todticks;                 /* init to 100000 */
-    BYTE todtickcounter;
+    unsigned char todtickcounter;
     signed int log;               /* init to LOG_ERR */
 
     struct ciat_s *ta;
     struct ciat_s *tb;
     CLOCK read_clk;               /* init to 0 */
     int read_offset;              /* init to 0 */
-    BYTE last_read;               /* init to 0 */
+    unsigned char last_read;               /* init to 0 */
     int debugFlag;                /* init to 0 */
 
     int irq_line;                 /* IK_IRQ */
@@ -123,13 +123,13 @@ typedef struct cia_context_s {
     void *prv;
     void *context;
 
-    void (*undump_ciapa)(struct cia_context_s *, CLOCK, BYTE);
-    void (*undump_ciapb)(struct cia_context_s *, CLOCK, BYTE);
-    void (*store_ciapa)(struct cia_context_s *, CLOCK, BYTE);
-    void (*store_ciapb)(struct cia_context_s *, CLOCK, BYTE);
-    void (*store_sdr)(struct cia_context_s *, BYTE);
-    BYTE (*read_ciapa)(struct cia_context_s *);
-    BYTE (*read_ciapb)(struct cia_context_s *);
+    void (*undump_ciapa)(struct cia_context_s *, CLOCK, unsigned char);
+    void (*undump_ciapb)(struct cia_context_s *, CLOCK, unsigned char);
+    void (*store_ciapa)(struct cia_context_s *, CLOCK, unsigned char);
+    void (*store_ciapb)(struct cia_context_s *, CLOCK, unsigned char);
+    void (*store_sdr)(struct cia_context_s *, unsigned char);
+    unsigned char (*read_ciapa)(struct cia_context_s *);
+    unsigned char (*read_ciapb)(struct cia_context_s *);
     void (*read_ciaicr)(struct cia_context_s *);
     void (*read_sdr)(struct cia_context_s *);
     void (*cia_set_int_clk)(struct cia_context_s *, int, CLOCK);
@@ -150,14 +150,14 @@ extern void ciacore_shutdown(cia_context_t *cia_context);
 extern void ciacore_reset(struct cia_context_s *cia_context);
 extern void ciacore_disable(struct cia_context_s *cia_context);
 extern void REGPARM3 ciacore_store(struct cia_context_s *cia_context,
-                                   WORD addr, BYTE data);
-extern BYTE REGPARM2 ciacore_read(struct cia_context_s *cia_context,
-                                  WORD addr);
-extern BYTE REGPARM2 ciacore_peek(struct cia_context_s *cia_context,
-                                  WORD addr);
+                                   unsigned short addr, unsigned char data);
+extern unsigned char REGPARM2 ciacore_read(struct cia_context_s *cia_context,
+                                  unsigned short addr);
+extern unsigned char REGPARM2 ciacore_peek(struct cia_context_s *cia_context,
+                                  unsigned short addr);
 
 extern void ciacore_set_flag(struct cia_context_s *cia_context);
-extern void ciacore_set_sdr(struct cia_context_s *cia_context, BYTE data);
+extern void ciacore_set_sdr(struct cia_context_s *cia_context, unsigned char data);
 
 extern int ciacore_snapshot_write_module(struct cia_context_s *cia_context,
                                          struct snapshot_s *s);
