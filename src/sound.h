@@ -123,6 +123,7 @@ extern int sound_cmdline_options_init(void);
 
 
 /* device initialization prototypes */
+#if 0
 extern int sound_init_aix_device(void);
 extern int sound_init_allegro_device(void);
 extern int sound_init_alsa_device(void);
@@ -154,6 +155,7 @@ extern int sound_init_iff_device(void);
 extern int sound_init_aiff_device(void);
 extern int sound_init_mp3_device(void);
 extern int sound_init_pulse_device(void);
+#endif
 
 #ifdef __cplusplus
 extern "C" int sound_init_ps3_device(void);

@@ -54,17 +54,6 @@
 #include "util.h"
 #include "vsync.h"
 
-
-/* ------------------------------------------------------------------------- */
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
 /* ------------------------------------------------------------------------- */
 
 /* Resource handling -- Added by Ettore 98-04-26.  */
@@ -93,7 +82,7 @@ static int fragment_divisor[] = {
 
 /* I need this to serialize close_sound and enablesound/sound_open in
    the OS/2 Multithreaded environment                              */
-static int sdev_open = FALSE;
+static int sdev_open = 0;
 
 /* I need this to serialize close_sound and enablesound/sound_open in
    the OS/2 Multithreaded environment                              */
@@ -116,49 +105,49 @@ static int set_playback_enabled(int val, void *param)
 static int set_sample_rate(int val, void *param)
 {
     sample_rate = val;
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
 static int set_device_name(const char *val, void *param)
 {
     util_string_set(&device_name, val);
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
 static int set_device_arg(const char *val, void *param)
 {
     util_string_set(&device_arg, val);
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
 static int set_recorddevice_name(const char *val, void *param)
 {
     util_string_set(&recorddevice_name, val);
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
 static int set_recorddevice_arg(const char *val, void *param)
 {
     util_string_set(&recorddevice_arg, val);
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
 static int set_buffer_size(int val, void *param)
 {
     buffer_size   = val;
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
 static int set_fragment_size(int val, void *param)
 {
     fragment_size = val;
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
@@ -169,7 +158,7 @@ static int set_suspend_time(int val, void *param)
     if (suspend_time < 0)
         suspend_time = 0;
 
-    sound_state_changed = TRUE;
+    sound_state_changed = 1;
     return 0;
 }
 
@@ -425,7 +414,7 @@ static void suspendsound(const char *reason)
 #ifdef CELL_DEBUG
 	printf("WARNING: suspend, disabling sound for %d secs (%s)\n", suspend_time, reason);
 #endif
-	sound_state_changed = TRUE;
+	sound_state_changed = 1;
 }
 
 static void enablesound(void)
@@ -672,7 +661,7 @@ int sound_open(void)
 		if (sid_open() != 0 || sid_init() != 0)
 			return 1;
 
-		sid_state_changed = FALSE;
+		sid_state_changed = 0;
 
 		/* Fill up the sound hardware buffer. */
 		if (pdev->bufferspace)
@@ -697,8 +686,8 @@ int sound_open(void)
 	}
 
 	/* now the playback sound device is open */
-	sdev_open = TRUE;
-	sound_state_changed = FALSE;
+	sdev_open = 1;
+	sound_state_changed = 0;
 
 	for (i = 0; (rdev = sound_devices[i]); i++)
 	{
@@ -778,8 +767,8 @@ void sound_close(void)
 
 	snddata.prevused = snddata.prevfill = 0;
 
-	sdev_open = FALSE;
-	sound_state_changed = FALSE;
+	sdev_open = 0;
+	sound_state_changed = 0;
 
 	/* Closing the sound device might take some time, and displaying
 	   UI dialogs certainly does. */
@@ -805,7 +794,8 @@ static int sound_run_sound(void)
 	}
 
 	/* Handling of cycle based sound engines. */
-	if (cycle_based) {
+	if (cycle_based)
+	{
 		for (c = 0; c < snddata.channels; c++)
 		{
 			delta_t = maincpu_clk - snddata.lastclk;
@@ -896,7 +886,7 @@ double sound_flush()
 	{
 		if (sdev_open)
 			sound_close();
-		sound_state_changed = FALSE;
+		sound_state_changed = 0;
 	}
 
 	if (suspend_time > 0)
@@ -909,7 +899,7 @@ double sound_flush()
 		if (sid_init() != 0)
 			return 0;
 
-		sid_state_changed = FALSE;
+		sid_state_changed = 0;
 	}
 
 	if (warp_mode_enabled && snddata.recdev == NULL)
@@ -919,6 +909,7 @@ double sound_flush()
 	}
 	sound_resume();
 
+	#if 0
 	if (snddata.playdev->flush)
 	{
 		char *state = sound_machine_dump_state(snddata.psid[0]);
@@ -930,6 +921,7 @@ double sound_flush()
 			return 0;
 		}
 	}
+	#endif
 
 	/* Calculate the number of samples to flush - whole fragments. */
 	nr = snddata.bufptr - snddata.bufptr % snddata.fragsize;
@@ -1106,7 +1098,7 @@ void sound_resume(void)
 /* set PAL/NTSC clock speed */
 void sound_set_machine_parameter(long clock_rate, long ticks_per_frame)
 {
-	sid_state_changed = TRUE;
+	sid_state_changed = 1;
 
 	cycles_per_sec  = clock_rate;
 	cycles_per_rfsh = ticks_per_frame;
@@ -1116,8 +1108,8 @@ void sound_set_machine_parameter(long clock_rate, long ticks_per_frame)
 /* initialize sid at program start -time */
 void sound_init(unsigned int clock_rate, unsigned int ticks_per_frame)
 {
-	sound_state_changed = FALSE;
-	sid_state_changed = FALSE;
+	sound_state_changed = 0;
+	sid_state_changed = 0;
 
 	cycles_per_sec = clock_rate;
 	cycles_per_rfsh = ticks_per_frame;
@@ -1179,6 +1171,7 @@ void sound_store(WORD addr, BYTE val, int chipno)
 
 	sound_machine_store(snddata.psid[chipno], addr, val);
 
+	#if 0
 	if (!snddata.playdev->dump)
 		return;
 
@@ -1188,13 +1181,14 @@ void sound_store(WORD addr, BYTE val, int chipno)
 
 	if (i)
 		sound_error(translate_text(IDGS_STORE_SOUNDDEVICE_FAILED));
+	#endif
 }
 
 
 void sound_set_relative_speed(int value)
 {
 	if (value != speed_percent)
-		sid_state_changed = TRUE;
+		sid_state_changed = 1;
 
 	speed_percent = value;
 }
