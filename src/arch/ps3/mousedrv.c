@@ -52,12 +52,12 @@ int mousedrv_cmdline_options_init(void)
 void mousedrv_init(void)
 {
 	ret = cellMouseInit(1);
+	#ifdef CELL_DEBUG
 	if (ret != CELL_OK)
 	{
-		#ifdef CELL_DEBUG
 		printf("cellMouseInit failed (%d)", ret);
-		#endif
 	}
+	#endif
 
 	#ifdef CELL_DEBUG
 	printf("Mouse is available.");
@@ -70,12 +70,12 @@ void mousedrv_destroy(void)
 	if (_mouse_available)
 	{
 		ret = cellMouseEnd();
+		#ifdef CELL_DEBUG
 		if (ret != CELL_OK)
 		{
-			#ifdef CELL_DEBUG
 			printf("cellMouseEnd failed (%d)\n", ret);
-			#endif
 		}
+		#endif
 	}
 }
 
@@ -90,31 +90,31 @@ inline void update_mouse(void)
 
 	if ((ret = cellMouseGetInfo (&Info)) != CELL_OK)
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf("Error(%08X) : cellMouseGetInfo\n", ret);
-		#endif
+#endif
 		return;
 	}
 
 	if((Info.info & CELL_MOUSE_INFO_INTERCEPTED) && (!(old_info & CELL_MOUSE_INFO_INTERCEPTED)))
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf("Lost mouse\n");
-		#endif
+#endif
 		old_info = Info.info;
 	} else if((!(Info.info & CELL_MOUSE_INFO_INTERCEPTED)) && (old_info & CELL_MOUSE_INFO_INTERCEPTED))
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf("Found mouse\n");
-		#endif
+#endif
 		old_info = Info.info;
 	}
 
 	if ( (old_status != CELL_MOUSE_STATUS_DISCONNECTED) && (Info.status[0] == CELL_MOUSE_STATUS_DISCONNECTED))
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf("Mouse disconnected\n");
-		#endif
+#endif
 		old_info = Info.info;
 		return;
 	}
@@ -128,9 +128,9 @@ inline void update_mouse(void)
 
 	if ( (old_status == CELL_MOUSE_STATUS_DISCONNECTED) && (Info.status[0] != CELL_MOUSE_STATUS_DISCONNECTED))
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf("New Mouse %d is connected: VENDOR_ID=%d PRODUCT_ID=%d\n", 0, Info.vendor_id[0], Info.product_id[0]);
-		#endif
+#endif
 	}
 
 
@@ -138,9 +138,9 @@ inline void update_mouse(void)
 
 	if (ret != CELL_OK)
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf("Read Error(%08X) port id %d\n", ret , 0);
-		#endif
+#endif
 		old_info = Info.info;
 		return;
 	}
@@ -152,44 +152,28 @@ inline void update_mouse(void)
 		_mouse_y = (_mouse_y + data.y_axis) & 0xff;
 
 		if (data.buttons & CELL_MOUSE_BUTTON_1)
-		{
 			mouse_button_left(1);
-		}
 		else
-		{
 			mouse_button_left(0);
-		}
 
 		if (data.buttons & CELL_MOUSE_BUTTON_2)
-		{
 			mouse_button_right(1);
-		}
 		else
-		{
 			mouse_button_right(0);
-		}
 
 		old_buttons = data.buttons;
 	}
 	else
 	{
 		if (old_buttons & CELL_MOUSE_BUTTON_1)
-		{
 			mouse_button_left(1);
-		}
 		else
-		{
 			mouse_button_left(0);
-		}
-		if (old_buttons & CELL_MOUSE_BUTTON_2)
-		{
-			mouse_button_right(1);
-		}
-		else
-		{
-			mouse_button_right(0);
-		}
 
+		if (old_buttons & CELL_MOUSE_BUTTON_2)
+			mouse_button_right(1);
+		else
+			mouse_button_right(0);
 	}
 
 	old_status = Info.status[0];

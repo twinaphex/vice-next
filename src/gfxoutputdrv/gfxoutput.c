@@ -35,7 +35,7 @@
 #include "gfxoutput.h"
 #include "lib.h"
 #include "iffdrv.h"
-#include "pcxdrv.h"
+//#include "pcxdrv.h"
 #include "ppmdrv.h"
 
 #ifdef HAVE_JPEG
@@ -138,8 +138,6 @@ void gfxoutput_shutdown(void)
 		list = next;
 	}
 }
-
-/*-----------------------------------------------------------------------*/
 
 int gfxoutput_register(gfxoutputdrv_t *drv)
 {
