@@ -54,7 +54,7 @@
 
 struct event_list_s {
     unsigned int type;
-    unsigned long clk;
+    CLOCK clk;
     unsigned int size;
     void *data;
     struct event_list_s *next;

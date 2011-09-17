@@ -53,13 +53,13 @@ extern struct mos6510_regs_s maincpu_regs;
 #endif
 
 extern int maincpu_rmw_flag;
-extern unsigned long maincpu_clk;
+extern CLOCK maincpu_clk;
 
 /* 8502 cycle stretch indicator */
 extern int maincpu_stretch;
 
 /* 8502 memory refresh alarm */
-extern unsigned long c128cpu_memory_refresh_clk;
+extern CLOCK c128cpu_memory_refresh_clk;
 
 /* C64DTV negative clock counter for cycle exact operations,
    also used by common code in vicii/.
@@ -73,13 +73,13 @@ struct snapshot_s;
 struct clk_guard_s;
 struct monitor_interface_s;
 
-extern const unsigned long maincpu_opcode_write_cycles[];
+extern const CLOCK maincpu_opcode_write_cycles[];
 extern struct alarm_context_s *maincpu_alarm_context;
 extern struct clk_guard_s *maincpu_clk_guard;
 extern struct monitor_interface_s *maincpu_monitor_interface;
 
 /* Return the number of write accesses in the last opcode emulated. */
-inline static unsigned long maincpu_num_write_cycles(void)
+inline static CLOCK maincpu_num_write_cycles(void)
 {
     return maincpu_opcode_write_cycles[OPINFO_NUMBER(last_opcode_info)];
 }

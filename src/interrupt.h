@@ -66,20 +66,20 @@ struct interrupt_cpu_status_s {
     int nirq;
 
     /* Tick when the IRQ was triggered.  */
-    unsigned long irq_clk;
+    CLOCK irq_clk;
 
     /* Number of active NMI lines.  */
     int nnmi;
 
     /* Tick when the NMI was triggered.  */
-    unsigned long nmi_clk;
+    CLOCK nmi_clk;
 
     /* If an opcode is intercepted by a DMA, save the number of cycles
        left at the start of this particular DMA (needed by *_set_irq() to
        calculate irq_clk).  */
     unsigned int num_dma_per_opcode;
     unsigned int num_cycles_left[INTRRUPT_MAX_DMA_PER_OPCODE];
-    unsigned long dma_start_clk[INTRRUPT_MAX_DMA_PER_OPCODE];
+    CLOCK dma_start_clk[INTRRUPT_MAX_DMA_PER_OPCODE];
 
     /* counters for delay between interrupt request and handler */
     unsigned int irq_delay_cycles;
@@ -104,7 +104,7 @@ struct interrupt_cpu_status_s {
     int num_last_stolen_cycles;
 
     /* Clock tick at which these cycles have been stolen.  */
-    unsigned long last_stolen_cycles_clk;
+    CLOCK last_stolen_cycles_clk;
 
     unsigned int global_pending_int;
 
@@ -119,15 +119,15 @@ typedef struct interrupt_cpu_status_s interrupt_cpu_status_t;
 extern void interrupt_log_wrong_nirq(void);
 extern void interrupt_log_wrong_nnmi(void);
 
-extern void interrupt_trigger_dma(interrupt_cpu_status_t *cs, unsigned long cpu_clk);
+extern void interrupt_trigger_dma(interrupt_cpu_status_t *cs, CLOCK cpu_clk);
 extern void interrupt_ack_dma(interrupt_cpu_status_t *cs);
-extern void interrupt_fixup_int_clk(interrupt_cpu_status_t *cs, unsigned long cpu_clk,
-                                    unsigned long *int_clk);
+extern void interrupt_fixup_int_clk(interrupt_cpu_status_t *cs, CLOCK cpu_clk,
+                                    CLOCK *int_clk);
 
 /* Set the IRQ line state.  */
 inline static void interrupt_set_irq(interrupt_cpu_status_t *cs,
                                      unsigned int int_num,
-                                     int value, unsigned long cpu_clk)
+                                     int value, CLOCK cpu_clk)
 {
     if (cs == NULL || int_num >= cs->num_ints)
         return;
@@ -172,7 +172,7 @@ inline static void interrupt_set_irq(interrupt_cpu_status_t *cs,
 /* Set the NMI line state.  */
 inline static void interrupt_set_nmi(interrupt_cpu_status_t *cs,
                                      unsigned int int_num,
-                                     int value, unsigned long cpu_clk)
+                                     int value, CLOCK cpu_clk)
 {
     if (cs == NULL || int_num >= cs->num_ints)
         return;
@@ -219,7 +219,7 @@ inline static void interrupt_set_nmi(interrupt_cpu_status_t *cs,
    `interrupt_set_irq()', but is left for backward compatibility (it works
    like the old `setirq()').  */
 inline static void interrupt_set_int(interrupt_cpu_status_t *cs, int int_num,
-                                     enum cpu_int value, unsigned long cpu_clk)
+                                     enum cpu_int value, CLOCK cpu_clk)
 {
     interrupt_set_nmi(cs, int_num, (int)(value & IK_NMI), cpu_clk);
     interrupt_set_irq(cs, int_num, (int)(value & IK_IRQ), cpu_clk);
@@ -255,7 +255,7 @@ extern void interrupt_cpu_status_init(interrupt_cpu_status_t *cs,
                                       unsigned int *last_opcode_info_ptr);
 extern void interrupt_cpu_status_reset(interrupt_cpu_status_t *cs);
 
-extern void interrupt_trigger_reset(interrupt_cpu_status_t *cs, unsigned long cpu_clk);
+extern void interrupt_trigger_reset(interrupt_cpu_status_t *cs, CLOCK cpu_clk);
 extern unsigned int interrupt_cpu_status_int_new(interrupt_cpu_status_t *cs,
                                                  const char *name);
 extern void interrupt_ack_reset(interrupt_cpu_status_t *cs);
@@ -269,7 +269,7 @@ extern void interrupt_monitor_trap_on(interrupt_cpu_status_t *cs);
 extern void interrupt_monitor_trap_off(interrupt_cpu_status_t *cs);
 
 extern void interrupt_cpu_status_time_warp(interrupt_cpu_status_t *cs,
-                                           unsigned long warp_amount,
+                                           CLOCK warp_amount,
                                            int warp_direction);
 
 extern int interrupt_read_snapshot(interrupt_cpu_status_t *cs,
@@ -297,8 +297,8 @@ extern void interrupt_set_nmi_trap_func(interrupt_cpu_status_t *cs,
 /* ------------------------------------------------------------------------- */
 
 extern interrupt_cpu_status_t *maincpu_int_status;
-extern unsigned long maincpu_clk;
-extern unsigned long drive_clk[2];
+extern CLOCK maincpu_clk;
+extern CLOCK drive_clk[2];
 
 /* For convenience...  */
 

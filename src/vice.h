@@ -35,11 +35,20 @@
    actually automake barfs if the source directory was already
    configured, so this should not be an issue anymore.  */
 
-#include "arch/ps3/config.h" /* Automagically created by the `configure' script.  */
+#include <config.h> /* Automagically created by the `configure' script.  */
 
 /* ------------------------------------------------------------------------- */
 
 /* Portability... */
+
+#if defined(__hpux) || defined(__IBMC__)
+#ifndef _POSIX_SOURCE
+#define _POSIX_SOURCE
+#endif
+#ifndef _INCLUDE_POSIX_SOURCE
+#define _INCLUDE_POSIX_SOURCE
+#endif
+#endif  /* __hpux */
 
 /* currently tested/testing for the following cpu types:
  *

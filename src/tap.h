@@ -53,13 +53,13 @@ typedef struct tap_s {
     int size;
 
     /* The TAP version byte.  */
-    unsigned char version;
+    BYTE version;
 
     /* System the image is made for.  */
-    unsigned char system;
+    BYTE system;
 
     /* Tape name.  */
-    unsigned char name[12];
+    BYTE name[12];
 
     /* Current file number.  */
     int current_file_number;
@@ -70,7 +70,7 @@ typedef struct tap_s {
     /* buffer for decoded content of current file */
     size_t current_file_data_pos; 
     size_t current_file_size;
-    unsigned char * current_file_data;
+    BYTE * current_file_data;
 
     /* Header offset.  */
     int offset;
@@ -106,10 +106,10 @@ extern int tap_create(const char *name);
 extern int tap_seek_start(tap_t *tap);
 extern int tap_seek_to_file(tap_t *tap, unsigned int file_number);
 extern int tap_seek_to_next_file(tap_t *tap, unsigned int allow_rewind);
-extern void tap_get_header(tap_t *tap, unsigned char *name);
+extern void tap_get_header(tap_t *tap, BYTE *name);
 extern struct tape_file_record_s *tap_get_current_file_record(tap_t *tap);
 
-extern int tap_read(tap_t *tap, unsigned char *buf, size_t size);
+extern int tap_read(tap_t *tap, BYTE *buf, size_t size);
 
 #endif
 

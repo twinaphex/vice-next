@@ -49,16 +49,16 @@ typedef signed short SWORD;
 #endif
 
 #if SIZEOF_UNSIGNED_INT == 4
-typedef unsigned int unsigned long;
-typedef signed int Sunsigned long;
+typedef unsigned int DWORD;
+typedef signed int SDWORD;
 #elif SIZEOF_UNSIGNED_LONG == 4
-typedef unsigned long unsigned long;
-typedef signed long Sunsigned long;
+typedef unsigned long DWORD;
+typedef signed long SDWORD;
 #else
 #error Cannot find a proper 32-bit type!
 #endif
 
-typedef unsigned long CLOCK;
+typedef DWORD CLOCK;
 /* Maximum value of a CLOCK.  */
 #define CLOCK_MAX (~((CLOCK)0))
 

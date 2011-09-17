@@ -59,7 +59,7 @@
 static tap_t *current_image = NULL;
 
 /* Buffer for the TAP */
-static unsigned char tap_buffer[TAP_BUFFER_LENGTH];
+static BYTE tap_buffer[TAP_BUFFER_LENGTH];
 
 /* Pointer and length of the tap-buffer */
 static long next_tap, last_tap;
@@ -68,18 +68,18 @@ static long next_tap, last_tap;
 static int datasette_motor = 0;
 
 /* Last time we have recorded a flux change.  */
-static unsigned long last_write_clk = (unsigned long)0;
+static CLOCK last_write_clk = (CLOCK)0;
 
 /* Motor stop is delayed.  */
-static unsigned long motor_stop_clk = (unsigned long)0;
+static CLOCK motor_stop_clk = (CLOCK)0;
 
 static alarm_t *datasette_alarm = NULL;
 
 static int datasette_alarm_pending = 0;
 
-static unsigned long datasette_long_gap_pending = 0;
+static CLOCK datasette_long_gap_pending = 0;
 
-static unsigned long datasette_long_gap_elapsed = 0;
+static CLOCK datasette_long_gap_elapsed = 0;
 
 static int datasette_last_direction = 0;
 
@@ -100,7 +100,7 @@ static int datasette_speed_tuning;
 
 /* Low/high wave indicator for C16 TAPs. */
 static unsigned int fullwave = 0;
-static unsigned long fullwave_gap;
+static CLOCK fullwave_gap;
 
 //static log_t datasette_log = LOG_ERR;
 
@@ -258,7 +258,7 @@ inline static int datasette_move_buffer_back(int offset)
     return 1;
 }
 
-inline static int fetch_gap(unsigned long *gap, int *direction, long read_tap)
+inline static int fetch_gap(CLOCK *gap, int *direction, long read_tap)
 {
     if ((read_tap >= last_tap) || (read_tap < 0))
         return -1;
@@ -266,8 +266,8 @@ inline static int fetch_gap(unsigned long *gap, int *direction, long read_tap)
     *gap = tap_buffer[read_tap];
 
     if ((current_image->version == 0) || *gap) {
-        *gap = (*gap ? (unsigned long)(*gap * 8) : (unsigned long)datasette_zero_gap_delay)
-        + (unsigned long)datasette_speed_tuning;
+        *gap = (*gap ? (CLOCK)(*gap * 8) : (CLOCK)datasette_zero_gap_delay)
+        + (CLOCK)datasette_speed_tuning;
     } else {
         if (read_tap >= last_tap - 3) {
             return -1;
@@ -277,7 +277,7 @@ inline static int fetch_gap(unsigned long *gap, int *direction, long read_tap)
              + (tap_buffer[read_tap + 2] << 8)
              + (tap_buffer[read_tap + 3] << 16);
         if (!(*gap))
-            *gap = (unsigned long)datasette_zero_gap_delay;
+            *gap = (CLOCK)datasette_zero_gap_delay;
     }
 
     return 0;
@@ -343,11 +343,11 @@ inline static int read_gap_backward_v1(long *read_tap)
     return 0;
 }
 
-static unsigned long datasette_read_gap(int direction)
+static CLOCK datasette_read_gap(int direction)
 {
     /* direction 1: forward, -1: rewind */
     long read_tap = 0;
-    unsigned long gap = 0;
+    CLOCK gap = 0;
 
 /*    if (current_image->system != 2 || current_image->version != 1
         || !fullwave) {*/
@@ -430,7 +430,7 @@ static unsigned long datasette_read_gap(int direction)
 }
 
 
-static void datasette_read_bit(unsigned long offset, void *data)
+static void datasette_read_bit(CLOCK offset, void *data)
 {
     double speed_of_tape = DS_V_PLAY;
     int direction = 1;
@@ -519,7 +519,7 @@ static void datasette_read_bit(unsigned long offset, void *data)
 
     if (gap > 0) {
         alarm_set(datasette_alarm, maincpu_clk +
-                  (unsigned long)(gap * (DS_V_PLAY / speed_of_tape)));
+                  (CLOCK)(gap * (DS_V_PLAY / speed_of_tape)));
         datasette_alarm_pending = 1;
     } else {
         /* If the offset is geater than the gap to the next flux
@@ -531,11 +531,11 @@ static void datasette_read_bit(unsigned long offset, void *data)
 }
 
 
-static void clk_overflow_callback(unsigned long sub, void *data)
+static void clk_overflow_callback(CLOCK sub, void *data)
 {
-    if (last_write_clk > (unsigned long)0)
+    if (last_write_clk > (CLOCK)0)
         last_write_clk -= sub;
-    if (motor_stop_clk > (unsigned long)0)
+    if (motor_stop_clk > (CLOCK)0)
         motor_stop_clk -= sub;
 }
 
@@ -557,7 +557,7 @@ void datasette_init(void)
 
 void datasette_set_tape_image(tap_t *image)
 {
-    unsigned long gap;
+    CLOCK gap;
 
     current_image = image;
     last_tap = next_tap = 0;
@@ -651,18 +651,18 @@ static void datasette_start_motor(void)
 
 static void datasette_event_record(int command)
 {
-	unsigned long rec_cmd;
+	DWORD rec_cmd;
 
-	rec_cmd = (unsigned long)command;
+	rec_cmd = (DWORD)command;
 
-	event_record(EVENT_DATASETTE, (void *)&rec_cmd, sizeof(unsigned long));
+	event_record(EVENT_DATASETTE, (void *)&rec_cmd, sizeof(DWORD));
 }
 
-void datasette_event_playback(unsigned long offset, void *data)
+void datasette_event_playback(CLOCK offset, void *data)
 {
     int command;
 
-    command = (int)(*(unsigned long *)data);
+    command = (int)(*(DWORD *)data);
 
     datasette_control_internal(command);
 }
@@ -681,33 +681,33 @@ static void datasette_control_internal(int command)
           case DATASETTE_CONTROL_STOP:
             current_image->mode = DATASETTE_CONTROL_STOP;
             datasette_set_tape_sense(0);
-            last_write_clk = (unsigned long)0;
+            last_write_clk = (CLOCK)0;
             break;
           case DATASETTE_CONTROL_START:
             current_image->mode = DATASETTE_CONTROL_START;
             datasette_set_tape_sense(1);
-            last_write_clk = (unsigned long)0;
+            last_write_clk = (CLOCK)0;
             if (datasette_motor) datasette_start_motor();
             break;
           case DATASETTE_CONTROL_FORWARD:
             current_image->mode = DATASETTE_CONTROL_FORWARD;
             datasette_forward();
             datasette_set_tape_sense(1);
-            last_write_clk = (unsigned long)0;
+            last_write_clk = (CLOCK)0;
             if (datasette_motor) datasette_start_motor();
             break;
           case DATASETTE_CONTROL_REWIND:
             current_image->mode = DATASETTE_CONTROL_REWIND;
             datasette_rewind();
             datasette_set_tape_sense(1);
-            last_write_clk = (unsigned long)0;
+            last_write_clk = (CLOCK)0;
             if (datasette_motor) datasette_start_motor();
             break;
           case DATASETTE_CONTROL_RECORD:
             if (current_image->read_only == 0) {
                 current_image->mode = DATASETTE_CONTROL_RECORD;
                 datasette_set_tape_sense(1);
-                last_write_clk = (unsigned long)0;
+                last_write_clk = (CLOCK)0;
             }
             break;
         }
@@ -733,7 +733,7 @@ void datasette_set_motor(int flag)
             /* abort pending motor stop */
             motor_stop_clk = 0;
             if (!datasette_motor) {
-                last_write_clk = (unsigned long)0;
+                last_write_clk = (CLOCK)0;
                 datasette_start_motor();
                 ui_display_tape_motor_status(1);
                 datasette_motor = 1;
@@ -752,8 +752,8 @@ void datasette_set_motor(int flag)
 
 inline static void bit_write(void)
 {
-    unsigned long write_time;
-    unsigned char write_gap;
+    CLOCK write_time;
+    BYTE write_gap;
 
     write_time = maincpu_clk - last_write_clk;
     last_write_clk = maincpu_clk;
@@ -763,11 +763,11 @@ inline static void bit_write(void)
         write_time = write_time / 2;
     }
 
-    if (write_time < (unsigned long)7)
+    if (write_time < (CLOCK)7)
         return;
 
-    if (write_time < (unsigned long)(255 * 8 + 7)) {
-        write_gap = (unsigned char)(write_time / (unsigned long)8);
+    if (write_time < (CLOCK)(255 * 8 + 7)) {
+        write_gap = (BYTE)(write_time / (CLOCK)8);
         if (fwrite(&write_gap, 1, 1, current_image->fd) < 1) {
             datasette_control(DATASETTE_CONTROL_STOP);
             return;
@@ -780,11 +780,11 @@ inline static void bit_write(void)
         }
         current_image->current_file_seek_position++;
         if (current_image->version >= 1) {
-            unsigned char long_gap[3];
+            BYTE long_gap[3];
             int bytes_written;
-            long_gap[0] = (unsigned char)(write_time & 0xff);
-            long_gap[1] = (unsigned char)((write_time >> 8) & 0xff);
-            long_gap[2] = (unsigned char)((write_time >> 16) & 0xff);
+            long_gap[0] = (BYTE)(write_time & 0xff);
+            long_gap[1] = (BYTE)((write_time >> 8) & 0xff);
+            long_gap[2] = (BYTE)((write_time >> 16) & 0xff);
             write_time &= 0xffffff;
             bytes_written = (int)fwrite(long_gap, 1, 3, current_image->fd);
             current_image->current_file_seek_position += bytes_written;
@@ -816,7 +816,7 @@ void datasette_toggle_write_bit(int write_bit)
     if (current_image != NULL && write_bit
         && current_image->mode == DATASETTE_CONTROL_RECORD) {
         if (datasette_motor) {
-            if (last_write_clk == (unsigned long)0) {
+            if (last_write_clk == (CLOCK)0) {
                 last_write_clk = maincpu_clk;
             } else {
                 bit_write();
@@ -832,7 +832,7 @@ void datasette_toggle_write_bit(int write_bit)
 int datasette_write_snapshot(snapshot_t *s)
 {
     snapshot_module_t *m;
-    unsigned long alarm_clk = unsigned long_MAX;
+    DWORD alarm_clk = CLOCK_MAX;
 
     m = snapshot_module_create(s, "DATASETTE", DATASETTE_SNAP_MAJOR,
                                DATASETTE_SNAP_MINOR);
@@ -845,19 +845,19 @@ int datasette_write_snapshot(snapshot_t *s)
     }
 
     if (0
-        || SMW_B(m, (unsigned char)datasette_motor) < 0
+        || SMW_B(m, (BYTE)datasette_motor) < 0
         || SMW_DW(m, last_write_clk) < 0
         || SMW_DW(m, motor_stop_clk) < 0
-        || SMW_B(m, (unsigned char)datasette_alarm_pending) < 0
+        || SMW_B(m, (BYTE)datasette_alarm_pending) < 0
         || SMW_DW(m, alarm_clk) < 0
         || SMW_DW(m, datasette_long_gap_pending) < 0
         || SMW_DW(m, datasette_long_gap_elapsed) < 0
-        || SMW_B(m, (unsigned char)datasette_last_direction) < 0
+        || SMW_B(m, (BYTE)datasette_last_direction) < 0
         || SMW_DW(m, datasette_counter_offset) < 0
-        || SMW_B(m, (unsigned char)reset_datasette_with_maincpu) < 0
+        || SMW_B(m, (BYTE)reset_datasette_with_maincpu) < 0
         || SMW_DW(m, datasette_zero_gap_delay) < 0
         || SMW_DW(m, datasette_speed_tuning) < 0
-        || SMW_B(m, (unsigned char)fullwave) < 0
+        || SMW_B(m, (BYTE)fullwave) < 0
         || SMW_DW(m, fullwave_gap) < 0) 
     {
         snapshot_module_close(m);
@@ -872,9 +872,9 @@ int datasette_write_snapshot(snapshot_t *s)
 
 int datasette_read_snapshot(snapshot_t *s)
 {
-    unsigned char major_version, minor_version;
+    BYTE major_version, minor_version;
     snapshot_module_t *m;
-    unsigned long alarm_clk;
+    DWORD alarm_clk;
 
     m = snapshot_module_open(s, "DATASETTE",
                              &major_version, &minor_version);
@@ -889,7 +889,7 @@ int datasette_read_snapshot(snapshot_t *s)
         || SMR_B_INT(m, &datasette_alarm_pending) < 0
         || SMR_DW(m, &alarm_clk) < 0
         || SMR_DW(m, &datasette_long_gap_pending) < 0
-        || SMR_DW(m, (unsigned long *)&datasette_long_gap_elapsed) < 0
+        || SMR_DW(m, (DWORD *)&datasette_long_gap_elapsed) < 0
         || SMR_B_INT(m, &datasette_last_direction) < 0
         || SMR_DW_INT(m, &datasette_counter_offset) < 0
         || SMR_B_INT(m, &reset_datasette_with_maincpu) < 0

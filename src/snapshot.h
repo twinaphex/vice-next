@@ -35,29 +35,29 @@
 typedef struct snapshot_module_s snapshot_module_t;
 typedef struct snapshot_s snapshot_t;
 
-extern int snapshot_module_write_byte(snapshot_module_t *m, unsigned char data);
-extern int snapshot_module_write_word(snapshot_module_t *m, unsigned short data);
-extern int snapshot_module_write_dword(snapshot_module_t *m, unsigned long data);
+extern int snapshot_module_write_byte(snapshot_module_t *m, BYTE data);
+extern int snapshot_module_write_word(snapshot_module_t *m, WORD data);
+extern int snapshot_module_write_dword(snapshot_module_t *m, DWORD data);
 extern int snapshot_module_write_padded_string(snapshot_module_t *m,
-                                               const char *s, unsigned char pad_char,
+                                               const char *s, BYTE pad_char,
                                                int len);
-extern int snapshot_module_write_byte_array(snapshot_module_t *m, unsigned char *data,
+extern int snapshot_module_write_byte_array(snapshot_module_t *m, BYTE *data,
                                             unsigned int num);
-extern int snapshot_module_write_word_array(snapshot_module_t *m, unsigned short *data,
+extern int snapshot_module_write_word_array(snapshot_module_t *m, WORD *data,
                                             unsigned int num);
-extern int snapshot_module_write_dword_array(snapshot_module_t *m, unsigned long *data,
+extern int snapshot_module_write_dword_array(snapshot_module_t *m, DWORD *data,
                                              unsigned int num);
 extern int snapshot_module_write_string(snapshot_module_t *m, const char *s);
 
-extern int snapshot_module_read_byte(snapshot_module_t *m, unsigned char *b_return);
-extern int snapshot_module_read_word(snapshot_module_t *m, unsigned short *w_return);
-extern int snapshot_module_read_dword(snapshot_module_t *m, unsigned long *dw_return);
+extern int snapshot_module_read_byte(snapshot_module_t *m, BYTE *b_return);
+extern int snapshot_module_read_word(snapshot_module_t *m, WORD *w_return);
+extern int snapshot_module_read_dword(snapshot_module_t *m, DWORD *dw_return);
 extern int snapshot_module_read_byte_array(snapshot_module_t *m,
-                                           unsigned char *b_return, unsigned int num);
+                                           BYTE *b_return, unsigned int num);
 extern int snapshot_module_read_word_array(snapshot_module_t *m,
-                                           unsigned short *w_return, unsigned int num);
+                                           WORD *w_return, unsigned int num);
 extern int snapshot_module_read_dword_array(snapshot_module_t *m,
-                                            unsigned long *dw_return,
+                                            DWORD *dw_return,
                                             unsigned int num);
 extern int snapshot_module_read_string(snapshot_module_t *m, char **s);
 extern int snapshot_module_read_byte_into_int(snapshot_module_t *m,
@@ -94,20 +94,20 @@ extern int snapshot_module_read_dword_into_uint(snapshot_module_t *m,
 
 extern snapshot_module_t *snapshot_module_create(snapshot_t *s,
                                                  const char *name,
-                                                 unsigned char major_version,
-                                                 unsigned char minor_version);
+                                                 BYTE major_version,
+                                                 BYTE minor_version);
 extern snapshot_module_t *snapshot_module_open(snapshot_t *s,
                                                const char *name,
-                                               unsigned char *major_version_return,
-                                               unsigned char *minor_version_return);
+                                               BYTE *major_version_return,
+                                               BYTE *minor_version_return);
 extern int snapshot_module_close(snapshot_module_t *m);
 
 extern snapshot_t *snapshot_create(const char *filename,
-                                   unsigned char major_version, unsigned char minor_version,
+                                   BYTE major_version, BYTE minor_version,
                                    const char *snapshot_machine_name);
 extern snapshot_t *snapshot_open(const char *filename,
-                                 unsigned char *major_version_return,
-                                 unsigned char *minor_version_return,
+                                 BYTE *major_version_return,
+                                 BYTE *minor_version_return,
                                  const char *snapshot_machine_name);
 extern int snapshot_close(snapshot_t *s);
 

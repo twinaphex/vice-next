@@ -19,7 +19,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ********************************************************************************/
 
-#include <sdk_version.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +77,7 @@ int32_t CellInputFacade::UpdateDevice(uint8_t id)
 	int32_t ret = 0;
 
 	// get pad info
-#if(CELL_SDK_VERSION > 0x340000)
+#ifdef PS3_SDK_3_41
 	ret = cellPadGetInfo2 ( &PadInfo);
 #else
 	ret = cellPadGetInfo ( &PadInfo);
@@ -89,7 +88,7 @@ int32_t CellInputFacade::UpdateDevice(uint8_t id)
 		return false;
 	}
 
-#if(CELL_SDK_VERSION > 0x340000)
+#ifdef PS3_SDK_3_41
 	ret = PadInfo.port_status[id];
 #else
 	ret = PadInfo.status[id];
@@ -109,7 +108,7 @@ int32_t CellInputFacade::UpdateDevice(uint8_t id)
 
 uint32_t CellInputFacade::NumberPadsConnected()
 {
-#if(CELL_SDK_VERSION > 0x340000)
+#ifdef PS3_SDK_3_41
 	cellPadGetInfo2 ( &PadInfo);
 #else
 	cellPadGetInfo ( &PadInfo);
