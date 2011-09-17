@@ -104,9 +104,9 @@ void video_render_setphysicalcolor(video_render_config_t *config, int index, DWO
 void video_render_main(video_render_config_t *config, BYTE *src, BYTE *trg, int width, int height, int xs, int ys, int xt, int yt, int pitchs, int pitcht, int depth, viewport_t *viewport)
 {
 	const video_render_color_tables_t *colortab;
+#if 0
 	int rendermode;
 
-#if 0
 	log_debug("w:%i h:%i xs:%i ys:%i xt:%i yt:%i ps:%i pt:%i d%i",
 			width, height, xs, ys, xt, yt, pitchs, pitcht, depth);
 
@@ -114,9 +114,13 @@ void video_render_main(video_render_config_t *config, BYTE *src, BYTE *trg, int 
 	if (width <= 0)
 		return; /* some render routines don't like invalid width */
 
-	rendermode = config->rendermode;
+	//rendermode = config->rendermode;
 	colortab = &config->color_tables;
 
+	//only use VIDEO_RENDER_RGB_1X1 and  depth = 16
+	render_16_1x1_04(colortab, src, trg, width, height, xs, ys, xt, yt, pitchs, pitcht);
+
+	#if 0
 	switch (rendermode)
 	{
 		case VIDEO_RENDER_NULL:
@@ -171,6 +175,7 @@ void video_render_main(video_render_config_t *config, BYTE *src, BYTE *trg, int 
 					xs, ys, xt, yt, pitchs, pitcht, depth);
 			return;
 	}
+	#endif
 }
 
 void video_render_1x2func_set(void(*func)(video_render_config_t *,
