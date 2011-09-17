@@ -34,13 +34,13 @@
 
 /* Asynchronously steal `num' cycles from the CPU, starting from cycle
    `start_clk'.  */
-void dma_maincpu_steal_cycles(unsigned long start_clk, int num, unsigned long sub)
+void dma_maincpu_steal_cycles(CLOCK start_clk, int num, CLOCK sub)
 {
-	unsigned long irq_sub = 0;
-	unsigned long nmi_sub = 0;
+	CLOCK irq_sub = 0;
+	CLOCK nmi_sub = 0;
 	unsigned int cycles_left_to_trigger_irq;
 	interrupt_cpu_status_t *cs = maincpu_int_status;
-	unsigned long dma_start;
+	CLOCK dma_start;
 
 	if (num == 0)
 		return;
