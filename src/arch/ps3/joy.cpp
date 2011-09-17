@@ -210,7 +210,6 @@ int joystick(void)
 	static bool key_cursorleft  = false;
 	static bool key_cursorright = false;
 
-
 	static bool warp_mode=false;
 
 	// osk_active_bufferlen == The OSK is entering characters, don't interrupt it.
@@ -291,20 +290,27 @@ int joystick(void)
 			}
 		}
 
-		if (CellInput->IsAnalogPressedLeft(i,CTRL_RSTICK)) {
-			if (!key_cursorleft) {
+		if (CellInput->IsAnalogPressedLeft(i,CTRL_RSTICK))
+		{
+			if (!key_cursorleft)
+			{
 				keyboard_key_pressed((signed long)  32848);  // Cursor Left key pressed
 				key_cursorleft = true;
 			}
-		} else {
-			if (key_cursorleft) {
+		}
+		else
+		{
+			if (key_cursorleft)
+			{
 				keyboard_key_released((signed long) 32848);  // Cursor Left key released
 				key_cursorleft = false;
 			}
 		}
 
-		if (CellInput->IsAnalogPressedRight(i,CTRL_RSTICK)) {
-			if (!key_cursorright) {
+		if (CellInput->IsAnalogPressedRight(i,CTRL_RSTICK))
+		{
+			if (!key_cursorright)
+			{
 				keyboard_key_pressed((signed long)  32847);  // Cursor Right key pressed
 				key_cursorright = true;
 			}
@@ -357,9 +363,7 @@ int joystick(void)
 		 */
 
 		if (CellInput->WasButtonPressed(i,CTRL_SELECT))
-		{
 			InGameMenuLoop();
-		}
 
 		if(CellInput->WasButtonPressed(i,CTRL_START))
 		{
@@ -380,28 +384,18 @@ int joystick(void)
 
 		if(CellInput->WasButtonPressed(i,CTRL_R3))
 		{
-			#ifdef CELL_DEBUG
-			printf("OSK starting\n");
-			#endif
-			if (!osk->Start(L"Characters entered here will be relayed to the emulator ", L""))
-			{
-				#ifdef CELL_DEBUG
-				printf("WARNING: OSK could not start\n");
-				#endif
-			}
+			osk->Start(L"Characters entered here will be relayed to the emulator ", L"");
 
 			#ifdef CELL_DEBUG
 			printf("OSK started\n");
 			#endif
 			// Just in case. This ensures we check to see if the screen has updated, and if not.. force one
 			// The OSK fails to draw if the screen doesn't update.
-			#ifdef CELL_DEBUG
-			printf("OSK callback check\n");
-			#endif
 		}
 
 		cellSysutilCheckCallback();
-		if (is_sysutil_drawing())
+
+		if (sysutil_drawing)
 			sysutil_callback_redraw();
 
 		ui_callback();

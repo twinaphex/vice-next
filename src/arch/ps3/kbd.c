@@ -106,13 +106,14 @@ void kbd_process(void)
 		#endif
 		old_info = status.info;
 	}
+	#ifdef CELL_DEBUG
 	else if((!(status.info & CELL_KB_INFO_INTERCEPTED)) && (old_info & CELL_KB_INFO_INTERCEPTED))
 	{
-		#ifdef CELL_DEBUG
 		printf("INFO: Found Keyboard\n");
-		#endif
 		old_info = status.info;
 	}
+	#endif
+
 	if ( (old_info != CELL_KB_STATUS_DISCONNECTED) && (status.info == CELL_KB_STATUS_DISCONNECTED))
 	{
 		#ifdef CELL_DEBUG
@@ -122,12 +123,12 @@ void kbd_process(void)
 		return;
 	}
 
+	#ifdef CELL_DEBUG
 	if (old_status == CELL_KB_STATUS_DISCONNECTED)
 	{
-		#ifdef CELL_DEBUG
 		printf("Keyboard has connected\n");
-		#endif
 	}
+	#endif
 
 	if (cellKbRead (0, &kdata) != CELL_KB_OK)
 		return;
@@ -138,76 +139,52 @@ void kbd_process(void)
 	// First, check for modifier keys and apply them.
 
 	if ( !(mkey & CELL_KB_MKEY_L_CTRL) && (kdata.mkey & CELL_KB_MKEY_L_CTRL))
-	{
 		keyboard_key_pressed (L_CTRL);
-	}
+
 	if ((mkey & CELL_KB_MKEY_L_CTRL) && !(kdata.mkey & CELL_KB_MKEY_L_CTRL))
-	{
 		keyboard_key_released (L_CTRL);
-	}
 
 	if ( !(mkey & CELL_KB_MKEY_L_SHIFT) && (kdata.mkey & CELL_KB_MKEY_L_SHIFT))
-	{
 		keyboard_key_pressed (L_SHIFT);
-	}
+
 	if ((mkey & CELL_KB_MKEY_L_SHIFT) && !(kdata.mkey & CELL_KB_MKEY_L_SHIFT))
-	{
 		keyboard_key_released (L_SHIFT);
-	}
 
 	if ( !(mkey & CELL_KB_MKEY_L_ALT) && (kdata.mkey & CELL_KB_MKEY_L_ALT))
-	{
 		keyboard_key_pressed (L_ALT);
-	}
+
 	if ((mkey & CELL_KB_MKEY_L_ALT) && !(kdata.mkey & CELL_KB_MKEY_L_ALT))
-	{
 		keyboard_key_released (L_ALT);
-	}
 
 	if ( !(mkey & CELL_KB_MKEY_L_WIN) && (kdata.mkey & CELL_KB_MKEY_L_WIN))
-	{
 		keyboard_key_pressed (L_WIN);
-	}
+
 	if ((mkey & CELL_KB_MKEY_L_WIN) && !(kdata.mkey & CELL_KB_MKEY_L_WIN))
-	{
 		keyboard_key_released (L_WIN);
-	}
 
 	if ( !(mkey & CELL_KB_MKEY_R_CTRL) && (kdata.mkey & CELL_KB_MKEY_R_CTRL))
-	{
 		keyboard_key_pressed (R_CTRL);
-	}
+
 	if ((mkey & CELL_KB_MKEY_R_CTRL) && !(kdata.mkey & CELL_KB_MKEY_R_CTRL))
-	{
 		keyboard_key_released (R_CTRL);
-	}
 
 	if ( !(mkey & CELL_KB_MKEY_R_SHIFT) && (kdata.mkey & CELL_KB_MKEY_R_SHIFT))
-	{
 		keyboard_key_pressed (R_SHIFT);
-	}
+
 	if ((mkey & CELL_KB_MKEY_R_SHIFT) && !(kdata.mkey & CELL_KB_MKEY_R_SHIFT))
-	{
 		keyboard_key_released (R_SHIFT);
-	}
 
 	if ( !(mkey & CELL_KB_MKEY_R_ALT) && (kdata.mkey & CELL_KB_MKEY_R_ALT))
-	{
 		keyboard_key_pressed (R_ALT);
-	}
+
 	if ((mkey & CELL_KB_MKEY_R_ALT) && !(kdata.mkey & CELL_KB_MKEY_R_ALT))
-	{
 		keyboard_key_released (R_ALT);
-	}
 
 	if ( !(mkey & CELL_KB_MKEY_R_WIN) && (kdata.mkey & CELL_KB_MKEY_R_WIN))
-	{
 		keyboard_key_pressed (R_WIN);
-	}
+
 	if ((mkey & CELL_KB_MKEY_R_WIN) && !(kdata.mkey & CELL_KB_MKEY_R_WIN))
-	{
 		keyboard_key_released (R_WIN);
-	}
 
 	mkey = kdata.mkey;
 

@@ -409,13 +409,12 @@ void keyboard_key_pressed(signed long key)
 		return;
 	}
 
-	for (i = 0; i < JOYSTICK_NUM; ++i) {
-		if (joystick_port_map[i] == JOYDEV_NUMPAD
-				|| joystick_port_map[i] == JOYDEV_KEYSET1
-				|| joystick_port_map[i] == JOYDEV_KEYSET2) {
-			if (joystick_check_set(key, joystick_port_map[i] - JOYDEV_NUMPAD, 1+i)) {
+	for (i = 0; i < JOYSTICK_NUM; ++i)
+	{
+		if (joystick_port_map[i] == JOYDEV_NUMPAD || joystick_port_map[i] == JOYDEV_KEYSET1 || joystick_port_map[i] == JOYDEV_KEYSET2)
+		{
+			if (joystick_check_set(key, joystick_port_map[i] - JOYDEV_NUMPAD, 1+i))
 				return;
-			}
 		}
 	}
 
@@ -435,8 +434,7 @@ void keyboard_key_pressed(signed long key)
 				printf ("key latched\n");
 				#endif
 				latch = 1;
-				if (!(keyconvmap[i].shift & ALLOW_OTHER)
-						|| (right_shift_down + left_shift_down) == 0)
+				if (!(keyconvmap[i].shift & ALLOW_OTHER) || (right_shift_down + left_shift_down) == 0)
 					break;
 			}
 		}

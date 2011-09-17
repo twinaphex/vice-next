@@ -216,9 +216,8 @@ int set_autostart_warp(int val, void *param)
 static int set_autostart_prg_mode(int val, void *param)
 {
     AutostartPrgMode = val;
-    if ((val < 0) || (val > AUTOSTART_PRG_MODE_LAST)) {
+    if ((val < 0) || (val > AUTOSTART_PRG_MODE_LAST))
         val = 0;
-    }
 
     return 0;
 }
@@ -420,9 +419,8 @@ static int get_warp_mode(void)
 {
     int value;
 
-    if (resources_get_int("WarpMode", &value) < 0) {
+    if (resources_get_int("WarpMode", &value) < 0)
         return 0;
-    }
 
     return value;
 }
@@ -474,10 +472,8 @@ static void check_rom_area(void)
 
 static void load_snapshot_trap(WORD unused_addr, void *unused_data)
 {
-    if (autostart_program_name
-        && machine_read_snapshot((char *)autostart_program_name, 0) < 0) {
+    if (autostart_program_name && machine_read_snapshot((char *)autostart_program_name, 0) < 0)
         ui_error(translate_text(IDGS_CANNOT_LOAD_SNAPSHOT_FILE));
-    }
 
     ui_update_menus();
 }
@@ -883,8 +879,7 @@ void autostart_advance(void)
 int autostart_ignore_reset = 0;
 
 /* Clean memory and reboot for autostart.  */
-static void reboot_for_autostart(const char *program_name, unsigned int mode,
-                                 unsigned int runmode)
+static void reboot_for_autostart(const char *program_name, unsigned int mode, unsigned int runmode)
 {
     if (!autostart_enabled)
         return;
@@ -1008,8 +1003,7 @@ static void autostart_disk_cook_name(char **name)
 }
 
 /* Autostart disk image `file_name'.  */
-int autostart_disk(const char *file_name, const char *program_name,
-                   unsigned int program_number, unsigned int runmode)
+int autostart_disk(const char *file_name, const char *program_name, unsigned int program_number, unsigned int runmode)
 {
     char *name = NULL;
 
@@ -1045,63 +1039,63 @@ int autostart_disk(const char *file_name, const char *program_name,
    or a P00 file */
 int autostart_prg(const char *file_name, unsigned int runmode)
 {
-    fileio_info_t *finfo;
-    int result;
-    const char *boot_file_name;
-    int mode;
+	fileio_info_t *finfo;
+	int result;
+	const char *boot_file_name;
+	int mode;
 
-    if (event_record_active() || event_playback_active())
-    {
-        return -1;
-    }
+	if (event_record_active() || event_playback_active())
+		return -1;
 
-    /* open prg file */
-    finfo = fileio_open(file_name, NULL, FILEIO_FORMAT_RAW | FILEIO_FORMAT_P00,
-                        FILEIO_COMMAND_READ | FILEIO_COMMAND_FSNAME,
-                        FILEIO_TYPE_PRG);
+	/* open prg file */
+	finfo = fileio_open(file_name, NULL, FILEIO_FORMAT_RAW | FILEIO_FORMAT_P00, FILEIO_COMMAND_READ | FILEIO_COMMAND_FSNAME, FILEIO_TYPE_PRG);
 
-    /* can't open file */
-    if (finfo == NULL) {
-        //log_error(autostart_log, "Cannot open `%s'.", file_name);
-        return -1;
-    }
+	/* can't open file */
+	if (finfo == NULL) {
+		#ifdef CELL_DEBUG
+		printf("ERROR: Cannot open `%s'.\n", file_name);
+		#endif
+		return -1;
+	}
 
-    /* determine how to load file */
-    switch(AutostartPrgMode) {
-    case AUTOSTART_PRG_MODE_VFS:
-        //log_message(autostart_log, "Loading PRG file `%s' with virtual FS on unit #8.", file_name);
-        result = autostart_prg_with_virtual_fs(file_name, finfo);
-        mode = AUTOSTART_HASDISK;
-        boot_file_name = (const char *)finfo->name;
-        break;
-    case AUTOSTART_PRG_MODE_INJECT:
-        //log_message(autostart_log, "Loading PRG file `%s' with direct RAM injection.", file_name);
-        result = autostart_prg_with_ram_injection(file_name, finfo);
-        mode = AUTOSTART_INJECT;
-        boot_file_name = NULL;
-        break;
-    case AUTOSTART_PRG_MODE_DISK:
-        //log_message(autostart_log, "Loading PRG file `%s' with autostart disk image.", file_name);
-        result = autostart_prg_with_disk_image(file_name, finfo, AutostartPrgDiskImage);
-        mode = AUTOSTART_HASDISK;
-        boot_file_name = "*";
-        break;
-    default:
-        //log_error(autostart_log, "Invalid PRG autostart mode: %d", AutostartPrgMode);
-        result = -1;
-        break;
-    }
+	/* determine how to load file */
+	switch(AutostartPrgMode)
+	{
+		case AUTOSTART_PRG_MODE_VFS:
+			//log_message(autostart_log, "Loading PRG file `%s' with virtual FS on unit #8.", file_name);
+			result = autostart_prg_with_virtual_fs(file_name, finfo);
+			mode = AUTOSTART_HASDISK;
+			boot_file_name = (const char *)finfo->name;
+			break;
+		case AUTOSTART_PRG_MODE_INJECT:
+			//log_message(autostart_log, "Loading PRG file `%s' with direct RAM injection.", file_name);
+			result = autostart_prg_with_ram_injection(file_name, finfo);
+			mode = AUTOSTART_INJECT;
+			boot_file_name = NULL;
+			break;
+		case AUTOSTART_PRG_MODE_DISK:
+			//log_message(autostart_log, "Loading PRG file `%s' with autostart disk image.", file_name);
+			result = autostart_prg_with_disk_image(file_name, finfo, AutostartPrgDiskImage);
+			mode = AUTOSTART_HASDISK;
+			boot_file_name = "*";
+			break;
+		default:
+			//log_error(autostart_log, "Invalid PRG autostart mode: %d", AutostartPrgMode);
+			result = -1;
+			break;
+	}
 
-    /* Now either proceed with disk image booting or prg injection after reset */
-    if (result >= 0) {
-        ui_update_menus();
-        reboot_for_autostart(boot_file_name, mode, runmode);
-    }
+	/* Now either proceed with disk image booting or prg injection after reset */
+	if (result >= 0)
+	{
+		ui_update_menus();
+		reboot_for_autostart(boot_file_name, mode, runmode);
+	}
 
-    /* close prg file */
-    fileio_close(finfo);
+	/* close prg file */
+	fileio_close(finfo);
 
-    return result;
+	return result;
 }
 
 /* ------------------------------------------------------------------------- */

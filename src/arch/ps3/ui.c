@@ -60,6 +60,7 @@ static char *ps3_shader = NULL;
 static char *ps3_path_rom_dir = NULL; 
 
 extern uint32_t mode_switch;
+extern int sysutil_drawing;
 
 static const resource_int_t resources_int[] = {
     { "DisplayDriveIndicators", 0, RES_EVENT_NO, NULL,
@@ -155,11 +156,6 @@ int ui_callback(void)
 {
 	static int one_more_redraw=0;
 
-	if (mode_switch == MODE_EXIT)
-	{
-		exit(0);	// handled by our atexit handler
-	}
-
 	// The callback only works correctly if the screen continuously updates.
 	// So we need to be sure the screen is updating, since the emulators vsync only occurs if
 	// something needs to be updated on-screen
@@ -169,7 +165,7 @@ int ui_callback(void)
 
 	cellSysutilCheckCallback();
 
-	if (is_sysutil_drawing())
+	if (sysutil_drawing)
 	{
 		one_more_redraw=15; // timing dependent on the frequency of this callback
 		// 5 wasn't quite enough. 8 nearly enough.

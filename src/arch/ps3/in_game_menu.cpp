@@ -113,12 +113,13 @@ void DialogYesNo (const char *message, int selection)
 	current_selection = selection;
 
 	int ret = cellMsgDialogOpen2 (type, message, callback_dialog_yes_no, (void*) current_selection, NULL );
-	if ( ret != CELL_OK ) {
+	if(ret != CELL_OK )
+	{
 		if ( ret == (int)CELL_SYSUTIL_ERROR_BUSY )
 		{
-			#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 			printf("WARN  : cellMsgDialogOpen2() = 0x%x (CELL_SYSUTIL_ERROR_BUSY) ... Retry.\n", ret);
-			#endif
+#endif
 			return;
 		}
 		return;
@@ -148,7 +149,8 @@ void do_ingame_menu()
 
 			// The order of these is important
 
-			if (currently_selected_option == OPTION_LOAD_SNAPSHOT) {
+			if (currently_selected_option == OPTION_LOAD_SNAPSHOT)
+			{
 				// If there is no snapshot, this option is disabled. SKip it.
 				if ( (rompath == NULL) || (!snapshot_avail) )
 					currently_selected_option++;
@@ -308,12 +310,6 @@ void InGameMenuLoop(void)
 		psglSwap();
 
 		cellSysutilCheckCallback();
-
-		if (mode_switch == MODE_EXIT)
-		{
-			// Emulator_Shutdown will be called by our atexit handler
-			exit(0);
-		}
 	}
 }
 

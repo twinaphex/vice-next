@@ -27,6 +27,7 @@ const char *get_current_rom(void);
 extern "C" void Emulator_Shutdown(void);
 void Emulator_StartROMRunning();
 extern uint32_t mode_switch;
+extern int sysutil_drawing;
 
 extern CellInputFacade* CellInput;
 extern PS3Graphics* Graphics;

@@ -29,8 +29,6 @@
 
 #include "video.h"
 
-void sysutil_drawing(int);
-int  is_sysutil_drawing(void);
 void set_last_redraw(void);
 unsigned long get_last_redraw(void);
 void force_redraw(void);

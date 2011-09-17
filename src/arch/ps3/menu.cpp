@@ -2295,11 +2295,5 @@ void MenuMainLoop(void)
 		psglSwap();
 
 		cellSysutilCheckCallback();
-
-		if (mode_switch == MODE_EXIT)
-		{
-			// Emulator_Shutdown will be called by our atexit handler
-			exit(0);
-		}
 	}
 }

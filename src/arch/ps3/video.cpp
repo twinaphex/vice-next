@@ -56,23 +56,13 @@ static video_canvas_t *canvaslist[MAX_CANVAS_NUM];
 
 /* ------------------------------------------------------------------------- */
 
-static int draw_disable=0;
+int sysutil_drawing = 0;
+static int last_redraw = 0;
 
 static void canvas_change_palette(video_canvas_t *c)
 {
 }
 
-int is_sysutil_drawing(void)
-{
-	return draw_disable;
-}
-
-void sysutil_drawing(int status)
-{
-	draw_disable = status;
-}
-
-static int last_redraw = 0;
 void set_last_redraw()
 {
 	last_redraw = sys_time_get_system_time();
@@ -211,10 +201,10 @@ void video_canvas_destroy(video_canvas_t *canvas)
 	// TODO free screenbuffer / overlaybuffer
 	//canvas_free_bitmaps(canvas);
 
-	for (int i = 0; i < MAX_CANVAS_NUM; i++) {
-		if (canvaslist[i] == canvas) {
+	for (int i = 0; i < MAX_CANVAS_NUM; i++)
+	{
+		if (canvaslist[i] == canvas)
 			canvaslist[i] = NULL;
-		}
 	}
 }
 

@@ -85,25 +85,13 @@ bool emulator_loaded = false;			// is emulator loaded?
 char* current_rom = NULL;			// current rom being emulated
 uint32_t mode_switch = MODE_MENU;		// mode the main loop is in
 
-void Emulator_Shutdown()
+static void emulator_shutdown(void)
 {
+	ps3_audio_suspend();
+	machine_shutdown();
 	cellSysutilUnregisterCallback(0);
-
 	mousedrv_destroy();
-
-	if (osk)
-	{
-		osk->Close();
-		delete osk;
-	}
-
-	if (Graphics)
-		delete Graphics;
-
-	cellSysmoduleUnloadModule(CELL_SYSMODULE_AUDIO);
-	cellSysmoduleUnloadModule(CELL_SYSMODULE_NET);
-	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);
-	cellSysmoduleUnloadModule(CELL_SYSMODULE_IO);
+	sys_process_exit(0);
 }
 
 const char *get_current_rom(void)
@@ -178,12 +166,13 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata)
 	{
 		case CELL_SYSUTIL_REQUEST_EXITGAME:
 			mode_switch = MODE_EXIT;
+			emulator_shutdown();
 			break;
 		case CELL_SYSUTIL_DRAWING_BEGIN:
-			sysutil_drawing (1);
+			sysutil_drawing = 1;
 			break;
 		case CELL_SYSUTIL_DRAWING_END:
-			sysutil_drawing (0);
+			sysutil_drawing = 0;
 			break;
 		case CELL_SYSUTIL_OSKDIALOG_FINISHED:
 			osk->Stop();
@@ -206,10 +195,7 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata)
 void sysutil_callback_redraw(void)
 {
 	if (Graphics->TimeSinceLastDraw() >= 20000)
-	{
-		// Refresh the display. 
-		Graphics->Refresh();
-	}
+		Graphics->Refresh();	// Refresh the display. 
 }
 
 int main (void)
@@ -245,13 +231,6 @@ int main (void)
 	emulator_loaded = true;
 
 	main_program(argc, &argv[0]);
-
-	emulator_loaded = false;
-
-	ps3_audio_suspend();
-	machine_shutdown();
-	Emulator_Shutdown();
-	exit(0);
 }
 
 extern "C" int menu(uint32_t mode)
@@ -263,7 +242,7 @@ extern "C" int menu(uint32_t mode)
 
 	mode_switch = mode;
 
-	while(1)
+	do
 	{
 		switch(mode_switch)
 		{
@@ -281,14 +260,10 @@ extern "C" int menu(uint32_t mode)
 				return 0;
 				break;
 			case MODE_EXIT:
-				Graphics->DestroyDump();
-				// letting this be handled by atexit
-				ps3_audio_suspend();
-				machine_shutdown();
-				Emulator_Shutdown();
-				exit(0);
+				emulator_shutdown();
+				break;
 		}
-	}
+	}while(1);
 
 	// We should never get here
 	return 0;
