@@ -802,12 +802,13 @@ static int sound_run_sound(void)
 			bufferptr = snddata.buffer + snddata.bufptr * snddata.channels + c;
 			nr = sound_machine_calculate_samples(snddata.psid[c], bufferptr, SOUND_BUFSIZE - snddata.bufptr, snddata.channels, &delta_t);
 
+			#if 0
 			if (volume < 100)
 			{
 				for (i = 0; i < (nr * snddata.channels); i ++)
 					bufferptr[i] = (volume!=0) ? (bufferptr[i]/(100 / volume)) : 0;
 			}
-
+			#endif
 		}
 	}
 	else
@@ -826,11 +827,13 @@ static int sound_run_sound(void)
 			bufferptr = snddata.buffer + snddata.bufptr * snddata.channels + c;
 			sound_machine_calculate_samples(snddata.psid[c], bufferptr, nr, snddata.channels, &delta_t);
 
+			#if 0
 			if (volume < 100)
 			{
 				for (i = 0; i < (nr * snddata.channels); i ++)
 					bufferptr[i] = (volume != 0) ? (bufferptr[i] / (100 / volume)) : 0;
 			}
+			#endif
 		}
 		snddata.fclk += nr * snddata.clkstep;
 	}
@@ -1150,10 +1153,7 @@ long sound_sample_position(void)
 
 int sound_read(WORD addr, int chipno)
 {
-	if (sound_run_sound())
-		return -1;
-
-	if (chipno >= snddata.channels)
+	if (sound_run_sound() || chipno >= snddata.channels)
 		return -1;
 
 	return sound_machine_read(snddata.psid[chipno], addr);
@@ -1163,10 +1163,7 @@ void sound_store(WORD addr, BYTE val, int chipno)
 {
 	int i;
 
-	if (sound_run_sound())
-		return;
-
-	if (chipno >= snddata.channels)
+	if (sound_run_sound() || chipno >= snddata.channels)
 		return;
 
 	sound_machine_store(snddata.psid[chipno], addr, val);
