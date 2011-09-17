@@ -82,6 +82,8 @@ void video_render_initconfig(video_render_config_t *config)
 void video_render_setphysicalcolor(video_render_config_t *config, int index, DWORD color, int depth)
 {
 	/* duplicated colours are used by the double size 8/16 bpp renderers. */
+	//hardcode for depth = 16
+	#if 0
 	switch (depth)
 	{
 		case 8:
@@ -89,10 +91,13 @@ void video_render_setphysicalcolor(video_render_config_t *config, int index, DWO
 			color = color | (color << 8);
 			break;
 		case 16:
+	#endif
 			color &= 0x0000FFFF;
 			color = color | (color << 16);
+	#if 0
 			break;
 	}
+	#endif
 	config->color_tables.physical_colors[index] = color;
 }
 
@@ -131,14 +136,18 @@ void video_render_main(video_render_config_t *config, BYTE *src, BYTE *trg, int 
 			return;
 
 		case VIDEO_RENDER_RGB_1X1:
+			//hardcode for depth = 16
+			#if 0
 			switch (depth) {
 				case 8:
 					render_08_1x1_04(colortab, src, trg, width, height,
 							xs, ys, xt, yt, pitchs, pitcht);
 					return;
 				case 16:
+			#endif
 					render_16_1x1_04(colortab, src, trg, width, height,
 							xs, ys, xt, yt, pitchs, pitcht);
+			#if 0
 					return;
 				case 24:
 					render_24_1x1_04(colortab, src, trg, width, height,
@@ -149,6 +158,7 @@ void video_render_main(video_render_config_t *config, BYTE *src, BYTE *trg, int 
 							xs, ys, xt, yt, pitchs, pitcht);
 					return;
 			}
+			#endif
 			return;
 
 		case VIDEO_RENDER_RGB_1X2:

@@ -111,19 +111,18 @@ int video_init(void)
 	active_canvas = NULL;
 
 	for (int i = 0; i < MAX_CANVAS_NUM; i++)
-	{
 		canvaslist[i] = NULL;
-	}
+
 	return 0;
 }
 
 void video_shutdown(void)
 {    
 	active_canvas = NULL;
+
 	for (int i = 0; i < MAX_CANVAS_NUM; i++)
-	{
 		canvaslist[i] = NULL;
-	}
+
 	return;
 }
 
@@ -150,16 +149,13 @@ void video_canvas_resize(video_canvas_t *canvas, unsigned int width, unsigned in
 		#endif
 	}
 	else
-	{
 		screenbuffer = (unsigned char *) lib_realloc(screenbuffer, width * height * canvas->depth / 8);
-	}
 
 	canvas->width = width;
 	canvas->height = height;
 	canvas->bytes_per_line = canvas->width * canvas->depth / 8;
 
 	video_canvas_set_palette(canvas, canvas->palette);
-
 	Graphics->PSGLReInit (width, height, canvas->depth);
 }
 
@@ -171,35 +167,33 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
 
 	canvas->videoconfig->rendermode = VIDEO_RENDER_RGB_1X1;
 
-	#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 	printf("canvas width wants to be : %d\ncanvas height wants to be : %d\ncanvas depth wants to be : %d\n", canvas->width, canvas->height, canvas->depth);
-	#endif
+#endif
 
 	canvas->depth = 16;
 
-	#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 	printf("canvas set to %d x %d\n", canvas->width, canvas->height);
-	#endif
+#endif
 
 	canvas->bytes_per_line = canvas->width * (canvas->depth / 8);
 
 	screenbuffer = (unsigned char *) lib_malloc(canvas->width * canvas->height * (canvas->depth / 8));
 	video_canvas_set_palette(canvas, canvas->palette);
 
-
-	while (canvaslist[next_canvas] != NULL && next_canvas < MAX_CANVAS_NUM - 1) {
+	while (canvaslist[next_canvas] != NULL && next_canvas < MAX_CANVAS_NUM - 1)
 		next_canvas++;
-	}
+
 	canvaslist[next_canvas] = canvas;
 
 	// TODO This hack ensures the C128 always uses the VICII canvas and never the VDC canvas
 
-	//if (strncmp(machine_name, "C128", 4) == 0) {
 	if (machine_class == VICE_MACHINE_C128)
 	{
-		#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 		printf("forcing C128 canvas as canvas[1]\n");
-		#endif
+#endif
 		active_canvas=canvaslist[1];
 	}
 	else
@@ -276,14 +270,10 @@ int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *pa
 	//canvas->palette = palette;
 	canvas_change_palette(canvas);
 
-
 	canvas->palette = palette;
 
 	for (i = 0; i < palette->num_entries; i++)
-	{
 		video_render_setphysicalcolor(canvas->videoconfig, i, makecol_RGB555BE(palette->entries[i].red, palette->entries[i].green, palette->entries[i].blue), canvas->depth);
-	}
-
 
 	return 0;
 }

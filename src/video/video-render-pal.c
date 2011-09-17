@@ -77,11 +77,15 @@ static void video_render_pal_main(video_render_config_t *config, BYTE *src, BYTE
 			{
 				if (video)
 				{
+					//hardcode for depth = 16
+					#if 0
 					switch (depth)
 					{
 						case 16:
+					#endif
 							render_16_1x1_pal(colortab, src, trg, width, height,
 									xs, ys, xt, yt, pitchs, pitcht);
+					#if 0
 							return;
 						case 24:
 							render_24_1x1_pal(colortab, src, trg, width, height,
@@ -92,13 +96,18 @@ static void video_render_pal_main(video_render_config_t *config, BYTE *src, BYTE
 									xs, ys, xt, yt, pitchs, pitcht);
 							return;
 					}
+					#endif
 				}
 				else
 				{
+					//hardcode for depth = 16
+					#if 0
 					switch (depth) {
 						case 16:
+					#endif
 							render_16_1x1_ntsc(colortab, src, trg, width, height,
 									xs, ys, xt, yt, pitchs, pitcht);
+					#if 0
 							return;
 						case 24:
 							render_24_1x1_ntsc(colortab, src, trg, width, height,
@@ -109,16 +118,24 @@ static void video_render_pal_main(video_render_config_t *config, BYTE *src, BYTE
 									xs, ys, xt, yt, pitchs, pitcht);
 							return;
 					}
+					#endif
 				}
-			} else {
-				switch (depth) {
+			}
+			else
+			{
+				#if 0
+				//hardcode for depth=16
+				switch (depth)
+				{
 					case 8:
 						render_08_1x1_04(colortab, src, trg, width, height,
 								xs, ys, xt, yt, pitchs, pitcht);
 						return;
 					case 16:
+				#endif
 						render_16_1x1_04(colortab, src, trg, width, height,
 								xs, ys, xt, yt, pitchs, pitcht);
+				#if 0
 						return;
 					case 24:
 						render_24_1x1_04(colortab, src, trg, width, height,
@@ -129,17 +146,25 @@ static void video_render_pal_main(video_render_config_t *config, BYTE *src, BYTE
 								xs, ys, xt, yt, pitchs, pitcht);
 						return;
 				}
+				#endif
 			}
 			return;
 		case VIDEO_RENDER_PAL_2X2:
-			if (delayloop && depth != 8) {
-				switch (video) {
+			if (delayloop)
+			{
+				switch (video)
+				{
 					case 0: /* NTSC */
-						switch (depth) {
+						//hardcode for depth=16
+						#if 0
+						switch (depth)
+						{
 							case 16:
+						#endif
 								render_16_2x2_ntsc(colortab, src, trg, width, height,
 										xs, ys, xt, yt, pitchs, pitcht,
 										viewport);
+						#if 0
 								return;
 							case 24:
 								render_24_2x2_ntsc(colortab, src, trg, width, height,
@@ -152,13 +177,19 @@ static void video_render_pal_main(video_render_config_t *config, BYTE *src, BYTE
 										viewport);
 								return;
 						}
+						#endif
 						break;
 					case 1: /* PAL */
-						switch (depth) {
+						//hardcode for depth=16
+						#if 0
+						switch (depth)
+						{
 							case 16:
+						#endif
 								render_16_2x2_pal(colortab, src, trg, width, height,
 										xs, ys, xt, yt, pitchs, pitcht,
 										viewport);
+						#if 0
 								return;
 							case 24:
 								render_24_2x2_pal(colortab, src, trg, width, height,
@@ -171,19 +202,25 @@ static void video_render_pal_main(video_render_config_t *config, BYTE *src, BYTE
 										viewport);
 								return;
 						}
+						#endif
 						break;
 				}
 			}
 			else
 			{
-				switch (depth) {
+				//hardcode for depth = 16
+				#if 0
+				switch (depth)
+				{
 					case 8:
 						render_08_2x2_04(colortab, src, trg, width, height,
 								xs, ys, xt, yt, pitchs, pitcht, doublescan);
 						return;
 					case 16:
+				#endif
 						render_16_2x2_04(colortab, src, trg, width, height,
 								xs, ys, xt, yt, pitchs, pitcht, doublescan);
+				#if 0
 						return;
 					case 24:
 						render_24_2x2_04(colortab, src, trg, width, height,
@@ -194,6 +231,7 @@ static void video_render_pal_main(video_render_config_t *config, BYTE *src, BYTE
 								xs, ys, xt, yt, pitchs, pitcht, doublescan);
 						return;
 				}
+				#endif
 			}
 	}
 	//log_debug("video_render_pal_main unsupported rendermode (%d)\n", rendermode);

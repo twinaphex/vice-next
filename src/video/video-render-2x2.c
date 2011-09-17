@@ -47,6 +47,8 @@ static void video_render_2x2_main(video_render_config_t *config,
 	doublescan = config->doublescan;
 	colortab = &config->color_tables;
 
+	//hardcode for depth = 16
+	#if 0
 	switch (depth)
 	{
 		case 8:
@@ -54,8 +56,10 @@ static void video_render_2x2_main(video_render_config_t *config,
 					xs, ys, xt, yt, pitchs, pitcht, doublescan);
 			return;
 		case 16:
+	#endif
 			render_16_2x2_04(colortab, src, trg, width, height,
 					xs, ys, xt, yt, pitchs, pitcht, doublescan);
+	#if 0
 			return;
 		case 24:
 			render_24_2x2_04(colortab, src, trg, width, height,
@@ -66,6 +70,7 @@ static void video_render_2x2_main(video_render_config_t *config,
 					xs, ys, xt, yt, pitchs, pitcht, doublescan);
 			return;
 	}
+	#endif
 }
 
 void video_render_2x2_init(void)
