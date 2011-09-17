@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bmpdrv.h"
+//#include "bmpdrv.h"
 #include "doodledrv.h"
 #include "gfxoutput.h"
 #include "lib.h"
@@ -39,7 +39,7 @@
 #include "ppmdrv.h"
 
 #ifdef HAVE_JPEG
-#include "jpegdrv.h"
+//#include "jpegdrv.h"
 #endif
 
 #ifdef HAVE_FFMPEG
@@ -89,16 +89,16 @@ int gfxoutput_early_init(void)
 	gfxoutputdrv_list->drv = NULL;
 	gfxoutputdrv_list->next = NULL;
 
-	gfxoutput_init_bmp();
+	//gfxoutput_init_bmp();
 	gfxoutput_init_doodle();
 #if defined(HAVE_GIF) || (defined(WIN32) && !defined(USE_SDLUI))
-	gfxoutput_init_gif();
+	//gfxoutput_init_gif();
 #endif
-	gfxoutput_init_iff();
+	//gfxoutput_init_iff();
 #ifdef HAVE_JPEG
-	gfxoutput_init_jpeg();
+	//gfxoutput_init_jpeg();
 #endif
-	gfxoutput_init_pcx();
+	//gfxoutput_init_pcx();
 	gfxoutput_init_ppm();
 #ifdef HAVE_FFMPEG
 	gfxoutput_init_ffmpeg();
