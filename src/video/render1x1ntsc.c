@@ -42,25 +42,25 @@ static inline
 void yuv_to_rgb(SDWORD y, SDWORD u, SDWORD v,
                 SDWORD *red, SDWORD *grn, SDWORD *blu)
 {
-    *red = (y + v) >> 16;
-    *blu = (y + u) >> 16;
-    *grn = (y - ((50 * u + 130 * v) >> 8)) >> 16;
+	*red = (y + v) >> 16;
+	*blu = (y + u) >> 16;
+	*grn = (y - ((50 * u + 130 * v) >> 8)) >> 16;
 }
 
 static inline
 void store_pixel_2(BYTE *trg, SDWORD y1, SDWORD u1, SDWORD v1, SDWORD y2, SDWORD u2, SDWORD v2)
 {
-    WORD *tmp;
-    SDWORD red;
-    SDWORD grn;
-    SDWORD blu;
+	WORD *tmp;
+	SDWORD red;
+	SDWORD grn;
+	SDWORD blu;
 
-    yuv_to_rgb(y1, u1, v1, &red, &grn, &blu);
-    tmp = (WORD *) trg;
-    tmp[0] = (WORD) (gamma_red[256 + red] | gamma_grn[256 + grn] | gamma_blu[256 + blu]);
+	yuv_to_rgb(y1, u1, v1, &red, &grn, &blu);
+	tmp = (WORD *) trg;
+	tmp[0] = (WORD) (gamma_red[256 + red] | gamma_grn[256 + grn] | gamma_blu[256 + blu]);
 
-    yuv_to_rgb(y2, u2, v2, &red, &grn, &blu);
-    tmp[1] = (WORD) (gamma_red[256 + red] | gamma_grn[256 + grn] | gamma_blu[256 + blu]);
+	yuv_to_rgb(y2, u2, v2, &red, &grn, &blu);
+	tmp[1] = (WORD) (gamma_red[256 + red] | gamma_grn[256 + grn] | gamma_blu[256 + blu]);
 }
 
 static inline
@@ -248,9 +248,9 @@ render_YUY2_1x1_ntsc(video_render_color_tables_t *color_tab,
                   const unsigned int xt, const unsigned int yt,
                   const unsigned int pitchs, const unsigned int pitcht)
 {
-    render_generic_1x1_ntsc(color_tab, src, trg, width, height, xs, ys, xt, yt,
-                           pitchs, pitcht,
-                           4, store_pixel_YUY2, 1);
+	render_generic_1x1_ntsc(color_tab, src, trg, width, height, xs, ys, xt, yt,
+			pitchs, pitcht,
+			4, store_pixel_YUY2, 1);
 }
 
 void
@@ -261,9 +261,9 @@ render_YVYU_1x1_ntsc(video_render_color_tables_t *color_tab,
                   const unsigned int xt, const unsigned int yt,
                   const unsigned int pitchs, const unsigned int pitcht)
 {
-    render_generic_1x1_ntsc(color_tab, src, trg, width, height, xs, ys, xt, yt,
-                           pitchs, pitcht,
-                           4, store_pixel_YVYU, 1);
+	render_generic_1x1_ntsc(color_tab, src, trg, width, height, xs, ys, xt, yt,
+			pitchs, pitcht,
+			4, store_pixel_YVYU, 1);
 }
 
 void

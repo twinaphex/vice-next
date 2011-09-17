@@ -37,12 +37,12 @@
 
 static int set_color_saturation(int val, void *param)
 {
-    if (val < 0)
-        val = 0;
-    if (val > 2000)
-        val = 2000;
-    video_resources.color_saturation = val;
-    return video_color_update_palette(video_current_canvas);
+	if (val < 0)
+		val = 0;
+	if (val > 2000)
+		val = 2000;
+	video_resources.color_saturation = val;
+	return video_color_update_palette(video_current_canvas);
 }
 
 static int set_color_contrast(int val, void *param)
