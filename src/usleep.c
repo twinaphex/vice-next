@@ -46,20 +46,11 @@
 int usleep(unsigned long int microSeconds)
 {
         unsigned int            Seconds, uSec;
-#ifdef __OS2__
-        int nfds;
-        fd_set readfds, writefds, exceptfds;
-#else
         int                     nfds, readfds, writefds, exceptfds;
-#endif
 
         struct  timeval         Timer;
 
-#ifdef __OS2__
-        nfds = 0;
-#else
         nfds = readfds = writefds = exceptfds = 0;
-#endif
 
         if ( (microSeconds == (unsigned long) 0)
                 || microSeconds > (unsigned long) 4000000 )

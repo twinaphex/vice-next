@@ -35,16 +35,10 @@
 
 
 /* Sound defaults.  */
-#define SOUND_SAMPLE_RATE 44100
+#define SOUND_SAMPLE_RATE 48000
 #define SOUND_CHANNELS_MAX 2
 #define SOUND_BUFSIZE 32768
 
-#ifdef __MSDOS__
-# define SOUND_SAMPLE_BUFFER_SIZE       100     /* ms */
-#endif
-#ifdef __OS2__
-# define SOUND_SAMPLE_BUFFER_SIZE       400
-#endif
 #ifndef SOUND_SAMPLE_BUFFER_SIZE
 # define SOUND_SAMPLE_BUFFER_SIZE       100
 #endif
