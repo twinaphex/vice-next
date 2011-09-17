@@ -115,8 +115,6 @@ bool MenuIsRunning()
 	return menuRunning;
 }
 
-static bool selection_changed=false;
-
 void UpdateBrowser(FileBrowser* b)
 {
 	if (CellInput->WasButtonPressed(0, CTRL_DOWN) | (CellInput->IsAnalogPressedDownPercentage(0, CTRL_LSTICK) > 0.10) )    // down to next setting
@@ -124,7 +122,6 @@ void UpdateBrowser(FileBrowser* b)
 		if(b->GetCurrentEntryIndex() < b->get_current_directory_file_count()-1)
 		{
 			b->IncrementEntry();
-			selection_changed=true;
 			sys_timer_usleep(FILEBROWSER_DELAY);
 		}
 	}
@@ -133,33 +130,28 @@ void UpdateBrowser(FileBrowser* b)
 		if(b->GetCurrentEntryIndex() > 0)
 		{
 			b->DecrementEntry();
-			selection_changed=true;
 			sys_timer_usleep(FILEBROWSER_DELAY);
 		}
 	}
 	if (CellInput->WasButtonPressed(0,CTRL_RIGHT) | CellInput->IsAnalogPressedRight(0,CTRL_LSTICK))
 	{
 		b->GotoEntry(MIN(b->GetCurrentEntryIndex()+5, b->get_current_directory_file_count()-1));
-		selection_changed=true;
 	}
 	if (CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->IsAnalogPressedLeft(0,CTRL_LSTICK))
 	{
 		if (b->GetCurrentEntryIndex() <= 5)
 		{
 			b->GotoEntry(0);
-			selection_changed=true;
 		}
 		else
 		{
 			b->GotoEntry(b->GetCurrentEntryIndex()-5);
-			selection_changed=true;
 		}
 		sys_timer_usleep(FILEBROWSER_DELAY);
 	}
 	if (CellInput->WasButtonPressed(0,CTRL_R1) && !(CellInput->IsButtonPressed(0,CTRL_TRIANGLE)) )
 	{
 		b->GotoEntry(MIN(b->GetCurrentEntryIndex()+NUM_ENTRY_PER_PAGE, b->get_current_directory_file_count()-1));
-		selection_changed=true;
 		sys_timer_usleep(FILEBROWSER_DELAY);
 	}
 	if (CellInput->WasButtonPressed(0,CTRL_L1) && !(CellInput->IsButtonPressed(0,CTRL_TRIANGLE)) )
@@ -167,12 +159,10 @@ void UpdateBrowser(FileBrowser* b)
 		if (b->GetCurrentEntryIndex() <= NUM_ENTRY_PER_PAGE)
 		{
 			b->GotoEntry(0);
-			selection_changed=true;
 		}
 		else
 		{
 			b->GotoEntry(b->GetCurrentEntryIndex()-NUM_ENTRY_PER_PAGE);
-			selection_changed=true;
 		}
 		sys_timer_usleep(FILEBROWSER_DELAY);
 	}
@@ -180,7 +170,6 @@ void UpdateBrowser(FileBrowser* b)
 	if (CellInput->WasButtonPressed(0, CTRL_CIRCLE))
 	{
 		b->PopDirectory();
-		selection_changed=true;
 	}
 }
 
@@ -204,31 +193,25 @@ void RenderBrowser(FileBrowser* b)
 		cellDbgFontDraw();
 	}
 
-	// Locate any screenshots for the currently selected file
-	if (selection_changed) {
-		selection_changed=false;
+#if 0
+	if (b->_cur[current_index]->d_type == CELL_FS_TYPE_REGULAR) {
+		// TODO check file extension
 
-		#if 0
-		if (b->_cur[current_index]->d_type == CELL_FS_TYPE_REGULAR) {
-			// TODO check file extension
+		std::string ext = FileBrowser::GetExtension(b->_cur[current_index]->d_name);
+		std::string path = b->GetCurrentDirectoryInfo().dir + "/" + b->_cur[current_index]->d_name;
 
-			std::string ext = FileBrowser::GetExtension(b->_cur[current_index]->d_name);
-			std::string path = b->GetCurrentDirectoryInfo().dir + "/" + b->_cur[current_index]->d_name;
-
-			if ( ((ext == "zip") || (ext == "ZIP")) && (zipfile_entries(path.c_str()) != 1) ) {
-				// Do nothing
-				// If we have a zipfile with multiple entries, we can use zipfile browsing support.
-				// If it only has a single entry, we can use this file as it is
-			}
-			else {
-				// We're processing a regular file, or a zipfile having only a single entry embedded
-				// gzip files by definition on ly have a single entry, and thus treated as regular files also.
-
-			}
+		if ( ((ext == "zip") || (ext == "ZIP")) && (zipfile_entries(path.c_str()) != 1) ) {
+			// Do nothing
+			// If we have a zipfile with multiple entries, we can use zipfile browsing support.
+			// If it only has a single entry, we can use this file as it is
 		}
-		#endif
-	}
+		else {
+			// We're processing a regular file, or a zipfile having only a single entry embedded
+			// gzip files by definition on ly have a single entry, and thus treated as regular files also.
 
+		}
+	}
+#endif
 
 	cellDbgFontDraw();
 }
@@ -276,9 +259,8 @@ void do_shaderChoice()
 			}
 		}
 
-		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE)) {
+		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
 			menuStack.pop();
-		}
 	}
 
 	cellDbgFontPuts(0.09f, 0.88f, Emulator_GetFontSize(), YELLOW, "CROSS    - Select shader");
@@ -614,14 +596,16 @@ void do_controller_settings()
 			case SETTING_CONTROLLER_1_L2:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->IsAnalogPressedLeft(0,CTRL_LSTICK))
 				{
-					if (joymap_index[0][L2] > 0) {
+					if (joymap_index[0][L2] > 0)
+					{
 						joymap_index[0][L2]--;
 						dirty=true;
 					}
 				}
 				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->IsAnalogPressedRight(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0,CTRL_CROSS))
 				{
-					if (joymap_index[0][L2] < MAX_JOYMAP_INDEX) {
+					if (joymap_index[0][L2] < MAX_JOYMAP_INDEX)
+					{
 						joymap_index[0][L2]++;
 						dirty=true;
 					}
@@ -761,7 +745,8 @@ void do_controller_settings()
 			case SETTING_CONTROLLER_2_L1:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->IsAnalogPressedLeft(0,CTRL_LSTICK))
 				{
-					if (joymap_index[1][L1] > 0) {
+					if (joymap_index[1][L1] > 0)
+					{
 						joymap_index[1][L1]--;
 						dirty=true;
 					}
@@ -1985,8 +1970,6 @@ void do_ROMMenu()
 
 				// switch emulator to emulate mode
 				Emulator_StartROMRunning();
-
-
 				Emulator_RequestLoadROM(rom_path, true, false);
 
 				return;

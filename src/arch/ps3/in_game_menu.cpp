@@ -104,11 +104,7 @@ void DialogYesNo (const char *message, int selection)
 {
 	static int current_selection;
 
-	unsigned int type =   CELL_MSGDIALOG_TYPE_SE_TYPE_NORMAL
-		| CELL_MSGDIALOG_TYPE_BG_INVISIBLE
-		| CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO
-		| CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON
-		| CELL_MSGDIALOG_TYPE_DEFAULT_CURSOR_NO;
+	unsigned int type =   CELL_MSGDIALOG_TYPE_SE_TYPE_NORMAL | CELL_MSGDIALOG_TYPE_BG_INVISIBLE | CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO | CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON | CELL_MSGDIALOG_TYPE_DEFAULT_CURSOR_NO;
 
 	current_selection = selection;
 
@@ -162,9 +158,7 @@ void do_ingame_menu()
 			}
 
 			if (currently_selected_option >= MAX_NO_OF_IN_GAME_OPTIONS)
-			{
 				currently_selected_option = 0;
-			}
 		}
 
 		if (CellInput->WasButtonPressed(0, CTRL_UP) | (CellInput->IsAnalogPressedUpPercentage(0, CTRL_LSTICK) > 0.10))    // up to previous setting
@@ -182,14 +176,12 @@ void do_ingame_menu()
 			if (currently_selected_option == OPTION_LOAD_SNAPSHOT)
 			{
 				// If there is no snapshot, this option is disabled. SKip it.
-				if ( (rompath == NULL) || (!snapshot_avail) )
+				if ( (rompath == NULL) || (!snapshot_avail))
 					currently_selected_option--;
 			}
 
 			if (currently_selected_option < 0)
-			{
 				currently_selected_option = MAX_NO_OF_IN_GAME_OPTIONS-1;
-			}
 		}
 
 		if (CellInput->WasButtonPressed(0, CTRL_CROSS))
@@ -221,15 +213,10 @@ void do_ingame_menu()
 					ingame_menu_running=false;
 					return;
 				case OPTION_OSK_C64:
-					// TODO Add C64 OSK here.  Need to refactor the OSK menu so be more like this one
+					// TODO Add C64 OSK here.  Need to refactor the OSK menu to be more like this one
 					break;
 				case OPTION_OSK_NATIVE:
-					if (!osk->Start(L"Characters entered here will be relayed to the emulator ", L""))
-					{
-						#ifdef CELL_DEBUG
-						printf("WARNING: OSK could not start\n");
-						#endif
-					}
+					osk->Start(L"Characters entered here will be relayed to the emulator ", L"");
 					ingame_menu_running=false;
 					return;
 					break;
@@ -268,9 +255,7 @@ void do_ingame_menu()
 				cellDbgFontPuts (0.09f, yPos, Emulator_GetFontSize(), (rompath == NULL) ? GRAY : ( (currently_selected_option == i ? YELLOW : WHITE) ), in_game_option_text[i]);
 
 				if (snapshot_avail)
-				{
 					cellDbgFontPrintf (0.5f, yPos, Emulator_GetFontSize(), GRAY, "Snapshot exists for %s", romfile);
-				}
 				break;
 
 			default:
