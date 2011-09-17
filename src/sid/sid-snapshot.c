@@ -32,7 +32,7 @@
 #include <string.h>
 
 #include "resources.h"
-#include "screenshot.h"
+//#include "screenshot.h"
 #include "sid-snapshot.h"
 #include "sid.h"
 #include "sound.h"
@@ -123,9 +123,9 @@ static int sid_snapshot_read_module_simple(snapshot_t *s)
 		int res_sound = (int)(tmp[0]);
 		int res_engine = (int)(tmp[1]);
 
-		screenshot_prepare_reopen();
+		//screenshot_prepare_reopen();
 		sound_close();
-		screenshot_try_reopen();
+		//screenshot_try_reopen();
 		resources_set_int("Sound", res_sound);
 		if (res_sound) {
 			resources_set_int("SidEngine", res_engine);

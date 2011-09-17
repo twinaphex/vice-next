@@ -84,7 +84,7 @@
 #include "resources.h"
 #include "rs232drv.h"
 #include "rsuser.h"
-#include "screenshot.h"
+//#include "screenshot.h"
 #include "serial.h"
 #include "sid-cmdline-options.h"
 #include "sid-resources.h"
@@ -512,7 +512,7 @@ static void machine_vsync_hook(void)
 
 	autostart_advance();
 
-	screenshot_record();
+	//screenshot_record();
 
 	sub = clk_guard_prevent_overflow(maincpu_clk_guard);
 
@@ -662,6 +662,7 @@ void machine_play_psid(int tune)
     psid_set_tune(tune);
 }
 
+#if 0
 int machine_screenshot(screenshot_t *screenshot, struct video_canvas_s *canvas)
 {
 	if (canvas != vicii_get_canvas())
@@ -670,6 +671,7 @@ int machine_screenshot(screenshot_t *screenshot, struct video_canvas_s *canvas)
 	vicii_screenshot(screenshot);
 	return 0;
 }
+#endif
 
 int machine_canvas_async_refresh(struct canvas_refresh_s *refresh, struct video_canvas_s *canvas)
 {

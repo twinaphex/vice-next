@@ -260,7 +260,7 @@ int init_main(void)
 
     if (!vsid_mode) {
         gfxoutput_init();
-        screenshot_init();
+        //screenshot_init();
 
         drivecpu_early_init_all();
     }

@@ -72,7 +72,7 @@
 #include "monitor_network.h"
 #include "montypes.h"
 #include "resources.h"
-#include "screenshot.h"
+//#include "screenshot.h"
 //#include "signals.h"
 #include "sysfile.h"
 #include "translate.h"
@@ -920,14 +920,17 @@ void mon_memmap_save(const char* filename, int format)
             drvname = "BMP";
             break;
     }
+    #if 0
     if (memmap_screenshot_save(drvname, filename, mon_memmap_picx, mon_memmap_picy, mon_memmap, mon_memmap_palette)) {
         mon_out("Failed.\n");
     }
+    #endif
 #else
     mon_out("Disabled. configure with --enable-memmap and recompile.\n");
 #endif
 }
 
+#if 0
 void mon_screenshot_save(const char* filename, int format)
 {
     const char* drvname;
@@ -953,6 +956,7 @@ void mon_screenshot_save(const char* filename, int format)
         mon_out("Failed.\n");
     }
 }
+#endif
 
 void mon_show_pwd(void)
 {

@@ -3293,14 +3293,14 @@ yyreduce:
 
 /* Line 1806 of yacc.c  */
 #line 475 "monitor/mon_parse.y"
-    { mon_screenshot_save((yyvsp[(2) - (3)].str),-1); }
+    { /* mon_screenshot_save((yyvsp[(2) - (3)].str),-1); */ }
     break;
 
   case 124:
 
 /* Line 1806 of yacc.c  */
 #line 477 "monitor/mon_parse.y"
-    { mon_screenshot_save((yyvsp[(2) - (5)].str),(yyvsp[(4) - (5)].i)); }
+    { /* mon_screenshot_save((yyvsp[(2) - (5)].str),(yyvsp[(4) - (5)].i)); */ }
     break;
 
   case 125:
