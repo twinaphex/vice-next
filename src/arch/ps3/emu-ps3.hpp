@@ -24,10 +24,9 @@ extern OSKUtil *osk;
 void Emulator_RequestLoadROM(const char* rom, bool forceReboot=false, bool warpmode=false);
 
 const char *get_current_rom(void);
-void Emulator_SwitchMode(uint32_t);
 extern "C" void Emulator_Shutdown(void);
-extern "C" uint32_t Emulator_GetMode(void);
 void Emulator_StartROMRunning();
+extern uint32_t mode_switch;
 
 extern CellInputFacade* CellInput;
 extern PS3Graphics* Graphics;

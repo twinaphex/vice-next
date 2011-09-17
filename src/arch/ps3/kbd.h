@@ -77,8 +77,8 @@ typedef struct {
 
 extern int osk_active_bufferlen;
 extern void osk_kbd_type_key(void);
-extern void osk_kbd_append_buffer (char *keystring);
-extern void osk_kbd_append_buffer_char (int keycode);
+extern void osk_kbd_append_buffer(const char *keystring);
+extern void osk_kbd_append_buffer_char(int keycode);
 void kbd_process(void);
 
 #ifdef __cplusplus

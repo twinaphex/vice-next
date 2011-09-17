@@ -3071,8 +3071,11 @@ int machine_bus_device_attach(unsigned int device, const char *name,
 
 struct vdrive_s *file_system_get_vdrive(unsigned int unit)
 {
-    if (unit < 8 || unit > 11) {
+    if (unit < 8 || unit > 11)
+    {
+    	#ifdef CELL_DEBUG
         printf("Wrong unit for vdrive");
+	#endif
         return NULL;
     }
 

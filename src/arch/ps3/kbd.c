@@ -349,15 +349,15 @@ void kbd_initialize_numpad_joykeys(int* joykeys)
 static int inputbuffer[MAX_BUFFER];
 int osk_active_bufferlen=0;
 
-void osk_kbd_append_buffer (char *keystring)
+void osk_kbd_append_buffer(const char *keystring)
 {
 	for (unsigned int i=0; i < strlen(keystring); i++)
 	{
 		if (osk_active_bufferlen >= MAX_BUFFER)
 		{
-			#ifdef CELL_DEBUG
+#ifdef CELL_DEBUG
 			printf("WARNING: Keystring inputbufer overflow\n");
-			#endif
+#endif
 			return;
 		}
 

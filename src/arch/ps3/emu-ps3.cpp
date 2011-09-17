@@ -81,25 +81,9 @@ CellInputFacade* CellInput;
 PS3Graphics* Graphics;
 SYS_PROCESS_PARAM(1001, 0x10000);
 
-
-// is emulator loaded?
-bool emulator_loaded = false;
-
-// current rom being emulated
-char* current_rom = NULL;
-
-// mode the main loop is in
-static uint32_t mode_switch = MODE_MENU;
-
-void Emulator_SwitchMode(uint32_t m)
-{
-	mode_switch = m;
-}
-
-uint32_t Emulator_GetMode(void)
-{
-	return mode_switch;
-}
+bool emulator_loaded = false;			// is emulator loaded?
+char* current_rom = NULL;			// current rom being emulated
+uint32_t mode_switch = MODE_MENU;		// mode the main loop is in
 
 void Emulator_Shutdown()
 {
@@ -129,7 +113,7 @@ const char *get_current_rom(void)
 
 void Emulator_StartROMRunning()
 {
-	Emulator_SwitchMode(MODE_EMULATION);
+	mode_switch = MODE_EMULATION;
 }
 
 void Emulator_RequestLoadROM(const char* rom, bool forceReboot, bool compatibility_mode) 
@@ -137,9 +121,7 @@ void Emulator_RequestLoadROM(const char* rom, bool forceReboot, bool compatibili
 	if (current_rom == NULL || strcmp(rom, current_rom) != 0)
 	{
 		if (current_rom != NULL)
-		{
 			free(current_rom);
-		}
 
 		current_rom = strdup(rom);
 	}
@@ -195,7 +177,7 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata)
 	switch (status)
 	{
 		case CELL_SYSUTIL_REQUEST_EXITGAME:
-			Emulator_SwitchMode(MODE_EXIT);
+			mode_switch = MODE_EXIT;
 			break;
 		case CELL_SYSUTIL_DRAWING_BEGIN:
 			sysutil_drawing (1);
@@ -205,7 +187,7 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata)
 			break;
 		case CELL_SYSUTIL_OSKDIALOG_FINISHED:
 			osk->Stop();
-			osk_kbd_append_buffer ((char *)osk->OutputString());
+			osk_kbd_append_buffer(osk->OutputString());
 			break;
 		case CELL_SYSUTIL_OSKDIALOG_INPUT_ENTERED:
 			break;
@@ -279,7 +261,7 @@ extern "C" int menu(uint32_t mode)
 	ps3_audio_suspend();
 	Graphics->ScreenDump();
 
-	Emulator_SwitchMode(mode);
+	mode_switch = mode;
 
 	while(1)
 	{

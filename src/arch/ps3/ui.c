@@ -59,6 +59,7 @@ static int ps3_overscan_amt;
 static char *ps3_shader = NULL; 
 static char *ps3_path_rom_dir = NULL; 
 
+extern uint32_t mode_switch;
 
 static const resource_int_t resources_int[] = {
     { "DisplayDriveIndicators", 0, RES_EVENT_NO, NULL,
@@ -154,12 +155,10 @@ int ui_callback(void)
 {
 	static int one_more_redraw=0;
 
-	if (Emulator_GetMode() == MODE_EXIT) {
-		// handled by our atexit handler
-		//Emulator_Shutdown();
-		exit(0);
+	if (mode_switch == MODE_EXIT)
+	{
+		exit(0);	// handled by our atexit handler
 	}
-
 
 	// The callback only works correctly if the screen continuously updates.
 	// So we need to be sure the screen is updating, since the emulators vsync only occurs if
@@ -187,8 +186,6 @@ int ui_callback(void)
 		one_more_redraw--;
 		force_redraw();
 	}
-
-
 
 	return 0;
 }

@@ -2273,7 +2273,7 @@ void MenuMainLoop(void)
 	}
 
 
-	if (Emulator_GetMode() == MODE_OSK)
+	if (mode_switch == MODE_OSK)
 		menuStack.push(do_OSKMenu);
 	else
 	{
@@ -2296,7 +2296,7 @@ void MenuMainLoop(void)
 
 		cellSysutilCheckCallback();
 
-		if (Emulator_GetMode() == MODE_EXIT)
+		if (mode_switch == MODE_EXIT)
 		{
 			// Emulator_Shutdown will be called by our atexit handler
 			exit(0);
