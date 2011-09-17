@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "archdep.h"
+#include "arch/ps3/archdep.h"
 #include "cmdline.h"
 #include "lib.h"
 #include "resources.h"

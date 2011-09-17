@@ -35,7 +35,7 @@
    actually automake barfs if the source directory was already
    configured, so this should not be an issue anymore.  */
 
-#include <config.h> /* Automagically created by the `configure' script.  */
+//#include <config.h> /* Automagically created by the `configure' script.  */
 
 /* ------------------------------------------------------------------------- */
 
