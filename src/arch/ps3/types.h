@@ -30,6 +30,7 @@
 #ifndef VICE_TYPES_H
 #define VICE_TYPES_H
 
+#include <stdint.h>
 #include "vice.h"
 
 #define F_OK 0
@@ -42,15 +43,15 @@
 typedef signed char SIGNED_CHAR;
 
 #if SIZEOF_UNSIGNED_SHORT == 2
-typedef unsigned short WORD;
-typedef signed short SWORD;
+typedef uint16_t WORD;
+typedef int16_t SWORD;
 #else
 #error Cannot find a proper 16-bit type!
 #endif
 
 #if SIZEOF_UNSIGNED_INT == 4
-typedef unsigned int DWORD;
-typedef signed int SDWORD;
+typedef uint32_t DWORD;
+typedef int32_t SDWORD;
 #elif SIZEOF_UNSIGNED_LONG == 4
 typedef unsigned long DWORD;
 typedef signed long SDWORD;
@@ -84,8 +85,8 @@ typedef DWORD CLOCK;
 #define REGPARM3
 #endif
 
-#define vice_ptr_to_int(x) ((int)(long)(x))
-#define vice_ptr_to_uint(x) ((unsigned int)(unsigned long)(x))
+#define vice_ptr_to_int(x) ((int32_t)(long)(x))
+#define vice_ptr_to_uint(x) ((uint32_t)(unsigned long)(x))
 #define int_to_void_ptr(x) ((void *)(long)(x))
 #define uint_to_void_ptr(x) ((void *)(unsigned long)(x))
 
