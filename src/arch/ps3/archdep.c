@@ -363,17 +363,6 @@ int chdir(const char *path)
 	return 0;
 }
 
-extern void Emulator_Shutdown(void);
-
-void main_exit(void)
-{
-	#ifdef CELL_DEBUG
-	printf("machine_shutdown called from main_exit()\n");
-	#endif
-	machine_shutdown();
-	Emulator_Shutdown();
-}
-
 // TODO  No need for a 16 MB buffer. 
 #define FILEBUF_SIZE            16*1024*1024
 static unsigned char g_buf[FILEBUF_SIZE];

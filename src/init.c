@@ -58,7 +58,7 @@
 #include "resources.h"
 #include "romset.h"
 #include "screenshot.h"
-#include "signals.h"
+//#include "signals.h"
 #include "sysfile.h"
 #include "uiapi.h"
 #include "vdrive.h"
@@ -246,7 +246,7 @@ int init_cmdline_options(void)
 
 int init_main(void)
 {
-    signals_init(debug.do_core_dumps);
+    //signals_init(debug.do_core_dumps);
 
     romset_init();
 

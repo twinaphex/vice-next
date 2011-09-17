@@ -85,7 +85,7 @@ bool emulator_loaded = false;			// is emulator loaded?
 char* current_rom = NULL;			// current rom being emulated
 uint32_t mode_switch = MODE_MENU;		// mode the main loop is in
 
-static void emulator_shutdown(void)
+void emulator_shutdown(void)
 {
 	ps3_audio_suspend();
 	machine_shutdown();

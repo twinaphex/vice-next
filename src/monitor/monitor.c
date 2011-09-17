@@ -73,7 +73,7 @@
 #include "montypes.h"
 #include "resources.h"
 #include "screenshot.h"
-#include "signals.h"
+//#include "signals.h"
 #include "sysfile.h"
 #include "translate.h"
 #include "types.h"
@@ -2163,7 +2163,7 @@ static void monitor_open(void)
         }
     }
 
-    signals_abort_set();
+    //signals_abort_set();
 
     inside_monitor = TRUE;
     monitor_trap_triggered = FALSE;
@@ -2266,7 +2266,7 @@ static void monitor_close(int check)
 
     exit_mon = 0;
 
-    signals_abort_unset();
+    //signals_abort_unset();
 
     if (console_log->console_can_stay_open == 0)
                 mon_console_close_on_leaving = 1;

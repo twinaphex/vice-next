@@ -98,7 +98,7 @@ int main_program(int argc, char **argv)
 
 	archdep_init(&argc, argv);
 
-	if (atexit(main_exit) < 0) {
+	if (atexit(emulator_shutdown) < 0) {
 		archdep_startup_log_error("atexit");
 		return -1;
 	}

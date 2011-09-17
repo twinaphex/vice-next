@@ -28,7 +28,7 @@
 #define VICE_MAIN_H
 
 int main_program(int argc, char **argv);
-extern void main_exit(void);
+extern void emulator_shutdown(void);
 
 #endif
 
