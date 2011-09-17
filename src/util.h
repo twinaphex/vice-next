@@ -44,8 +44,8 @@
 extern char *util_concat(const char *s1, ...);
 extern void util_addline(char **list, const char *line);
 extern void util_addline_free(char **list, char *line);
-extern BYTE *util_bufcat(BYTE *buf, int *buf_size, size_t *max_buf_size,
-                         const BYTE *src, int src_size);
+extern unsigned char *util_bufcat(unsigned char *buf, int *buf_size, size_t *max_buf_size,
+                         const unsigned char *src, int src_size);
 extern void util_remove_spaces(char *s);
 extern void util_add_extension(char **name, const char *extension);
 extern char *util_add_extension_const(const char *filename,
@@ -56,9 +56,9 @@ extern char *util_get_extension(char *filename);
 
 extern size_t util_file_length(FILE *fd);
 extern int util_file_exists(const char *name);
-extern int util_file_load(const char *name, BYTE *dest, size_t size,
+extern int util_file_load(const char *name, unsigned char *dest, size_t size,
                           unsigned int load_flag);
-extern int util_file_save(const char *name, BYTE *src, int size);
+extern int util_file_save(const char *name, unsigned char *src, int size);
 
 extern int util_get_line(char *buf, int bufsize, FILE *f);
 extern void util_fname_split(const char *path, char **directory_return,
@@ -73,22 +73,22 @@ extern int util_check_null_string(const char *string);
 
 extern int util_check_filename_access(const char *filename);
 
-extern int util_dword_read(FILE *fd, DWORD *buf, size_t num);
-extern int util_dword_write(FILE *fd, DWORD *buf, size_t num);
+extern int util_dword_read(FILE *fd, unsigned long *buf, size_t num);
+extern int util_dword_write(FILE *fd, unsigned long *buf, size_t num);
 
-extern void util_dword_to_be_buf(BYTE *buf, DWORD data);
-extern void util_dword_to_le_buf(BYTE *buf, DWORD data);
-extern DWORD util_le_buf_to_dword(BYTE *buf);
-extern DWORD util_be_buf_to_dword(BYTE *buf);
+extern void util_dword_to_be_buf(unsigned char *buf, unsigned long data);
+extern void util_dword_to_le_buf(unsigned char *buf, unsigned long data);
+extern unsigned long util_le_buf_to_dword(unsigned char *buf);
+extern unsigned long util_be_buf_to_dword(unsigned char *buf);
 
-extern void util_int_to_be_buf4(BYTE *buf, int data);
-extern void util_int_to_le_buf4(BYTE *buf, int data);
-extern int util_le_buf4_to_int(BYTE *buf);
-extern int util_be_buf4_to_int(BYTE *buf);
+extern void util_int_to_be_buf4(unsigned char *buf, int data);
+extern void util_int_to_le_buf4(unsigned char *buf, int data);
+extern int util_le_buf4_to_int(unsigned char *buf);
+extern int util_be_buf4_to_int(unsigned char *buf);
 
-extern void util_word_to_be_buf(BYTE *buf, WORD data);
-extern void util_word_to_le_buf(BYTE *buf, WORD data);
-extern WORD util_le_buf_to_word(BYTE *buf);
+extern void util_word_to_be_buf(unsigned char *buf, unsigned short data);
+extern void util_word_to_le_buf(unsigned char *buf, unsigned short data);
+extern unsigned short util_le_buf_to_word(unsigned char *buf);
 
 extern char *util_find_prev_line(const char *text, const char *pos);
 extern char *util_find_next_line(const char *pos);

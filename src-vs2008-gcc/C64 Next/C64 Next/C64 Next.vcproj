@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-g -Wall -fno-exceptions -fno-rtti"
-				AdditionalIncludeDirectories="&quot;$(SN_PS3_PATH)\ppu\include\sn&quot;;&quot;$(SCE_PS3_ROOT)\target\ppu\include&quot;;&quot;$(SCE_PS3_ROOT)\target\common\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SN_PS3_PATH)\ppu\include\sn&quot;;&quot;$(SCE_PS3_ROOT)\target\ppu\include&quot;;&quot;$(SCE_PS3_ROOT)\target\common\include&quot;;&quot;$(SolutionDir)\..\..\..\src\arch\ps3&quot;;&quot;$(SolutionDir)\..\..\..\src\&quot;;&quot;$(SolutionDir)\..\..\..\src\sounddrv&quot;"
 				PreprocessorDefinitions="SN_TARGET_PS3;_DEBUG;__GCC__;__CELL_ASSERT__"
 				ProgramDataBaseFileName=""
 				CompileAs="0"

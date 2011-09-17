@@ -32,7 +32,7 @@
 
 #define ALARM_CONTEXT_MAX_PENDING_ALARMS 0x100
 
-typedef void (*alarm_callback_t)(CLOCK offset, void *data);
+typedef void (*alarm_callback_t)(unsigned long offset, void *data);
 
 /* An alarm.  */
 struct alarm_s {
@@ -62,7 +62,7 @@ struct pending_alarms_s {
     struct alarm_s *alarm;
 
     /* Clock tick at which this alarm should be activated.  */
-    CLOCK clk;
+    unsigned long clk;
 };
 typedef struct pending_alarms_s pending_alarms_t;
 
@@ -80,7 +80,7 @@ struct alarm_context_s {
     unsigned int num_pending_alarms;
 
     /* Clock tick for the next pending alarm.  */
-    CLOCK next_pending_alarm_clk;
+    unsigned long next_pending_alarm_clk;
 
     /* Pending alarm number.  */
     int next_pending_alarm_idx;
@@ -92,7 +92,7 @@ typedef struct alarm_context_s alarm_context_t;
 extern alarm_context_t *alarm_context_new(const char *name);
 extern void alarm_context_init(alarm_context_t *context, const char *name);
 extern void alarm_context_destroy(alarm_context_t *context);
-extern void alarm_context_time_warp(alarm_context_t *context, CLOCK warp_amount,
+extern void alarm_context_time_warp(alarm_context_t *context, unsigned long warp_amount,
                                     int warp_direction);
 extern alarm_t *alarm_new(alarm_context_t *context, const char *name,
                           alarm_callback_t callback, void *data);
@@ -104,21 +104,21 @@ extern void alarm_log_too_many_alarms(void);
 
 /* Inline functions.  */
 
-inline static CLOCK alarm_context_next_pending_clk(alarm_context_t *context)
+inline static unsigned long alarm_context_next_pending_clk(alarm_context_t *context)
 {
     return context->next_pending_alarm_clk;
 }
 
 inline static void alarm_context_update_next_pending(alarm_context_t *context)
 {
-    CLOCK next_pending_alarm_clk = (CLOCK)~0L;
+    unsigned long next_pending_alarm_clk = (unsigned long)~0L;
     unsigned int next_pending_alarm_idx;
     unsigned int i;
 
     next_pending_alarm_idx = context->next_pending_alarm_idx;
 
     for (i = 0; i < context->num_pending_alarms; i++) {
-        CLOCK pending_clk = context->pending_alarms[i].clk;
+        unsigned long pending_clk = context->pending_alarms[i].clk;
 
         if (pending_clk <= next_pending_alarm_clk) {
             next_pending_alarm_clk = pending_clk;
@@ -131,13 +131,13 @@ inline static void alarm_context_update_next_pending(alarm_context_t *context)
 }
 
 inline static void alarm_context_dispatch(alarm_context_t *context,
-                                          CLOCK cpu_clk)
+                                          unsigned long cpu_clk)
 {
-    CLOCK offset;
+    unsigned long offset;
     unsigned int idx;
     alarm_t *alarm;
 
-    offset = (CLOCK)(cpu_clk - context->next_pending_alarm_clk);
+    offset = (unsigned long)(cpu_clk - context->next_pending_alarm_clk);
 
     idx = context->next_pending_alarm_idx;
     alarm = context->pending_alarms[idx].alarm;
@@ -145,7 +145,7 @@ inline static void alarm_context_dispatch(alarm_context_t *context,
     (alarm->callback)(offset, alarm->data);
 }
 
-inline static void alarm_set(alarm_t *alarm, CLOCK cpu_clk)
+inline static void alarm_set(alarm_t *alarm, unsigned long cpu_clk)
 {
     alarm_context_t *context;
     int idx;

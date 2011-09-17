@@ -28,7 +28,7 @@
 #ifndef VICE_ARCHDEP_H
 #define VICE_ARCHDEP_H
 
-#include "archapi.h"
+#include "../../archapi.h"
 
 /* Filesystem dependant operators.  */
 #define FSDEVICE_DEFAULT_DIR "."

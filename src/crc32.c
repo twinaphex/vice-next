@@ -29,7 +29,7 @@
 
 #include <stdio.h>
 
-#include "archdep.h"
+#include "arch/ps3/archdep.h"
 #include "crc32.h"
 #include "lib.h"
 #include "util.h"
