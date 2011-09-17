@@ -61,31 +61,15 @@ void mouse_set_input(int port)
 /* --------------------------------------------------------- */
 /* 1351 mouse */
 
-#if 0
-/* FIXME this is too simplistic as it doesn't take the sampling
-   period into account. Using this code breaks (at least) the
-   Final Cartridge III mouse code, hence disabling it for now.
-*/
 static BYTE mouse_get_1351_x(void)
 {
-    return (input_port == mouse_port) ? mousedrv_get_x() : 0xff;
+	return mousedrv_get_x();
 }
 
 static BYTE mouse_get_1351_y(void)
 {
-    return (input_port == mouse_port) ? mousedrv_get_y() : 0xff;
+	return mousedrv_get_y();
 }
-#else
-static BYTE mouse_get_1351_x(void)
-{
-    return mousedrv_get_x();
-}
-
-static BYTE mouse_get_1351_y(void)
-{
-    return mousedrv_get_y();
-}
-#endif
 
 /* --------------------------------------------------------- */
 /* NEOS mouse */
@@ -216,19 +200,6 @@ static void neosmouse_alarm_handler(CLOCK offset, void *data)
 /* Amiga mouse support (currently experimental) */
 
 static const BYTE amiga_mouse_table[4] = { 0x0, 0x1, 0x5, 0x4 };
-
-/* the method below results in alot of overflows */
-#if 0
-BYTE amiga_mouse_read(void)
-{
-    BYTE new_x, new_y;
-
-    new_x = mousedrv_get_x() / 2;
-    new_y = (-mousedrv_get_y()) / 2;
-
-    return (amiga_mouse_table[new_x & 3] << 1) | amiga_mouse_table[new_y & 3] | 0xf0;
-}
-#endif
 
 /* the alternate method below doesn't keep track of the speed of
    the mouse movements, just the direction.

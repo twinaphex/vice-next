@@ -42,9 +42,6 @@ int vsync_frame_counter;
 
 #include "vice.h"
 
-/* Port me... */
-#if (!defined(MSDOS) && !defined(RISCOS)) || (defined(RISCOS) && defined(USE_SDLUI))
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -321,11 +318,6 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 	signed long delay;
 	long frame_ticks_remainder, frame_ticks_integer, compval;
 
-#if (defined(WIN32) || defined(HAVE_OPENGL_SYNC)) && !defined(USE_SDLUI)
-	float refresh_cmp;
-	int refresh_div;
-#endif
-
 #ifdef HAVE_NETWORK
 	/* check if someone wants to connect remotely to the monitor */
 	monitor_check_remote();
@@ -393,7 +385,8 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 	}
 
 	/* Start afresh after "out of sync" cases. */
-	if (sync_reset) {
+	if (sync_reset)
+	{
 		sync_reset = 0;
 
 		adjust_start = now;
@@ -407,71 +400,45 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 
 	/* This is the time between the start of the next frame and now. */
 	delay = (signed long)(now - next_frame_start);
-#if (defined(WIN32) || defined(HAVE_OPENGL_SYNC)) && !defined(USE_SDLUI)
-	refresh_cmp = (float)(c->refreshrate / refresh_frequency);
-	refresh_div = (int)(refresh_cmp + 0.5f);
-	refresh_cmp /= (float)refresh_div;
+	/*
+	 * We sleep until the start of the next frame, if:
+	 *  - warp_mode is disabled
+	 *  - a limiting speed is given
+	 *  - we have not reached next_frame_start yet
+	 *
+	 * We could optimize by sleeping only if a frame is to be output.
+	 */
+	if (!warp_mode_enabled && timer_speed && delay < 0)
+		vsyncarch_sleep(-delay);
+	/*
+	 * Check whether we should skip the next frame or not.
+	 * Allow delay of up to one frame before skipping frames.
+	 * Frames are skipped:
+	 *  - only if maximum skipped frames are not reached
+	 *  - if warp_mode enabled
+	 *  - if speed is not limited or we are too slow and
+	 *    refresh rate is automatic or fixed and needs correction
+	 *
+	 * Remark: The time_deviation should be the equivalent of two
+	 *         frames and must be scaled to make sure, that we
+	 *         don't start skipping frames before the CPU reaches 100%.
+	 *         If we are becoming faster a small deviation because of
+	 *         threading results in a frame rate correction suddenly.
+	 */
+	frame_ticks_remainder = frame_ticks % 100;
+	frame_ticks_integer = frame_ticks / 100;
+	compval = frame_ticks_integer * 3 * timer_speed + frame_ticks_remainder * 3 * timer_speed / 100;
 
-	if ((timer_speed == 100) && (!warp_mode_enabled) &&
-			vsyncarch_vbl_sync_enabled() &&
-			(refresh_cmp <= 1.02f) && (refresh_cmp > 0.98f) &&
-			(refresh_div == 1)) {
-		vsyncarch_verticalblank(c, c->refreshrate, refresh_div);
+	if (skipped_redraw < MAX_SKIPPED_FRAMES && (warp_mode_enabled || (skipped_redraw < refresh_rate - 1) || ((!timer_speed || delay > compval) && !refresh_rate)))
+	{
+		skip_next_frame = 1;
+		skipped_redraw++;
+	}
+	else
+	{
 		skip_next_frame = 0;
 		skipped_redraw = 0;
-	} else {
-#endif
-		/*
-		 * We sleep until the start of the next frame, if:
-		 *  - warp_mode is disabled
-		 *  - a limiting speed is given
-		 *  - we have not reached next_frame_start yet
-		 *
-		 * We could optimize by sleeping only if a frame is to be output.
-		 */
-		if (!warp_mode_enabled && timer_speed && delay < 0)
-		{
-			vsyncarch_sleep(-delay);
-		}
-#if (defined(WIN32) || defined(HAVE_OPENGL_SYNC)) && !defined(USE_SDLUI)
-		vsyncarch_prepare_vbl();
-#endif
-		/*
-		 * Check whether we should skip the next frame or not.
-		 * Allow delay of up to one frame before skipping frames.
-		 * Frames are skipped:
-		 *  - only if maximum skipped frames are not reached
-		 *  - if warp_mode enabled
-		 *  - if speed is not limited or we are too slow and
-		 *    refresh rate is automatic or fixed and needs correction
-		 *
-		 * Remark: The time_deviation should be the equivalent of two
-		 *         frames and must be scaled to make sure, that we
-		 *         don't start skipping frames before the CPU reaches 100%.
-		 *         If we are becoming faster a small deviation because of
-		 *         threading results in a frame rate correction suddenly.
-		 */
-		frame_ticks_remainder = frame_ticks % 100;
-		frame_ticks_integer = frame_ticks / 100;
-		compval = frame_ticks_integer * 3 * timer_speed
-			+ frame_ticks_remainder * 3 * timer_speed / 100;
-		if (skipped_redraw < MAX_SKIPPED_FRAMES
-				&& (warp_mode_enabled
-					|| (skipped_redraw < refresh_rate - 1)
-					|| ((!timer_speed || delay > compval)
-						&& !refresh_rate
-					   )
-				   )
-		   ) {
-			skip_next_frame = 1;
-			skipped_redraw++;
-		} else {
-			skip_next_frame = 0;
-			skipped_redraw = 0;
-		}
-#if (defined(WIN32) || defined(HAVE_OPENGL_SYNC)) && !defined(USE_SDLUI)
 	}
-#endif
 
 	/*
 	 * Check whether the hardware can keep up.
@@ -524,54 +491,3 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 	vsyncarch_postsync();
 	return skip_next_frame;
 }
-
-#if (defined(WIN32) || defined (HAVE_OPENGL_SYNC)) && !defined(USE_SDLUI)
-
-static unsigned long last = 0;
-static unsigned long nosynccount = 0;
-
-void vsyncarch_verticalblank(video_canvas_t *c, float rate, int frames)
-{
-	unsigned long nowi, lastx, max, frm, vbl;
-
-	if (c->refreshrate <= 0.0f)
-		return;
-
-	nowi = vsyncarch_frequency();
-
-	/* calculate counter cycles per frame */
-	frm = (unsigned long)((float)(nowi * frames) / rate);
-
-	nowi = vsyncarch_gettime();
-
-	lastx = last - (frm * nosynccount);
-	max = (frm * 7) >> 3;
-	vbl = 0;
-	while (max >= (nowi - lastx))
-	{
-		vsyncarch_sync_with_raster(c);
-		nowi = vsyncarch_gettime();
-		vbl = 1;
-	}
-	if ((!vbl) && (nosynccount < 16))
-	{
-		nosynccount ++;
-	}
-	else
-	{
-		last = nowi;
-		nosynccount = 0;
-	}
-}
-
-void vsyncarch_prepare_vbl(void)
-{
-	/* keep vertical blank data prepared */
-	last = vsyncarch_gettime();
-	nosynccount = 0;
-}
-
-#endif /* WIN32 || HAVE_OPENGL_SYNC */
-
-#endif
-

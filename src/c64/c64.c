@@ -55,7 +55,9 @@
 #include "cia.h"
 #include "clkguard.h"
 #include "datasette.h"
+#ifdef DEBUG
 #include "debug.h"
+#endif
 #include "drive-cmdline-options.h"
 #include "drive-resources.h"
 #include "drive.h"
@@ -617,7 +619,9 @@ void machine_change_timing(int timeval)
 
 	vsync_set_machine_parameter(machine_timing.rfsh_per_sec, machine_timing.cycles_per_sec);
 	sound_set_machine_parameter(machine_timing.cycles_per_sec, machine_timing.cycles_per_rfsh);
+	#ifdef DEBUG
 	debug_set_machine_parameter(machine_timing.cycles_per_line, machine_timing.screen_lines);
+	#endif
 	drive_set_machine_parameter(machine_timing.cycles_per_sec);
 	serial_iec_device_set_machine_parameter(machine_timing.cycles_per_sec);
 	sid_set_machine_parameter(machine_timing.cycles_per_sec);

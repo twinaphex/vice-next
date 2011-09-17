@@ -32,7 +32,9 @@
 #include "autostart.h"
 #include "cmdline.h"
 #include "console.h"
+#ifdef DEBUG
 #include "debug.h"
+#endif
 #include "diskimage.h"
 #include "drive.h"
 #include "drivecpu.h"
@@ -121,10 +123,12 @@ int init_resources(void)
         init_resource_fail("event");
         return -1;
     }
+#ifdef DEBUG
     if (debug_resources_init() < 0) {
         init_resource_fail("debug");
         return -1;
     }
+#endif
     if (machine_resources_init() < 0) {
         init_resource_fail("machine");
         return -1;
