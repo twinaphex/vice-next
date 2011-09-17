@@ -124,12 +124,12 @@ void util_addline_free(char **list, char *line)
    malloc'ed block of `max_buf_size' bytes of which only the first `buf_size'
    ones are used.  If the `buf' is not large enough, realloc it.  Return a
    pointer to the new block.  */
-BYTE *util_bufcat(BYTE *buf, int *buf_size, size_t *max_buf_size,
-                  const BYTE *src, int src_size)
+unsigned char *util_bufcat(unsigned char *buf, int *buf_size, size_t *max_buf_size,
+                  const unsigned char *src, int src_size)
 {
 #define BUFCAT_GRANULARITY 0x1000
     if (*buf_size + src_size > (int)(*max_buf_size)) {
-        BYTE *new_buf;
+        unsigned char *new_buf;
 
         *max_buf_size = (((*buf_size + src_size) / BUFCAT_GRANULARITY + 1)
                         * BUFCAT_GRANULARITY);
@@ -334,7 +334,7 @@ size_t util_file_length(FILE *fd)
 
 /* Load the first `size' bytes of file named `name' into `dest'.  Return 0 on
    success, -1 on failure.  */
-int util_file_load(const char *name, BYTE *dest, size_t size,
+int util_file_load(const char *name, unsigned char *dest, size_t size,
                    unsigned int load_flag)
 {
     FILE *fd;
@@ -389,7 +389,7 @@ int util_file_load(const char *name, BYTE *dest, size_t size,
 /* Write the first `size' bytes of `src' into a newly created file `name'.
    If `name' already exists, it is replaced by the new one.  Returns 0 on
    success, -1 on failure.  */
-int util_file_save(const char *name, BYTE *src, int size)
+int util_file_save(const char *name, unsigned char *src, int size)
 {
     FILE *fd;
     size_t r;
@@ -496,29 +496,29 @@ void util_fname_split(const char *path, char **directory_return,
 
 /* ------------------------------------------------------------------------- */
 
-/*! \brief read an array of DWORDs (4 bytes) in low endian from a file
+/*! \brief read an array of unsigned longs (4 bytes) in low endian from a file
 
  \param fd
    file descriptor as obtained by fopen().
 
  \param buf
-   Pointer to a buffer where the DWORDs will be stored.
+   Pointer to a buffer where the unsigned longs will be stored.
 
  \param num
-   number of DWORD to read. buf is considered as an array defined
-   as DWORD buf[num].
+   number of unsigned long to read. buf is considered as an array defined
+   as unsigned long buf[num].
 
  \return
    0 on success, else -1.
 
  \remark
-   num is the number of DWORDs to read; it is *not* the
+   num is the number of unsigned longs to read; it is *not* the
    size of the buffer in bytes!
 */
-int util_dword_read(FILE *fd, DWORD *buf, size_t num)
+int util_dword_read(FILE *fd, unsigned long *buf, size_t num)
 {
     unsigned int i;
-    BYTE *tmpbuf;
+    unsigned char *tmpbuf;
 
     tmpbuf = lib_malloc(4 * num);
 
@@ -536,37 +536,37 @@ int util_dword_read(FILE *fd, DWORD *buf, size_t num)
     return 0;
 }
 
-/*! \brief write an array of DWORDs (4 bytes) in low endian to a file
+/*! \brief write an array of unsigned longs (4 bytes) in low endian to a file
 
  \param fd
    file descriptor as obtained by fopen().
 
  \param buf
-   Pointer to the array of DWORDs to be written to the file
+   Pointer to the array of unsigned longs to be written to the file
 
  \param num
-   number of DWORD to read. buf is considered as an array defined
-   as DWORD buf[num].
+   number of unsigned long to read. buf is considered as an array defined
+   as unsigned long buf[num].
 
  \return
    0 on success, else -1.
 
  \remark
-   num is the number of DWORDs to write; it is *not* the
+   num is the number of unsigned longs to write; it is *not* the
    size of the buffer in bytes!
 */
-int util_dword_write(FILE *fd, DWORD *buf, size_t num)
+int util_dword_write(FILE *fd, unsigned long *buf, size_t num)
 {
     unsigned int i;
-    BYTE *tmpbuf;
+    unsigned char *tmpbuf;
 
     tmpbuf = lib_malloc(4 * num);
 
     for (i = 0; i < num; i++) {
-        tmpbuf[i * 4] = (BYTE)(buf[i] & 0xff);
-        tmpbuf[i * 4 + 1] = (BYTE)((buf[i] >> 8) & 0xff);
-        tmpbuf[i * 4 + 2] = (BYTE)((buf[i] >> 16) & 0xff);
-        tmpbuf[i * 4 + 3] = (BYTE)((buf[i] >> 24) & 0xff);
+        tmpbuf[i * 4] = (unsigned char)(buf[i] & 0xff);
+        tmpbuf[i * 4 + 1] = (unsigned char)((buf[i] >> 8) & 0xff);
+        tmpbuf[i * 4 + 2] = (unsigned char)((buf[i] >> 16) & 0xff);
+        tmpbuf[i * 4 + 3] = (unsigned char)((buf[i] >> 24) & 0xff);
     }
 
     if (fwrite(tmpbuf, num, 4, fd) < 1) {
@@ -578,75 +578,75 @@ int util_dword_write(FILE *fd, DWORD *buf, size_t num)
     return 0;
 }
 
-void util_dword_to_be_buf(BYTE *buf, DWORD data)
+void util_dword_to_be_buf(unsigned char *buf, unsigned long data)
 {
-    buf[3] = (BYTE)(data & 0xff);
-    buf[2] = (BYTE)((data >> 8) & 0xff);
-    buf[1] = (BYTE)((data >> 16) & 0xff);
-    buf[0] = (BYTE)((data >> 24) & 0xff);
+    buf[3] = (unsigned char)(data & 0xff);
+    buf[2] = (unsigned char)((data >> 8) & 0xff);
+    buf[1] = (unsigned char)((data >> 16) & 0xff);
+    buf[0] = (unsigned char)((data >> 24) & 0xff);
 }
 
-void util_dword_to_le_buf(BYTE *buf, DWORD data)
+void util_dword_to_le_buf(unsigned char *buf, unsigned long data)
 {
-    buf[0] = (BYTE)(data & 0xff);
-    buf[1] = (BYTE)((data >> 8) & 0xff);
-    buf[2] = (BYTE)((data >> 16) & 0xff);
-    buf[3] = (BYTE)((data >> 24) & 0xff);
+    buf[0] = (unsigned char)(data & 0xff);
+    buf[1] = (unsigned char)((data >> 8) & 0xff);
+    buf[2] = (unsigned char)((data >> 16) & 0xff);
+    buf[3] = (unsigned char)((data >> 24) & 0xff);
 }
 
-DWORD util_le_buf_to_dword(BYTE *buf)
+unsigned long util_le_buf_to_dword(unsigned char *buf)
 {
-    DWORD data;
+    unsigned long data;
 
     data = buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
 
     return data;
 }
 
-DWORD util_be_buf_to_dword(BYTE *buf)
+unsigned long util_be_buf_to_dword(unsigned char *buf)
 {
-    DWORD data;
+    unsigned long data;
 
     data = buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
 
     return data;
 }
 
-void util_int_to_be_buf4(BYTE *buf, int data)
+void util_int_to_be_buf4(unsigned char *buf, int data)
 {
-    util_dword_to_be_buf(buf, (DWORD)data);
+    util_dword_to_be_buf(buf, (unsigned long)data);
 }
 
-void util_int_to_le_buf4(BYTE *buf, int data)
+void util_int_to_le_buf4(unsigned char *buf, int data)
 {
-    util_dword_to_le_buf(buf, (DWORD)data);
+    util_dword_to_le_buf(buf, (unsigned long)data);
 }
 
-int util_le_buf4_to_int(BYTE *buf)
+int util_le_buf4_to_int(unsigned char *buf)
 {
     return (int)util_le_buf_to_dword(buf);
 }
 
-int util_be_buf4_to_int(BYTE *buf)
+int util_be_buf4_to_int(unsigned char *buf)
 {
     return (int)util_be_buf_to_dword(buf);
 }
 
-void util_word_to_be_buf(BYTE *buf, WORD data)
+void util_word_to_be_buf(unsigned char *buf, unsigned short data)
 {
-    buf[1] = (BYTE)(data & 0xff);
-    buf[0] = (BYTE)((data >> 8) & 0xff);
+    buf[1] = (unsigned char)(data & 0xff);
+    buf[0] = (unsigned char)((data >> 8) & 0xff);
 }
 
-void util_word_to_le_buf(BYTE *buf, WORD data)
+void util_word_to_le_buf(unsigned char *buf, unsigned short data)
 {
-    buf[0] = (BYTE)(data & 0xff);
-    buf[1] = (BYTE)((data >> 8) & 0xff);
+    buf[0] = (unsigned char)(data & 0xff);
+    buf[1] = (unsigned char)((data >> 8) & 0xff);
 }
 
-WORD util_le_buf_to_word(BYTE *buf)
+unsigned short util_le_buf_to_word(unsigned char *buf)
 {
-    WORD data;
+    unsigned short data;
 
     data = buf[0] | (buf[1] << 8);
 

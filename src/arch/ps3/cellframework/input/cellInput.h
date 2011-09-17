@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <cell/pad.h>
+#include <sdk_version.h>
 
 #include <sys/cdefs.h>
 

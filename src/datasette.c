@@ -832,7 +832,7 @@ void datasette_toggle_write_bit(int write_bit)
 int datasette_write_snapshot(snapshot_t *s)
 {
     snapshot_module_t *m;
-    unsigned long alarm_clk = unsigned long_MAX;
+    unsigned long alarm_clk = CLOCK_MAX;
 
     m = snapshot_module_create(s, "DATASETTE", DATASETTE_SNAP_MAJOR,
                                DATASETTE_SNAP_MINOR);

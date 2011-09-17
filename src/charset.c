@@ -43,7 +43,7 @@
            cases, this function does not yet work for the general
            case (exotic platforms, unicode text).
 */
-static int test_lineend(BYTE *s)
+static int test_lineend(unsigned char *s)
 {
     if ((s[0] == '\r') && (s[1] == '\n')) {
         /* CRLF (Windows, DOS) */
@@ -58,9 +58,9 @@ static int test_lineend(BYTE *s)
     return 0;
 }
 
-BYTE *charset_petconvstring(BYTE *c, int dir)
+unsigned char *charset_petconvstring(unsigned char *c, int dir)
 {
-    BYTE *s = c, *d = c;
+    unsigned char *s = c, *d = c;
     int ch;
 
     switch (dir) {
@@ -106,7 +106,7 @@ BYTE *charset_petconvstring(BYTE *c, int dir)
           these are all codes that can not be converted between ascci and
           petscii anyway, so that isn't a real problem.
 */
-static BYTE petcii_fix_dupes(BYTE c)
+static unsigned char petcii_fix_dupes(unsigned char c)
 {
     if ((c >= 0x60) && (c <= 0x7f)) {
         return ((c - 0x60) + 0xc0);
@@ -116,7 +116,7 @@ static BYTE petcii_fix_dupes(BYTE c)
     return c;
 }
 
-BYTE charset_p_toascii(BYTE c, int cs)
+unsigned char charset_p_toascii(unsigned char c, int cs)
 {
     if (cs) {
         /* convert ctrl chars to "screencodes" (used by monitor) */
@@ -139,16 +139,16 @@ BYTE charset_p_toascii(BYTE c, int cs)
         return ' ';
     } else if ((c >= 0xc1) && (c <= 0xda)) {
         /* uppercase (petscii 0xc1 -) */
-        return (BYTE)((c - 0xc1) + 'A');
+        return (unsigned char)((c - 0xc1) + 'A');
     } else if ((c >= 0x41) && (c <= 0x5a)) {
         /* lowercase (petscii 0x41 -) */
-        return (BYTE)((c - 0x41) + 'a');
+        return (unsigned char)((c - 0x41) + 'a');
     }
 
     return ((isprint(c) ? c : '.'));
 }
 
-BYTE charset_p_topetcii(BYTE c)
+unsigned char charset_p_topetcii(unsigned char c)
 {
     /* map ascii to petscii */
     if (c == '\n') {
@@ -162,11 +162,11 @@ BYTE charset_p_topetcii(BYTE c)
         return 0x27; /* petscii "'" */
     } else if ((c >= 'a') && (c <= 'z')) {
         /* lowercase (petscii 0x41 -) */
-        return (BYTE)((c - 'a') + 0x41);
+        return (unsigned char)((c - 'a') + 0x41);
     } else if ((c >= 'A') && (c <= 'Z')) {
         /* uppercase (petscii 0xc1 -)
            (don't use duplicate codes 0x61 - ) */
-        return (BYTE)((c - 'A') + 0xc1);
+        return (unsigned char)((c - 'A') + 0xc1);
     } else if (c >= 0x7b) {
         /* last not least, ascii codes >= 0x7b can not be
            represented properly in petscii */
@@ -176,36 +176,36 @@ BYTE charset_p_topetcii(BYTE c)
     return petcii_fix_dupes(c);
 }
 
-BYTE charset_screencode_to_petcii(BYTE code)
+unsigned char charset_screencode_to_petcii(unsigned char code)
 {
     code &= 0x7f; /* mask inverse bit */
     if (code <= 0x1f) {
-        return (BYTE)(code + 0x40);
+        return (unsigned char)(code + 0x40);
     } else if (code >= 0x40 && code <= 0x5f) {
-        return (BYTE)(code + 0x20);
+        return (unsigned char)(code + 0x20);
     }
     return code;
 }
 
-BYTE charset_petcii_to_screencode(BYTE code, unsigned int reverse_mode)
+unsigned char charset_petcii_to_screencode(unsigned char code, unsigned int reverse_mode)
 {
-    BYTE rev = (reverse_mode ? 0x80 : 0x00);
+    unsigned char rev = (reverse_mode ? 0x80 : 0x00);
 
     if (code >= 0x40 && code <= 0x5f) {
-        return (BYTE)(code - 0x40) | rev;
+        return (unsigned char)(code - 0x40) | rev;
     } else if (code >= 0x60 && code <= 0x7f) {
-        return (BYTE)(code - 0x20) | rev;
+        return (unsigned char)(code - 0x20) | rev;
     } else if (code >= 0xa0 && code <= 0xbf) {
-        return (BYTE)(code - 0x40) | rev;
+        return (unsigned char)(code - 0x40) | rev;
     } else if (code >= 0xc0 && code <= 0xfe) {
-        return (BYTE)(code - 0x80) | rev;
+        return (unsigned char)(code - 0x80) | rev;
     } else if (code == 0xff) {
         return 0x5e | rev;
     }
     return code | rev;
 }
 
-void charset_petcii_to_screencode_line(const BYTE *line, BYTE **buf,
+void charset_petcii_to_screencode_line(const unsigned char *line, unsigned char **buf,
                                        unsigned int *len)
 {
     size_t linelen, i;

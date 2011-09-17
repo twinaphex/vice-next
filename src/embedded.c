@@ -62,33 +62,35 @@ static embedded_t commonfiles[] = {
   { NULL }
 };
 
-static size_t embedded_match_file(const char *name, BYTE *dest, int minsize, int maxsize, embedded_t *emb)
+static size_t embedded_match_file(const char *name, unsigned char *dest, int minsize, int maxsize, embedded_t *emb)
 {
-    int i = 0;
+	int i = 0;
 
-    while (emb[i].name != NULL) {
-        if (!strcmp(name, emb[i].name) && minsize == emb[i].minsize && maxsize == emb[i].maxsize) {
-            if (emb[i].esrc != NULL) {
-                if (emb[i].size != minsize) {
-                    memcpy(dest, emb[i].esrc, maxsize);
-                } else {
-                    memcpy(dest + maxsize - minsize, emb[i].esrc, minsize);
-                }
-            }
-            return emb[i].size;
-        }
-        i++;
-    }
-    return 0;
+	while (emb[i].name != NULL)
+	{
+		if (!strcmp(name, emb[i].name) && minsize == emb[i].minsize && maxsize == emb[i].maxsize)
+		{
+			if (emb[i].esrc != NULL)
+			{
+				if (emb[i].size != minsize)
+					memcpy(dest, emb[i].esrc, maxsize);
+				else
+					memcpy(dest + maxsize - minsize, emb[i].esrc, minsize);
+			}
+			return emb[i].size;
+		}
+		i++;
+	}
+	return 0;
 }
 
-size_t embedded_check_extra(const char *name, BYTE *dest, int minsize, int maxsize)
+size_t embedded_check_extra(const char *name, unsigned char *dest, int minsize, int maxsize)
 {
-    size_t retval;
+	size_t retval;
 
-    if ((retval = embedded_match_file(name, dest, minsize, maxsize, commonfiles)) != 0) {
-        return retval;
-    }
-    return 0;
+	if ((retval = embedded_match_file(name, dest, minsize, maxsize, commonfiles)) != 0)
+		return retval;
+
+	return 0;
 }
 #endif
