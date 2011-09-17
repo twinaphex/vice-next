@@ -77,7 +77,7 @@ int32_t CellInputFacade::UpdateDevice(uint8_t id)
 	int32_t ret = 0;
 
 	// get pad info
-#ifdef PS3_SDK_3_41
+#if(CELL_SDK_VERSION > 0x340000)
 	ret = cellPadGetInfo2 ( &PadInfo);
 #else
 	ret = cellPadGetInfo ( &PadInfo);
@@ -88,7 +88,7 @@ int32_t CellInputFacade::UpdateDevice(uint8_t id)
 		return false;
 	}
 
-#ifdef PS3_SDK_3_41
+#if(CELL_SDK_VERSION > 0x340000)
 	ret = PadInfo.port_status[id];
 #else
 	ret = PadInfo.status[id];
@@ -108,7 +108,7 @@ int32_t CellInputFacade::UpdateDevice(uint8_t id)
 
 uint32_t CellInputFacade::NumberPadsConnected()
 {
-#ifdef PS3_SDK_3_41
+#if(CELL_SDK_VERSION > 0x340000)
 	cellPadGetInfo2 ( &PadInfo);
 #else
 	cellPadGetInfo ( &PadInfo);

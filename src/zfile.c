@@ -45,9 +45,7 @@
 #include <zlib.h>
 #endif
 
-#ifdef PS3
 #define HAVE_ZIPLIB
-#endif
 
 #ifdef HAVE_ZIPLIB
 #include "unzip/unzip.h"
@@ -79,9 +77,7 @@
 enum compression_type {
     COMPR_NONE,
     COMPR_GZIP,
-#ifdef PS3
     COMPR_ZIP,
-#endif
     COMPR_BZIP,
     COMPR_ARCHIVE,
     COMPR_ZIPCODE,
@@ -252,8 +248,6 @@ static char *try_uncompress_with_gzip(const char *name)
 #endif
 }
 
-#ifdef PS3
-
 #define MAX_BUFFER_SIZE 524288
 
 int zipfile_entries(const char *name)
@@ -394,7 +388,6 @@ static char *try_uncompress_with_unzip(const char *name, int write_mode)
     ZDEBUG(("try_uncompress_archive: '%s' to `%s' successful.", filename, tmp_name));
     return tmp_name;
 }
-#endif
 
 
 
@@ -903,10 +896,8 @@ static enum compression_type try_uncompress(const char *name,
     if ((*tmp_name = try_uncompress_with_gzip(name)) != NULL)
         return COMPR_GZIP;
 
-#ifdef PS3
     if ((*tmp_name = try_uncompress_with_unzip(name, write_mode)) != NULL)
         return COMPR_ZIP;
-#endif
 
     if ((*tmp_name = try_uncompress_with_bzip(name)) != NULL)
         return COMPR_BZIP;

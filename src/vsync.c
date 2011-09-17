@@ -66,9 +66,7 @@ int vsync_frame_counter;
 #include "vsync.h"
 #include "vsyncapi.h"
 
-#ifdef PS3
 #include "sid.h"
-#endif
 
 /* ------------------------------------------------------------------------- */
 

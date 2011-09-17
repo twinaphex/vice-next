@@ -22,10 +22,11 @@
 #ifndef __CELL_INPUT_H__
 #define __CELL_INPUT_H__
 
+#include <cell/pad.h>
+#include <sdk_version.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <cell/pad.h>
 
 #include <sys/cdefs.h>
 
@@ -113,7 +114,7 @@ private:
 	CellPadData _oldPadData[MAX_PADS];
 	CellPadData _newPadData[MAX_PADS];
 
-#ifdef PS3_SDK_3_41
+#if(CELL_SDK_VERSION > 0x340000)
 	CellPadInfo2 PadInfo;
 #else
 	CellPadInfo PadInfo;

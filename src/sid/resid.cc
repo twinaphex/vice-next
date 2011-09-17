@@ -25,36 +25,17 @@
  *  02111-1307  USA.
  *
  */
+#include <sdk_version.h>
+
+#if(CELL_SDK_VERSION > 0x340000)
+#include <string>
+#else
+#include <string.h>
+#endif
 
 #include "vice.h"
 
-#ifdef WATCOM_COMPILE
-#define _STDIO_H_INCLUDED
-#include <cstdio>
-using std::FILE;
-using std::sprintf;
-#endif
-
-#ifdef PS3_SDK_1_92
-#include <string.h>
-#endif
-
-#ifdef PS3_SDK_3_41
-#include <string>
-#endif
-
 extern "C" {
-
-/* QNX has problems with const and inline definitions
-   in its string.h file when using g++ */
-
-#ifndef __QNX__ 
-#ifndef PS3_SDK_1_92
-#ifndef PS3_SDK_3_41
-#include <string.h>
-#endif
-#endif
-#endif
 
 #include "sid/sid.h" /* sid_engine_t */
 #include "lib.h"
@@ -80,17 +61,16 @@ typedef struct sound_s sound_t;
 
 static sound_t *resid_open(BYTE *sidstate)
 {
-    sound_t *psid;
-    int	i;
+	sound_t *psid;
+	int	i;
 
-    psid = new sound_t;
-    psid->sid = new RESID;
+	psid = new sound_t;
+	psid->sid = new RESID;
 
-    for (i = 0x00; i <= 0x18; i++) {
-	psid->sid->write(i, sidstate[i]);
-    }
+	for (i = 0x00; i <= 0x18; i++)
+		psid->sid->write(i, sidstate[i]);
 
-    return psid;
+	return psid;
 }
 
 static int resid_init(sound_t *psid, int speed, int cycles_per_sec)
@@ -188,29 +168,28 @@ static int resid_init(sound_t *psid, int speed, int cycles_per_sec)
 
 static void resid_close(sound_t *psid)
 {
-    delete psid->sid;
-    delete psid;
+	delete psid->sid;
+	delete psid;
 }
 
 static BYTE resid_read(sound_t *psid, WORD addr)
 {
-    return psid->sid->read(addr);
+	return psid->sid->read(addr);
 }
 
 static void resid_store(sound_t *psid, WORD addr, BYTE byte)
 {
-    psid->sid->write(addr, byte);
+	psid->sid->write(addr, byte);
 }
 
 static void resid_reset(sound_t *psid, CLOCK cpu_clk)
 {
-    psid->sid->reset();
+	psid->sid->reset();
 }
 
-static int resid_calculate_samples(sound_t *psid, SWORD *pbuf, int nr,
-                                   int interleave, int *delta_t)
+static int resid_calculate_samples(sound_t *psid, SWORD *pbuf, int nr, int interleave, int *delta_t)
 {
-    return psid->sid->clock(*delta_t, pbuf, nr, interleave);
+	return psid->sid->clock(*delta_t, pbuf, nr, interleave);
 }
 
 static void resid_prevent_clk_overflow(sound_t *psid, CLOCK sub)
@@ -219,76 +198,74 @@ static void resid_prevent_clk_overflow(sound_t *psid, CLOCK sub)
 
 static char *resid_dump_state(sound_t *psid)
 {
-    return lib_stralloc("");
+	return lib_stralloc("");
 }
 
 static void resid_state_read(sound_t *psid, sid_snapshot_state_t *sid_state)
 {
-    RESID::State state;
-    unsigned int i;
+	RESID::State state;
+	unsigned int i;
 
-    state = psid->sid->read_state();
+	state = psid->sid->read_state();
 
-    for (i = 0; i < 0x20; i++) {
-        sid_state->sid_register[i] = (BYTE)state.sid_register[i];
-    }
+	for (i = 0; i < 0x20; i++)
+		sid_state->sid_register[i] = (BYTE)state.sid_register[i];
 
-    sid_state->bus_value = (BYTE)state.bus_value;
-    sid_state->bus_value_ttl = (DWORD)state.bus_value_ttl;
-    for (i = 0; i < 3; i++) {
-        sid_state->accumulator[i] = (DWORD)state.accumulator[i];
-        sid_state->shift_register[i] = (DWORD)state.shift_register[i];
-        sid_state->rate_counter[i] = (WORD)state.rate_counter[i];
-        sid_state->rate_counter_period[i] = (WORD)state.rate_counter_period[i];
-        sid_state->exponential_counter[i] = (WORD)state.exponential_counter[i];
-        sid_state->exponential_counter_period[i] = (WORD)state.exponential_counter_period[i];
-        sid_state->envelope_counter[i] = (BYTE)state.envelope_counter[i];
-        sid_state->envelope_state[i] = (BYTE)state.envelope_state[i];
-        sid_state->hold_zero[i] = (BYTE)state.hold_zero[i];
-    }
+	sid_state->bus_value = (BYTE)state.bus_value;
+	sid_state->bus_value_ttl = (DWORD)state.bus_value_ttl;
+	for (i = 0; i < 3; i++) {
+		sid_state->accumulator[i] = (DWORD)state.accumulator[i];
+		sid_state->shift_register[i] = (DWORD)state.shift_register[i];
+		sid_state->rate_counter[i] = (WORD)state.rate_counter[i];
+		sid_state->rate_counter_period[i] = (WORD)state.rate_counter_period[i];
+		sid_state->exponential_counter[i] = (WORD)state.exponential_counter[i];
+		sid_state->exponential_counter_period[i] = (WORD)state.exponential_counter_period[i];
+		sid_state->envelope_counter[i] = (BYTE)state.envelope_counter[i];
+		sid_state->envelope_state[i] = (BYTE)state.envelope_state[i];
+		sid_state->hold_zero[i] = (BYTE)state.hold_zero[i];
+	}
 }
 
 static void resid_state_write(sound_t *psid, sid_snapshot_state_t *sid_state)
 {
-    RESID::State state;
-    unsigned int i;
+	RESID::State state;
+	unsigned int i;
 
-    for (i = 0; i < 0x20; i++) {
-        state.sid_register[i] = (char)sid_state->sid_register[i];
-    }
+	for (i = 0; i < 0x20; i++)
+		state.sid_register[i] = (char)sid_state->sid_register[i];
 
-    state.bus_value = (reg8)sid_state->bus_value;
-    state.bus_value_ttl = (cycle_count)sid_state->bus_value_ttl;
-    for (i = 0; i < 3; i++) {
-        state.accumulator[i] = (reg24)sid_state->accumulator[i];
-        state.shift_register[i] = (reg24)sid_state->shift_register[i];
-        state.rate_counter[i] = (reg16)sid_state->rate_counter[i];
-	if (sid_state->rate_counter_period[i])
-            state.rate_counter_period[i] = (reg16)sid_state->rate_counter_period[i];
-        state.exponential_counter[i] = (reg16)sid_state->exponential_counter[i];
-	if (sid_state->exponential_counter_period[i])
-            state.exponential_counter_period[i] = (reg16)sid_state->exponential_counter_period[i];
-        state.envelope_counter[i] = (reg8)sid_state->envelope_counter[i];
-        state.envelope_state[i] = (EnvelopeGenerator::State)sid_state->envelope_state[i];
-        state.hold_zero[i] = (sid_state->hold_zero[i] != 0);
-    }
+	state.bus_value = (reg8)sid_state->bus_value;
+	state.bus_value_ttl = (cycle_count)sid_state->bus_value_ttl;
+	for (i = 0; i < 3; i++) {
+		state.accumulator[i] = (reg24)sid_state->accumulator[i];
+		state.shift_register[i] = (reg24)sid_state->shift_register[i];
+		state.rate_counter[i] = (reg16)sid_state->rate_counter[i];
+		if (sid_state->rate_counter_period[i])
+			state.rate_counter_period[i] = (reg16)sid_state->rate_counter_period[i];
+		state.exponential_counter[i] = (reg16)sid_state->exponential_counter[i];
+		if (sid_state->exponential_counter_period[i])
+			state.exponential_counter_period[i] = (reg16)sid_state->exponential_counter_period[i];
+		state.envelope_counter[i] = (reg8)sid_state->envelope_counter[i];
+		state.envelope_state[i] = (EnvelopeGenerator::State)sid_state->envelope_state[i];
+		state.hold_zero[i] = (sid_state->hold_zero[i] != 0);
+	}
 
-    psid->sid->write_state((const RESID::State)state);
+	psid->sid->write_state((const RESID::State)state);
 }
 
 sid_engine_t resid_hooks =
 {
-    resid_open,
-    resid_init,
-    resid_close,
-    resid_read,
-    resid_store,
-    resid_reset,
-    resid_calculate_samples,
-    resid_prevent_clk_overflow,
-    resid_dump_state,
-    resid_state_read,
-    resid_state_write
+	resid_open,
+	resid_init,
+	resid_close,
+	resid_read,
+	resid_store,
+	resid_reset,
+	resid_calculate_samples,
+	resid_prevent_clk_overflow,
+	resid_dump_state,
+	resid_state_read,
+	resid_state_write
 };
 
 } // extern "C"

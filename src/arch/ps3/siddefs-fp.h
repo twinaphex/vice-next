@@ -53,11 +53,7 @@ const char* resid_version_string = VERSION;
 // Inlining on/off.
 #define RESID_INLINE inline
 
-#ifdef PS3
 #define RESID_USE_ALTIVEC 1
-#else
-#define RESID_USE_ALTIVEC 0
-#endif
 
 #if defined(__SSE__) || (defined(_MSC_VER) && (_MSC_VER >= 1300) && !defined(WINIA64))
 #define RESID_USE_SSE 1

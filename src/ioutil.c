@@ -63,9 +63,7 @@
 #include "snippets/dirport.h"
 #endif
 
-#ifdef PS3
 #include "arch/ps3/common.h"
-#endif
 
 #ifdef __NeXT__
 #include <sys/dir.h>
@@ -146,7 +144,6 @@ int ioutil_errno(unsigned int check)
 #if !defined(VMS) && !defined(__VAX)
 #if !defined(HAVE_GETCWD) && !defined(RISCOS)
 
-#ifdef PS3
 char *getcwd (char *buf, size_t len)
 {
     char ourbuf[PATH_MAX];
@@ -155,23 +152,6 @@ char *getcwd (char *buf, size_t len)
     strcpy (buf, VICE_USRDIR);
     return buf;
 }
-#else
-char *getcwd (char *buf, size_t len)
-{
-    char ourbuf[PATH_MAX];
-    char *result;
-
-    result = getwd (ourbuf);
-    if (result) {
-        if (strlen (ourbuf) >= len) {
-            errno = ERANGE;
-            return 0;
-        }
-        strcpy (buf, ourbuf);
-    }
-    return buf;
-}
-#endif
 
 
 #endif

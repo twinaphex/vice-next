@@ -10,15 +10,6 @@ STRIP = $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-strip
 
 include common_flags.mk
 
-# Required for SDK_3_41
-PPU_CFLAGS	+=	-DPS3_SDK_3_41 -DPS3
-PPU_CXXFLAGS	+=	-DPS3_SDK_3_41 -DPS3
-
-# Required for SDK_1_92
-#PPU_CFLAGS	+=	-DPS3_SDK_1_92 -DPS3
-#PPU_CXXFLAGS	+=	-DPS3_SDK_1_92 -DPS3
-
-
 PPU_CFLAGS	+=	-DPSGL -funroll-loops -DWORDS_BIGENDIAN 
 PPU_CXXFLAGS	+=	-DPSGL -funroll-loops -DWORDS_BIGENDIAN 
 

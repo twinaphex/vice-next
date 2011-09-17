@@ -164,7 +164,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 
 //TODO Check this
-#ifdef PS3_SDK_1_92
+#if(CELL_SDK_VERSION < 0x340000)
 #define fdopen(fd,mode) NULL /* No fdopen() */
 #endif
 

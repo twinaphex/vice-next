@@ -172,9 +172,7 @@ static int realize_canvas(raster_t *raster)
         raster->canvas->parent_raster = raster;
 #endif
 
-#ifdef PS3
         raster->canvas->parent_raster = raster;
-#endif
 
         video_canvas_create_set(raster->canvas);
     }

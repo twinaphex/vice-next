@@ -27,21 +27,13 @@
  *
  */
 
+#include <sdk_version.h>
 #include "vice.h"
 
-#ifdef WATCOM_COMPILE
-#define _STDIO_H_INCLUDED
-#include <cstdio>
-using std::FILE;
-using std::sprintf;
-#endif
-
-#ifdef PS3_SDK_1_92
-#include <string.h>
-#endif
-
-#ifdef PS3_SDK_3_41
+#if(CELL_SDK_VERSION > 0x340000)
 #include <string>
+#else
+#include <string.h>
 #endif
 
 /* resid itself is always compiled with C64DTV support */
@@ -53,11 +45,7 @@ extern "C" {
    in its string.h file when using g++ */
 
 #ifndef __QNX__
-#ifndef PS3_SDK_1_92
-#ifndef PS3_SDK_3_41
-#include <string.h>
-#endif
-#endif
+//#include <string.h>
 #endif
 
 #include "sid/sid.h" /* sid_engine_t */
@@ -239,7 +227,7 @@ static void residfp_prevent_clk_overflow(sound_t *psid, CLOCK sub)
 
 static char *residfp_dump_state(sound_t *psid)
 {
-    return lib_stralloc("");
+	return lib_stralloc("");
 }
 
 static void residfp_state_read(sound_t *psid, sid_snapshot_state_t *sid_state)
@@ -303,17 +291,17 @@ static void residfp_state_write(sound_t *psid, sid_snapshot_state_t *sid_state)
 
 sid_engine_t residfp_hooks =
 {
-    residfp_open,
-    residfp_init,
-    residfp_close,
-    residfp_read,
-    residfp_store,
-    residfp_reset,
-    residfp_calculate_samples,
-    residfp_prevent_clk_overflow,
-    residfp_dump_state,
-    residfp_state_read,
-    residfp_state_write
+	residfp_open,
+	residfp_init,
+	residfp_close,
+	residfp_read,
+	residfp_store,
+	residfp_reset,
+	residfp_calculate_samples,
+	residfp_prevent_clk_overflow,
+	residfp_dump_state,
+	residfp_state_read,
+	residfp_state_write
 };
 
 } // extern "C"
