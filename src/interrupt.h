@@ -92,7 +92,7 @@ struct interrupt_cpu_status_s {
     int trap;
 
     /* Debugging function.  */
-    void (*trap_func)(WORD, void *data);
+    void (*trap_func)(unsigned short, void *data);
 
     /* Data to pass to the debugging function when called.  */
     void *trap_data;
@@ -261,9 +261,9 @@ extern unsigned int interrupt_cpu_status_int_new(interrupt_cpu_status_t *cs,
 extern void interrupt_ack_reset(interrupt_cpu_status_t *cs);
 extern void interrupt_set_reset_trap_func(interrupt_cpu_status_t *cs,
                                         void (*reset_trap_func)(void));
-extern void interrupt_maincpu_trigger_trap(void (*trap_func)(WORD,
+extern void interrupt_maincpu_trigger_trap(void (*trap_func)(unsigned short,
                                            void *data), void *data);
-extern void interrupt_do_trap(interrupt_cpu_status_t *cs, WORD address);
+extern void interrupt_do_trap(interrupt_cpu_status_t *cs, unsigned short address);
 
 extern void interrupt_monitor_trap_on(interrupt_cpu_status_t *cs);
 extern void interrupt_monitor_trap_off(interrupt_cpu_status_t *cs);

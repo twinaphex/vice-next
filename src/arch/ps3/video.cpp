@@ -46,7 +46,7 @@ extern "C" {
 #include "video.h"
 #include "videoarch.h"
 
-BYTE *screenbuffer = NULL;
+unsigned char *screenbuffer = NULL;
 
 video_canvas_t *last_canvas;
 
@@ -231,7 +231,7 @@ void video_canvas_refresh(video_canvas_t *canvas, unsigned int xs, unsigned int 
 	if (last_canvas != canvas)
 		last_canvas = canvas;
 
-	video_canvas_render(canvas, (BYTE *)screenbuffer, w, h, xs, ys, xi, yi, canvas->bytes_per_line, canvas->depth);
+	video_canvas_render(canvas, (unsigned char *)screenbuffer, w, h, xs, ys, xi, yi, canvas->bytes_per_line, canvas->depth);
 
 	set_last_redraw();
 	Graphics->Draw (canvas->width, canvas->height, (std::uint16_t *)screenbuffer);

@@ -29,7 +29,7 @@
 
 #include "types.h"
 
-extern void dma_maincpu_steal_cycles(CLOCK start_clk, int num, CLOCK sub);
+extern void dma_maincpu_steal_cycles(unsigned long start_clk, int num, unsigned long sub);
 
 #endif
 
