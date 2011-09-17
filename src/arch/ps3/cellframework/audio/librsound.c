@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <stdarg.h>
 #include <sys/poll.h>
 #include <time.h>
@@ -184,7 +183,6 @@ static inline int rsnd_format_to_samplesize ( enum rsd_format fmt )
 
 int rsd_samplesize( rsound_t *rd )
 {
-   assert(rd != NULL);
    return rd->samplesize;
 }
 
@@ -1119,7 +1117,6 @@ static int rsnd_reset(rsound_t *rd)
 
 int rsd_stop(rsound_t *rd)
 {
-   assert(rd != NULL);
    rsnd_stop_thread(rd);
 
    const char buf[] = "RSD    5 STOP";
@@ -1134,7 +1131,6 @@ int rsd_stop(rsound_t *rd)
 
 size_t rsd_write( rsound_t *rsound, const void* buf, size_t size)
 {
-   assert(rsound != NULL);
    if ( !rsound->ready_for_data )
    {
       return 0;
@@ -1165,12 +1161,6 @@ size_t rsd_write( rsound_t *rsound, const void* buf, size_t size)
 
 int rsd_start(rsound_t *rsound)
 {
-   assert(rsound != NULL);
-   assert(rsound->rate > 0);
-   assert(rsound->channels > 0);
-   assert(rsound->host != NULL);
-   assert(rsound->port != NULL);
-
    if ( rsnd_create_connection(rsound) < 0 )
    {
       return -1;
@@ -1182,8 +1172,6 @@ int rsd_start(rsound_t *rsound)
 
 int rsd_exec(rsound_t *rsound)
 {
-   assert(rsound != NULL);
-
    // Makes sure we have a working connection
    if ( rsound->conn.socket < 0 )
    {
@@ -1244,9 +1232,6 @@ int rsd_exec(rsound_t *rsound)
 /* ioctl()-ish param setting :D */
 int rsd_set_param(rsound_t *rd, enum rsd_settings option, void* param)
 {
-   assert(rd != NULL);
-   assert(param != NULL);
-
    switch(option)
    {
       case RSD_SAMPLERATE:
@@ -1336,7 +1321,6 @@ void rsd_delay_wait(rsound_t *rd)
 
 size_t rsd_pointer(rsound_t *rsound)
 {
-   assert(rsound != NULL);
    int ptr;
 
    ptr = rsnd_get_ptr(rsound);   
@@ -1346,7 +1330,6 @@ size_t rsd_pointer(rsound_t *rsound)
 
 size_t rsd_get_avail(rsound_t *rd)
 {
-   assert(rd != NULL);
    int ptr;
    ptr = rsnd_get_ptr(rd);
    return rd->buffer_size - ptr;
@@ -1354,7 +1337,6 @@ size_t rsd_get_avail(rsound_t *rd)
 
 size_t rsd_delay(rsound_t *rd)
 {
-   assert(rd != NULL);
    int ptr = rsnd_get_delay(rd);
    if ( ptr < 0 )
       ptr = 0;
@@ -1364,15 +1346,11 @@ size_t rsd_delay(rsound_t *rd)
 
 size_t rsd_delay_ms(rsound_t* rd)
 {
-   assert(rd);
-   assert(rd->rate > 0 && rd->channels > 0);
-
    return (rsd_delay(rd) * 1000) / ( rd->rate * rd->channels * rd->samplesize );
 }
 
 int rsd_pause(rsound_t* rsound, int enable)
 {
-   assert(rsound != NULL);
    if ( enable )
       return rsd_stop(rsound);
    else
@@ -1381,7 +1359,6 @@ int rsd_pause(rsound_t* rsound, int enable)
 
 int rsd_init(rsound_t** rsound)
 {
-   assert(rsound != NULL);
    *rsound = calloc(1, sizeof(rsound_t));
    if ( *rsound == NULL )
       return -1;
@@ -1447,7 +1424,6 @@ int rsd_simple_start(rsound_t** rsound, const char* host, const char* port, cons
 
 int rsd_free(rsound_t *rsound)
 {
-   assert(rsound != NULL);
    if (rsound->fifo_buffer)
       rsnd_fifo_free(rsound->fifo_buffer);
    if (rsound->host)

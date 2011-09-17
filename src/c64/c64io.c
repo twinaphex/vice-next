@@ -28,7 +28,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "c64io.h"
 #include "cartridge.h"
@@ -72,7 +71,6 @@ static void io_source_detach(io_source_detach_t *source)
                     DBG(("IO: io_source_detach id:%d name: %s\n", source->det_cartid, source->det_devname));
                 }
 #endif
-                assert(source->det_cartid != CARTRIDGE_CRT); /* CARTRIDGE_CRT is not allowed at this point */
                 cartridge_detach_image(source->det_cartid);
             }
             break;
@@ -250,7 +248,6 @@ io_source_list_t *c64io_register(io_source_t *device)
     io_source_list_t *current;
     io_source_list_t *retval = lib_malloc(sizeof(io_source_list_t));
 
-    assert(device != NULL);
     DBG(("IO: register id:%d name:%s\n", device->cart_id, device->name));
 
     if ((device->start_address & 0xff00) == 0xde00) {
@@ -274,7 +271,6 @@ void c64io_unregister(io_source_list_t *device)
 {
     io_source_list_t *prev;
 
-    assert(device != NULL);
     DBG(("IO: unregister id:%d name:%s\n", device->device->cart_id, device->device->name));
 
     prev = device->previous;

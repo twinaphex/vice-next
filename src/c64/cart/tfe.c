@@ -29,7 +29,6 @@
 
 #ifdef HAVE_TFE
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -215,12 +214,11 @@ static BYTE *tfe = NULL;
 #define TFE_ADDR_PP_DATA    0x0c /* RW PacketPage Data, Port 0 */
 #define TFE_ADDR_PP_DATA2   0x0e /* RW PacketPage Data, Port 1 - 32 bit only */    
 
-/* Makros for reading and writing the visible TFE register: */
+/* Macros for reading and writing the visible TFE register: */
 #define GET_TFE_8(_xxx_) (assert(_xxx_<TFE_COUNT_IO_REGISTER), tfe[_xxx_])
 
 #define SET_TFE_8(_xxx_, _val_)          \
     do {                                     \
-        assert(_xxx_<TFE_COUNT_IO_REGISTER); \
         tfe[_xxx_] = (_val_) & 0xff;         \
     } while (0)
 
@@ -228,7 +226,6 @@ static BYTE *tfe = NULL;
 
 #define SET_TFE_16(_xxx_, _val_)             \
     do {                                     \
-        assert(_xxx_<TFE_COUNT_IO_REGISTER); \
         tfe[_xxx_] = (_val_) & 0xff;         \
         tfe[_xxx_+1] = (_val_ >> 8) & 0xff;  \
     } while (0) 

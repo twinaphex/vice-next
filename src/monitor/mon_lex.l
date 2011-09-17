@@ -33,7 +33,6 @@
 
 #include "vice.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -389,7 +388,6 @@ void free_buffer(void)
 void make_buffer(char *str)
 {
     my_state = yy_scan_buffer(str, strlen(str) + 2);
-    assert(my_state);
 }
 
 static int yywrap(void)

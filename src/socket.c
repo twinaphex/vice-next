@@ -34,7 +34,6 @@
 
 #ifdef HAVE_NETWORK
 
-#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -264,10 +263,7 @@ static vice_network_socket_t * vice_network_alloc_new_socket(SOCKET sockfd)
         i = -1;
     }
 
-    assert(i >= 0);
-
     if (i >= 0) {
-        assert(socket_pool[i].used == 0);
 
         return_address = & socket_pool[i];
         memset(return_address, 0, sizeof * return_address);
@@ -348,11 +344,7 @@ static vice_network_socket_address_t * vice_network_alloc_new_socket_address(voi
         i = -1;
     }
 
-    assert(i >= 0);
-
     if (i >= 0) {
-        assert(address_pool[i].used == 0);
-
         return_address = & address_pool[i];
         initialize_socket_address(return_address);
     }
@@ -378,8 +370,6 @@ vice_network_socket_t * vice_network_server(const vice_network_socket_address_t 
 {
     int sockfd = INVALID_SOCKET;
     int error = 1;
-
-    assert(server_address != NULL);
 
     do {
         if (socket_init() < 0) {
@@ -429,8 +419,6 @@ vice_network_socket_t * vice_network_client(const vice_network_socket_address_t 
 {
     int sockfd = INVALID_SOCKET;
     int error = 1;
-
-    assert(server_address != NULL);
 
     do {
         if (socket_init() < 0) {
@@ -849,9 +837,6 @@ void vice_network_address_close(vice_network_socket_address_t * address)
 {
     if (address)
     {
-        assert(address->used == 1);
-        assert(((address_pool_usage & (1u << (address - address_pool))) != 0));
-
         address->used = 0;
         address_pool_usage &= ~ (1u << (address - address_pool));
     }
@@ -898,9 +883,6 @@ int vice_network_socket_close(vice_network_socket_t * sockfd)
     
     if (sockfd) {
         localsockfd = sockfd->sockfd;
-
-        assert(sockfd->used == 1);
-        assert(((socket_pool_usage & (1u << (sockfd - socket_pool))) != 0));
 
         sockfd->used = 0;
         socket_pool_usage &= ~ (1u << (sockfd - socket_pool));

@@ -26,7 +26,6 @@
 
 #include "vice.h"
 
-#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -593,7 +592,6 @@ static int write_chip_package(unsigned int length, unsigned int bankint, unsigne
     unsigned char bank = (unsigned char)bankint;
 
     /* make sure the above conversion did not remove significant bits */
-    assert(bankint == bank);
 
     chip_header[4] = 0;
     chip_header[5] = 0;

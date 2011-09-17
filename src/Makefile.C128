@@ -45,6 +45,6 @@ pkg-signed-cfw:
 	$(PKG_FINALIZE) vice-c128-ps3-cfw3.55.pkg
 
 common_flags.mk:	
-	echo "PPU_CFLAGS += -DEMU_C128" > ./common_flags.mk && echo "PPU_CXXFLAGS += -DEMU_C128" >> ./common_flags.mk
+	echo "PPU_CFLAGS += -DEMU_C128 -DNDEBUG=1" > ./common_flags.mk && echo "PPU_CXXFLAGS += -DEMU_C128 -DNDEBUG=1" >> ./common_flags.mk
 
 

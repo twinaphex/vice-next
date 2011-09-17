@@ -27,7 +27,6 @@
 
 #include "vice.h"
 
-#include <assert.h>
 #include <string.h>
 
 #include "charset.h"
@@ -37,61 +36,58 @@
 
 char *clipboard_read_screen_output(char *line_ending)
 {
-    char * outputbuffer = NULL;
+	char * outputbuffer = NULL;
 
-    do {
-        WORD base;
-        BYTE allrows, allcols;
-        unsigned int row, col;
-        unsigned int size;
-        unsigned int line_ending_length = (unsigned int)strlen(line_ending);
-        unsigned int i;
-        int bank;
-        char * p;
+	do {
+		WORD base;
+		BYTE allrows, allcols;
+		unsigned int row, col;
+		unsigned int size;
+		unsigned int line_ending_length = (unsigned int)strlen(line_ending);
+		unsigned int i;
+		int bank;
+		char * p;
 
-        mem_get_screen_parameter(&base, &allrows, &allcols, &bank);
+		mem_get_screen_parameter(&base, &allrows, &allcols, &bank);
 
-        size = allrows * (allcols + line_ending_length) + 1;
+		size = allrows * (allcols + line_ending_length) + 1;
 
-        outputbuffer = lib_malloc(size);
-        if (outputbuffer == NULL) {
-            break;
-        }
+		outputbuffer = lib_malloc(size);
+		if (outputbuffer == NULL) {
+			break;
+		}
 
-        p = outputbuffer;
+		p = outputbuffer;
 
-        for (row = 0; row < allrows; row++) {
-            char * last_non_whitespace = p - 1;
+		for (row = 0; row < allrows; row++) {
+			char * last_non_whitespace = p - 1;
 
-            for (col = 0; col < allcols; col++) {
-                BYTE data;
+			for (col = 0; col < allcols; col++) {
+				BYTE data;
 
-                data = mem_bank_peek(bank, base++, NULL);
-                data = charset_p_toascii(charset_screencode_to_petcii(data), 1);
+				data = mem_bank_peek(bank, base++, NULL);
+				data = charset_p_toascii(charset_screencode_to_petcii(data), 1);
 
-                if (data != ' ') {
-                    last_non_whitespace = p;
-                }
-                *p++ = data;
-            }
+				if (data != ' ') {
+					last_non_whitespace = p;
+				}
+				*p++ = data;
+			}
 
-            /* trim the line if there are only whitespace at the end */
+			/* trim the line if there are only whitespace at the end */
 
-            if (last_non_whitespace < p) {
-                p = last_non_whitespace + 1;
-            }
+			if (last_non_whitespace < p) {
+				p = last_non_whitespace + 1;
+			}
 
-            /* add a line-ending */
+			/* add a line-ending */
 
-            for (i = 0; i < line_ending_length; i++)
-              *p++ = line_ending[i];
-        }
+			for (i = 0; i < line_ending_length; i++)
+				*p++ = line_ending[i];
+		}
 
-        *p = 0;
+		*p = 0;
+	} while (0);
 
-        assert(p < outputbuffer + size);
-
-    } while (0);
-
-    return outputbuffer;
+	return outputbuffer;
 }

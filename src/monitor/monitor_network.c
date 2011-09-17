@@ -29,7 +29,6 @@
 
 #include "vice.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -160,13 +159,9 @@ char * monitor_network_get_command_line(void)
 				cr_end = cr_start;
 				cr_start = cr_temp;
 			}
-
-			assert(cr_start != NULL);
-			assert(cr_end != NULL);
 		}
 
 		if (cr_start) {
-			assert(cr_end != NULL);
 
 			*cr_start = 0;
 			p = lib_stralloc(buffer);

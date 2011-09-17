@@ -30,7 +30,6 @@
 
 #include "vice.h"
 
-#include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -521,8 +520,6 @@ int util_dword_read(FILE *fd, DWORD *buf, size_t num)
     unsigned int i;
     BYTE *tmpbuf;
 
-    assert( sizeof(DWORD) == 4);
-
     tmpbuf = lib_malloc(4 * num);
 
     if (fread(tmpbuf, num, 4, fd) < 4) {
@@ -562,8 +559,6 @@ int util_dword_write(FILE *fd, DWORD *buf, size_t num)
 {
     unsigned int i;
     BYTE *tmpbuf;
-
-    assert( sizeof(DWORD) == 4 );
 
     tmpbuf = lib_malloc(4 * num);
 

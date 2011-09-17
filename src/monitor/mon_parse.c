@@ -127,7 +127,6 @@ extern char *alloca();
 #  endif
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -194,7 +193,7 @@ extern int cur_len, last_len;
 
 
 /* Line 268 of yacc.c  */
-#line 198 "y.tab.c"
+#line 197 "y.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -523,7 +522,7 @@ typedef union YYSTYPE
 {
 
 /* Line 293 of yacc.c  */
-#line 127 "monitor/mon_parse.y"
+#line 126 "monitor/mon_parse.y"
 
     MON_ADDR a;
     MON_ADDR range[2];
@@ -538,7 +537,7 @@ typedef union YYSTYPE
 
 
 /* Line 293 of yacc.c  */
-#line 542 "y.tab.c"
+#line 541 "y.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -550,7 +549,7 @@ typedef union YYSTYPE
 
 
 /* Line 343 of yacc.c  */
-#line 554 "y.tab.c"
+#line 553 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -965,33 +964,33 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   186,   186,   187,   188,   191,   192,   195,   196,   197,
-     200,   201,   202,   203,   204,   205,   206,   207,   208,   209,
-     210,   211,   212,   215,   217,   219,   221,   223,   225,   227,
-     229,   231,   233,   235,   237,   239,   241,   243,   245,   247,
-     249,   251,   253,   255,   257,   259,   261,   264,   266,   268,
-     271,   276,   281,   283,   285,   287,   289,   291,   293,   295,
-     299,   306,   305,   308,   310,   312,   316,   318,   320,   322,
-     324,   326,   328,   330,   332,   334,   336,   338,   340,   342,
-     344,   346,   348,   350,   352,   354,   358,   363,   368,   374,
-     380,   385,   387,   389,   391,   396,   398,   400,   402,   404,
-     406,   408,   410,   412,   416,   418,   423,   425,   443,   445,
-     447,   449,   453,   455,   457,   459,   461,   463,   465,   467,
-     469,   471,   473,   475,   477,   479,   481,   483,   485,   487,
-     489,   491,   495,   497,   499,   501,   503,   505,   507,   509,
-     511,   513,   515,   517,   519,   521,   523,   527,   529,   531,
-     535,   537,   541,   545,   548,   549,   552,   553,   556,   557,
-     560,   561,   564,   565,   568,   569,   572,   576,   577,   580,
-     581,   584,   585,   587,   591,   592,   595,   600,   605,   615,
-     616,   619,   620,   621,   622,   623,   626,   628,   630,   631,
-     632,   633,   634,   635,   636,   639,   644,   646,   648,   650,
-     654,   660,   668,   669,   672,   673,   676,   677,   680,   681,
-     682,   685,   686,   689,   690,   691,   692,   695,   696,   697,
-     700,   701,   702,   703,   704,   707,   708,   709,   712,   722,
-     723,   726,   730,   735,   740,   745,   747,   749,   751,   752,
-     753,   754,   755,   756,   757,   759,   761,   763,   765,   766,
-     767,   768,   769,   770,   771,   772,   773,   774,   775,   776,
-     777,   778,   779,   780,   781,   782,   783
+       0,   185,   185,   186,   187,   190,   191,   194,   195,   196,
+     199,   200,   201,   202,   203,   204,   205,   206,   207,   208,
+     209,   210,   211,   214,   216,   218,   220,   222,   224,   226,
+     228,   230,   232,   234,   236,   238,   240,   242,   244,   246,
+     248,   250,   252,   254,   256,   258,   260,   263,   265,   267,
+     270,   275,   280,   282,   284,   286,   288,   290,   292,   294,
+     298,   305,   304,   307,   309,   311,   315,   317,   319,   321,
+     323,   325,   327,   329,   331,   333,   335,   337,   339,   341,
+     343,   345,   347,   349,   351,   353,   357,   362,   367,   373,
+     379,   384,   386,   388,   390,   395,   397,   399,   401,   403,
+     405,   407,   409,   411,   415,   417,   422,   424,   442,   444,
+     446,   448,   452,   454,   456,   458,   460,   462,   464,   466,
+     468,   470,   472,   474,   476,   478,   480,   482,   484,   486,
+     488,   490,   494,   496,   498,   500,   502,   504,   506,   508,
+     510,   512,   514,   516,   518,   520,   522,   526,   528,   530,
+     534,   536,   540,   544,   547,   548,   551,   552,   555,   556,
+     559,   560,   563,   564,   567,   568,   571,   575,   576,   579,
+     580,   583,   584,   586,   590,   591,   594,   599,   604,   614,
+     615,   618,   619,   620,   621,   622,   625,   627,   629,   630,
+     631,   632,   633,   634,   635,   638,   643,   645,   647,   649,
+     653,   659,   667,   668,   671,   672,   675,   676,   679,   680,
+     681,   684,   685,   688,   689,   690,   691,   694,   695,   696,
+     699,   700,   701,   702,   703,   706,   707,   708,   711,   721,
+     722,   725,   729,   734,   739,   744,   746,   748,   750,   751,
+     752,   753,   754,   755,   756,   758,   760,   762,   764,   765,
+     766,   767,   768,   769,   770,   771,   772,   773,   774,   775,
+     776,   777,   778,   779,   780,   781,   782
 };
 #endif
 
@@ -2527,217 +2526,217 @@ yyreduce:
         case 2:
 
 /* Line 1806 of yacc.c  */
-#line 186 "monitor/mon_parse.y"
+#line 185 "monitor/mon_parse.y"
     { (yyval.i) = 0; }
     break;
 
   case 3:
 
 /* Line 1806 of yacc.c  */
-#line 187 "monitor/mon_parse.y"
+#line 186 "monitor/mon_parse.y"
     { (yyval.i) = 0; }
     break;
 
   case 4:
 
 /* Line 1806 of yacc.c  */
-#line 188 "monitor/mon_parse.y"
+#line 187 "monitor/mon_parse.y"
     { new_cmd = 1; asm_mode = 0;  (yyval.i) = 0; }
     break;
 
   case 9:
 
 /* Line 1806 of yacc.c  */
-#line 197 "monitor/mon_parse.y"
+#line 196 "monitor/mon_parse.y"
     { return ERR_EXPECT_END_CMD; }
     break;
 
   case 22:
 
 /* Line 1806 of yacc.c  */
-#line 212 "monitor/mon_parse.y"
+#line 211 "monitor/mon_parse.y"
     { return ERR_BAD_CMD; }
     break;
 
   case 23:
 
 /* Line 1806 of yacc.c  */
-#line 216 "monitor/mon_parse.y"
+#line 215 "monitor/mon_parse.y"
     { mon_bank(e_default_space, NULL); }
     break;
 
   case 24:
 
 /* Line 1806 of yacc.c  */
-#line 218 "monitor/mon_parse.y"
+#line 217 "monitor/mon_parse.y"
     { mon_bank((yyvsp[(2) - (3)].i), NULL); }
     break;
 
   case 25:
 
 /* Line 1806 of yacc.c  */
-#line 220 "monitor/mon_parse.y"
+#line 219 "monitor/mon_parse.y"
     { mon_bank(e_default_space, (yyvsp[(2) - (3)].str)); }
     break;
 
   case 26:
 
 /* Line 1806 of yacc.c  */
-#line 222 "monitor/mon_parse.y"
+#line 221 "monitor/mon_parse.y"
     { mon_bank((yyvsp[(2) - (5)].i), (yyvsp[(4) - (5)].str)); }
     break;
 
   case 27:
 
 /* Line 1806 of yacc.c  */
-#line 224 "monitor/mon_parse.y"
+#line 223 "monitor/mon_parse.y"
     { mon_jump((yyvsp[(2) - (3)].a)); }
     break;
 
   case 28:
 
 /* Line 1806 of yacc.c  */
-#line 226 "monitor/mon_parse.y"
+#line 225 "monitor/mon_parse.y"
     { mon_display_io_regs(0); }
     break;
 
   case 29:
 
 /* Line 1806 of yacc.c  */
-#line 228 "monitor/mon_parse.y"
+#line 227 "monitor/mon_parse.y"
     { mon_display_io_regs((yyvsp[(2) - (3)].a)); }
     break;
 
   case 30:
 
 /* Line 1806 of yacc.c  */
-#line 230 "monitor/mon_parse.y"
+#line 229 "monitor/mon_parse.y"
     { monitor_cpu_type_set(""); }
     break;
 
   case 31:
 
 /* Line 1806 of yacc.c  */
-#line 232 "monitor/mon_parse.y"
+#line 231 "monitor/mon_parse.y"
     { monitor_cpu_type_set((yyvsp[(2) - (3)].str)); }
     break;
 
   case 32:
 
 /* Line 1806 of yacc.c  */
-#line 234 "monitor/mon_parse.y"
+#line 233 "monitor/mon_parse.y"
     { mon_cpuhistory(-1); }
     break;
 
   case 33:
 
 /* Line 1806 of yacc.c  */
-#line 236 "monitor/mon_parse.y"
+#line 235 "monitor/mon_parse.y"
     { mon_cpuhistory((yyvsp[(3) - (4)].i)); }
     break;
 
   case 34:
 
 /* Line 1806 of yacc.c  */
-#line 238 "monitor/mon_parse.y"
+#line 237 "monitor/mon_parse.y"
     { mon_instruction_return(); }
     break;
 
   case 35:
 
 /* Line 1806 of yacc.c  */
-#line 240 "monitor/mon_parse.y"
+#line 239 "monitor/mon_parse.y"
     { machine_write_snapshot((yyvsp[(2) - (3)].str),0,0,0); /* FIXME */ }
     break;
 
   case 36:
 
 /* Line 1806 of yacc.c  */
-#line 242 "monitor/mon_parse.y"
+#line 241 "monitor/mon_parse.y"
     { machine_read_snapshot((yyvsp[(2) - (3)].str), 0); }
     break;
 
   case 37:
 
 /* Line 1806 of yacc.c  */
-#line 244 "monitor/mon_parse.y"
+#line 243 "monitor/mon_parse.y"
     { mon_instructions_step(-1); }
     break;
 
   case 38:
 
 /* Line 1806 of yacc.c  */
-#line 246 "monitor/mon_parse.y"
+#line 245 "monitor/mon_parse.y"
     { mon_instructions_step((yyvsp[(3) - (4)].i)); }
     break;
 
   case 39:
 
 /* Line 1806 of yacc.c  */
-#line 248 "monitor/mon_parse.y"
+#line 247 "monitor/mon_parse.y"
     { mon_instructions_next(-1); }
     break;
 
   case 40:
 
 /* Line 1806 of yacc.c  */
-#line 250 "monitor/mon_parse.y"
+#line 249 "monitor/mon_parse.y"
     { mon_instructions_next((yyvsp[(3) - (4)].i)); }
     break;
 
   case 41:
 
 /* Line 1806 of yacc.c  */
-#line 252 "monitor/mon_parse.y"
+#line 251 "monitor/mon_parse.y"
     { mon_stack_up(-1); }
     break;
 
   case 42:
 
 /* Line 1806 of yacc.c  */
-#line 254 "monitor/mon_parse.y"
+#line 253 "monitor/mon_parse.y"
     { mon_stack_up((yyvsp[(3) - (4)].i)); }
     break;
 
   case 43:
 
 /* Line 1806 of yacc.c  */
-#line 256 "monitor/mon_parse.y"
+#line 255 "monitor/mon_parse.y"
     { mon_stack_down(-1); }
     break;
 
   case 44:
 
 /* Line 1806 of yacc.c  */
-#line 258 "monitor/mon_parse.y"
+#line 257 "monitor/mon_parse.y"
     { mon_stack_down((yyvsp[(3) - (4)].i)); }
     break;
 
   case 45:
 
 /* Line 1806 of yacc.c  */
-#line 260 "monitor/mon_parse.y"
+#line 259 "monitor/mon_parse.y"
     { mon_display_screen(); }
     break;
 
   case 47:
 
 /* Line 1806 of yacc.c  */
-#line 265 "monitor/mon_parse.y"
+#line 264 "monitor/mon_parse.y"
     { (monitor_cpu_for_memspace[default_memspace]->mon_register_print)(default_memspace); }
     break;
 
   case 48:
 
 /* Line 1806 of yacc.c  */
-#line 267 "monitor/mon_parse.y"
+#line 266 "monitor/mon_parse.y"
     { (monitor_cpu_for_memspace[(yyvsp[(2) - (3)].i)]->mon_register_print)((yyvsp[(2) - (3)].i)); }
     break;
 
   case 50:
 
 /* Line 1806 of yacc.c  */
-#line 272 "monitor/mon_parse.y"
+#line 271 "monitor/mon_parse.y"
     {
                         /* What about the memspace? */
                         mon_playback_init((yyvsp[(4) - (5)].str));
@@ -2747,7 +2746,7 @@ yyreduce:
   case 51:
 
 /* Line 1806 of yacc.c  */
-#line 277 "monitor/mon_parse.y"
+#line 276 "monitor/mon_parse.y"
     {
                         /* What about the memspace? */
                         mon_playback_init((yyvsp[(2) - (3)].str));
@@ -2757,56 +2756,56 @@ yyreduce:
   case 52:
 
 /* Line 1806 of yacc.c  */
-#line 282 "monitor/mon_parse.y"
+#line 281 "monitor/mon_parse.y"
     { mon_save_symbols((yyvsp[(2) - (5)].i), (yyvsp[(4) - (5)].str)); }
     break;
 
   case 53:
 
 /* Line 1806 of yacc.c  */
-#line 284 "monitor/mon_parse.y"
+#line 283 "monitor/mon_parse.y"
     { mon_save_symbols(e_default_space, (yyvsp[(2) - (3)].str)); }
     break;
 
   case 54:
 
 /* Line 1806 of yacc.c  */
-#line 286 "monitor/mon_parse.y"
+#line 285 "monitor/mon_parse.y"
     { mon_add_name_to_symbol_table((yyvsp[(2) - (5)].a), (yyvsp[(4) - (5)].str)); }
     break;
 
   case 55:
 
 /* Line 1806 of yacc.c  */
-#line 288 "monitor/mon_parse.y"
+#line 287 "monitor/mon_parse.y"
     { mon_remove_name_from_symbol_table(e_default_space, (yyvsp[(2) - (3)].str)); }
     break;
 
   case 56:
 
 /* Line 1806 of yacc.c  */
-#line 290 "monitor/mon_parse.y"
+#line 289 "monitor/mon_parse.y"
     { mon_remove_name_from_symbol_table((yyvsp[(2) - (5)].i), (yyvsp[(4) - (5)].str)); }
     break;
 
   case 57:
 
 /* Line 1806 of yacc.c  */
-#line 292 "monitor/mon_parse.y"
+#line 291 "monitor/mon_parse.y"
     { mon_print_symbol_table((yyvsp[(2) - (3)].i)); }
     break;
 
   case 58:
 
 /* Line 1806 of yacc.c  */
-#line 294 "monitor/mon_parse.y"
+#line 293 "monitor/mon_parse.y"
     { mon_print_symbol_table(e_default_space); }
     break;
 
   case 59:
 
 /* Line 1806 of yacc.c  */
-#line 296 "monitor/mon_parse.y"
+#line 295 "monitor/mon_parse.y"
     {
                         mon_add_name_to_symbol_table((yyvsp[(3) - (4)].a), mon_prepend_dot_to_name((yyvsp[(1) - (4)].str)));
                     }
@@ -2815,7 +2814,7 @@ yyreduce:
   case 60:
 
 /* Line 1806 of yacc.c  */
-#line 300 "monitor/mon_parse.y"
+#line 299 "monitor/mon_parse.y"
     {
                         mon_add_name_to_symbol_table((yyvsp[(3) - (5)].a), mon_prepend_dot_to_name((yyvsp[(1) - (5)].str)));
                     }
@@ -2824,182 +2823,182 @@ yyreduce:
   case 61:
 
 /* Line 1806 of yacc.c  */
-#line 306 "monitor/mon_parse.y"
+#line 305 "monitor/mon_parse.y"
     { mon_start_assemble_mode((yyvsp[(2) - (2)].a), NULL); }
     break;
 
   case 62:
 
 /* Line 1806 of yacc.c  */
-#line 307 "monitor/mon_parse.y"
+#line 306 "monitor/mon_parse.y"
     { }
     break;
 
   case 63:
 
 /* Line 1806 of yacc.c  */
-#line 309 "monitor/mon_parse.y"
+#line 308 "monitor/mon_parse.y"
     { mon_start_assemble_mode((yyvsp[(2) - (3)].a), NULL); }
     break;
 
   case 64:
 
 /* Line 1806 of yacc.c  */
-#line 311 "monitor/mon_parse.y"
+#line 310 "monitor/mon_parse.y"
     { mon_disassemble_lines((yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1]); }
     break;
 
   case 65:
 
 /* Line 1806 of yacc.c  */
-#line 313 "monitor/mon_parse.y"
+#line 312 "monitor/mon_parse.y"
     { mon_disassemble_lines(BAD_ADDR, BAD_ADDR); }
     break;
 
   case 66:
 
 /* Line 1806 of yacc.c  */
-#line 317 "monitor/mon_parse.y"
+#line 316 "monitor/mon_parse.y"
     { mon_memory_move((yyvsp[(2) - (5)].range)[0], (yyvsp[(2) - (5)].range)[1], (yyvsp[(4) - (5)].a)); }
     break;
 
   case 67:
 
 /* Line 1806 of yacc.c  */
-#line 319 "monitor/mon_parse.y"
+#line 318 "monitor/mon_parse.y"
     { mon_memory_compare((yyvsp[(2) - (5)].range)[0], (yyvsp[(2) - (5)].range)[1], (yyvsp[(4) - (5)].a)); }
     break;
 
   case 68:
 
 /* Line 1806 of yacc.c  */
-#line 321 "monitor/mon_parse.y"
+#line 320 "monitor/mon_parse.y"
     { mon_memory_fill((yyvsp[(2) - (5)].range)[0], (yyvsp[(2) - (5)].range)[1],(unsigned char *)(yyvsp[(4) - (5)].str)); }
     break;
 
   case 69:
 
 /* Line 1806 of yacc.c  */
-#line 323 "monitor/mon_parse.y"
+#line 322 "monitor/mon_parse.y"
     { mon_memory_hunt((yyvsp[(2) - (5)].range)[0], (yyvsp[(2) - (5)].range)[1],(unsigned char *)(yyvsp[(4) - (5)].str)); }
     break;
 
   case 70:
 
 /* Line 1806 of yacc.c  */
-#line 325 "monitor/mon_parse.y"
+#line 324 "monitor/mon_parse.y"
     { mon_memory_display((yyvsp[(2) - (5)].rt), (yyvsp[(4) - (5)].range)[0], (yyvsp[(4) - (5)].range)[1], DF_PETSCII); }
     break;
 
   case 71:
 
 /* Line 1806 of yacc.c  */
-#line 327 "monitor/mon_parse.y"
+#line 326 "monitor/mon_parse.y"
     { mon_memory_display(default_radix, (yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], DF_PETSCII); }
     break;
 
   case 72:
 
 /* Line 1806 of yacc.c  */
-#line 329 "monitor/mon_parse.y"
+#line 328 "monitor/mon_parse.y"
     { mon_memory_display(default_radix, BAD_ADDR, BAD_ADDR, DF_PETSCII); }
     break;
 
   case 73:
 
 /* Line 1806 of yacc.c  */
-#line 331 "monitor/mon_parse.y"
+#line 330 "monitor/mon_parse.y"
     { mon_memory_display_data((yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], 8, 8); }
     break;
 
   case 74:
 
 /* Line 1806 of yacc.c  */
-#line 333 "monitor/mon_parse.y"
+#line 332 "monitor/mon_parse.y"
     { mon_memory_display_data(BAD_ADDR, BAD_ADDR, 8, 8); }
     break;
 
   case 75:
 
 /* Line 1806 of yacc.c  */
-#line 335 "monitor/mon_parse.y"
+#line 334 "monitor/mon_parse.y"
     { mon_memory_display_data((yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], 24, 21); }
     break;
 
   case 76:
 
 /* Line 1806 of yacc.c  */
-#line 337 "monitor/mon_parse.y"
+#line 336 "monitor/mon_parse.y"
     { mon_memory_display_data(BAD_ADDR, BAD_ADDR, 24, 21); }
     break;
 
   case 77:
 
 /* Line 1806 of yacc.c  */
-#line 339 "monitor/mon_parse.y"
+#line 338 "monitor/mon_parse.y"
     { mon_memory_display(0, (yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], DF_PETSCII); }
     break;
 
   case 78:
 
 /* Line 1806 of yacc.c  */
-#line 341 "monitor/mon_parse.y"
+#line 340 "monitor/mon_parse.y"
     { mon_memory_display(0, BAD_ADDR, BAD_ADDR, DF_PETSCII); }
     break;
 
   case 79:
 
 /* Line 1806 of yacc.c  */
-#line 343 "monitor/mon_parse.y"
+#line 342 "monitor/mon_parse.y"
     { mon_memory_display(0, (yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], DF_SCREEN_CODE); }
     break;
 
   case 80:
 
 /* Line 1806 of yacc.c  */
-#line 345 "monitor/mon_parse.y"
+#line 344 "monitor/mon_parse.y"
     { mon_memory_display(0, BAD_ADDR, BAD_ADDR, DF_SCREEN_CODE); }
     break;
 
   case 81:
 
 /* Line 1806 of yacc.c  */
-#line 347 "monitor/mon_parse.y"
+#line 346 "monitor/mon_parse.y"
     { mon_memmap_zap(); }
     break;
 
   case 82:
 
 /* Line 1806 of yacc.c  */
-#line 349 "monitor/mon_parse.y"
+#line 348 "monitor/mon_parse.y"
     { mon_memmap_show(-1,BAD_ADDR,BAD_ADDR); }
     break;
 
   case 83:
 
 /* Line 1806 of yacc.c  */
-#line 351 "monitor/mon_parse.y"
+#line 350 "monitor/mon_parse.y"
     { mon_memmap_show((yyvsp[(3) - (4)].i),BAD_ADDR,BAD_ADDR); }
     break;
 
   case 84:
 
 /* Line 1806 of yacc.c  */
-#line 353 "monitor/mon_parse.y"
+#line 352 "monitor/mon_parse.y"
     { mon_memmap_show((yyvsp[(3) - (5)].i),(yyvsp[(4) - (5)].range)[0],(yyvsp[(4) - (5)].range)[1]); }
     break;
 
   case 85:
 
 /* Line 1806 of yacc.c  */
-#line 355 "monitor/mon_parse.y"
+#line 354 "monitor/mon_parse.y"
     { mon_memmap_save((yyvsp[(2) - (5)].str),(yyvsp[(4) - (5)].i)); }
     break;
 
   case 86:
 
 /* Line 1806 of yacc.c  */
-#line 359 "monitor/mon_parse.y"
+#line 358 "monitor/mon_parse.y"
     {
                       mon_breakpoint_add_checkpoint((yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], FALSE, FALSE,
                                                     FALSE, FALSE);
@@ -3009,7 +3008,7 @@ yyreduce:
   case 87:
 
 /* Line 1806 of yacc.c  */
-#line 364 "monitor/mon_parse.y"
+#line 363 "monitor/mon_parse.y"
     {
                       mon_breakpoint_add_checkpoint((yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], FALSE, FALSE,
                                                     FALSE, TRUE);
@@ -3019,7 +3018,7 @@ yyreduce:
   case 88:
 
 /* Line 1806 of yacc.c  */
-#line 369 "monitor/mon_parse.y"
+#line 368 "monitor/mon_parse.y"
     {
                       temp = mon_breakpoint_add_checkpoint((yyvsp[(2) - (5)].range)[0], (yyvsp[(2) - (5)].range)[1], FALSE,
                                                            FALSE, FALSE, FALSE);
@@ -3030,7 +3029,7 @@ yyreduce:
   case 89:
 
 /* Line 1806 of yacc.c  */
-#line 375 "monitor/mon_parse.y"
+#line 374 "monitor/mon_parse.y"
     {
                       mon_breakpoint_add_checkpoint((yyvsp[(4) - (5)].range)[0], (yyvsp[(4) - (5)].range)[1], FALSE,
                       ((yyvsp[(2) - (5)].i) == e_load || (yyvsp[(2) - (5)].i) == e_load_store),
@@ -3041,7 +3040,7 @@ yyreduce:
   case 90:
 
 /* Line 1806 of yacc.c  */
-#line 381 "monitor/mon_parse.y"
+#line 380 "monitor/mon_parse.y"
     {
                       mon_breakpoint_add_checkpoint((yyvsp[(2) - (3)].range)[0], (yyvsp[(2) - (3)].range)[1], TRUE, FALSE, FALSE,
                                                     FALSE);
@@ -3051,105 +3050,105 @@ yyreduce:
   case 91:
 
 /* Line 1806 of yacc.c  */
-#line 386 "monitor/mon_parse.y"
+#line 385 "monitor/mon_parse.y"
     { mon_breakpoint_print_checkpoints(); }
     break;
 
   case 92:
 
 /* Line 1806 of yacc.c  */
-#line 388 "monitor/mon_parse.y"
+#line 387 "monitor/mon_parse.y"
     { mon_breakpoint_print_checkpoints(); }
     break;
 
   case 93:
 
 /* Line 1806 of yacc.c  */
-#line 390 "monitor/mon_parse.y"
+#line 389 "monitor/mon_parse.y"
     { mon_breakpoint_print_checkpoints(); }
     break;
 
   case 94:
 
 /* Line 1806 of yacc.c  */
-#line 392 "monitor/mon_parse.y"
+#line 391 "monitor/mon_parse.y"
     { mon_breakpoint_print_checkpoints(); }
     break;
 
   case 95:
 
 /* Line 1806 of yacc.c  */
-#line 397 "monitor/mon_parse.y"
+#line 396 "monitor/mon_parse.y"
     { mon_breakpoint_switch_checkpoint(e_ON, (yyvsp[(2) - (3)].i)); }
     break;
 
   case 96:
 
 /* Line 1806 of yacc.c  */
-#line 399 "monitor/mon_parse.y"
+#line 398 "monitor/mon_parse.y"
     { mon_breakpoint_switch_checkpoint(e_OFF, (yyvsp[(2) - (3)].i)); }
     break;
 
   case 97:
 
 /* Line 1806 of yacc.c  */
-#line 401 "monitor/mon_parse.y"
+#line 400 "monitor/mon_parse.y"
     { mon_breakpoint_set_ignore_count((yyvsp[(2) - (3)].i), -1); }
     break;
 
   case 98:
 
 /* Line 1806 of yacc.c  */
-#line 403 "monitor/mon_parse.y"
+#line 402 "monitor/mon_parse.y"
     { mon_breakpoint_set_ignore_count((yyvsp[(2) - (5)].i), (yyvsp[(4) - (5)].i)); }
     break;
 
   case 99:
 
 /* Line 1806 of yacc.c  */
-#line 405 "monitor/mon_parse.y"
+#line 404 "monitor/mon_parse.y"
     { mon_breakpoint_delete_checkpoint((yyvsp[(2) - (3)].i)); }
     break;
 
   case 100:
 
 /* Line 1806 of yacc.c  */
-#line 407 "monitor/mon_parse.y"
+#line 406 "monitor/mon_parse.y"
     { mon_breakpoint_delete_checkpoint(-1); }
     break;
 
   case 101:
 
 /* Line 1806 of yacc.c  */
-#line 409 "monitor/mon_parse.y"
+#line 408 "monitor/mon_parse.y"
     { mon_breakpoint_set_checkpoint_condition((yyvsp[(2) - (5)].i), (yyvsp[(4) - (5)].cond_node)); }
     break;
 
   case 102:
 
 /* Line 1806 of yacc.c  */
-#line 411 "monitor/mon_parse.y"
+#line 410 "monitor/mon_parse.y"
     { mon_breakpoint_set_checkpoint_command((yyvsp[(2) - (5)].i), (yyvsp[(4) - (5)].str)); }
     break;
 
   case 103:
 
 /* Line 1806 of yacc.c  */
-#line 413 "monitor/mon_parse.y"
+#line 412 "monitor/mon_parse.y"
     { return ERR_EXPECT_STRING; }
     break;
 
   case 104:
 
 /* Line 1806 of yacc.c  */
-#line 417 "monitor/mon_parse.y"
+#line 416 "monitor/mon_parse.y"
     { sidefx = (((yyvsp[(2) - (3)].action) == e_TOGGLE) ? (sidefx ^ 1) : (yyvsp[(2) - (3)].action)); }
     break;
 
   case 105:
 
 /* Line 1806 of yacc.c  */
-#line 419 "monitor/mon_parse.y"
+#line 418 "monitor/mon_parse.y"
     {
                          mon_out("I/O side effects are %s\n",
                                    sidefx ? "enabled" : "disabled");
@@ -3159,14 +3158,14 @@ yyreduce:
   case 106:
 
 /* Line 1806 of yacc.c  */
-#line 424 "monitor/mon_parse.y"
+#line 423 "monitor/mon_parse.y"
     { default_radix = (yyvsp[(2) - (3)].rt); }
     break;
 
   case 107:
 
 /* Line 1806 of yacc.c  */
-#line 426 "monitor/mon_parse.y"
+#line 425 "monitor/mon_parse.y"
     {
                          const char *p;
 
@@ -3188,448 +3187,448 @@ yyreduce:
   case 108:
 
 /* Line 1806 of yacc.c  */
-#line 444 "monitor/mon_parse.y"
+#line 443 "monitor/mon_parse.y"
     { monitor_change_device((yyvsp[(2) - (3)].i)); }
     break;
 
   case 109:
 
 /* Line 1806 of yacc.c  */
-#line 446 "monitor/mon_parse.y"
+#line 445 "monitor/mon_parse.y"
     { mon_export(); }
     break;
 
   case 110:
 
 /* Line 1806 of yacc.c  */
-#line 448 "monitor/mon_parse.y"
+#line 447 "monitor/mon_parse.y"
     { mon_quit(); YYACCEPT; }
     break;
 
   case 111:
 
 /* Line 1806 of yacc.c  */
-#line 450 "monitor/mon_parse.y"
+#line 449 "monitor/mon_parse.y"
     { exit_mon = 1; YYACCEPT; }
     break;
 
   case 112:
 
 /* Line 1806 of yacc.c  */
-#line 454 "monitor/mon_parse.y"
+#line 453 "monitor/mon_parse.y"
     { mon_drive_execute_disk_cmd((yyvsp[(2) - (3)].str)); }
     break;
 
   case 113:
 
 /* Line 1806 of yacc.c  */
-#line 456 "monitor/mon_parse.y"
+#line 455 "monitor/mon_parse.y"
     { mon_out("\t%d\n",(yyvsp[(2) - (3)].i)); }
     break;
 
   case 114:
 
 /* Line 1806 of yacc.c  */
-#line 458 "monitor/mon_parse.y"
+#line 457 "monitor/mon_parse.y"
     { mon_command_print_help(NULL); }
     break;
 
   case 115:
 
 /* Line 1806 of yacc.c  */
-#line 460 "monitor/mon_parse.y"
+#line 459 "monitor/mon_parse.y"
     { mon_command_print_help((yyvsp[(2) - (3)].str)); }
     break;
 
   case 116:
 
 /* Line 1806 of yacc.c  */
-#line 462 "monitor/mon_parse.y"
+#line 461 "monitor/mon_parse.y"
     { printf("SYSTEM COMMAND: %s\n",(yyvsp[(2) - (3)].str)); }
     break;
 
   case 117:
 
 /* Line 1806 of yacc.c  */
-#line 464 "monitor/mon_parse.y"
+#line 463 "monitor/mon_parse.y"
     { mon_print_convert((yyvsp[(2) - (3)].i)); }
     break;
 
   case 118:
 
 /* Line 1806 of yacc.c  */
-#line 466 "monitor/mon_parse.y"
+#line 465 "monitor/mon_parse.y"
     { mon_change_dir((yyvsp[(2) - (3)].str)); }
     break;
 
   case 119:
 
 /* Line 1806 of yacc.c  */
-#line 468 "monitor/mon_parse.y"
+#line 467 "monitor/mon_parse.y"
     { mon_keyboard_feed((yyvsp[(2) - (3)].str)); }
     break;
 
   case 120:
 
 /* Line 1806 of yacc.c  */
-#line 470 "monitor/mon_parse.y"
+#line 469 "monitor/mon_parse.y"
     { mon_backtrace(); }
     break;
 
   case 121:
 
 /* Line 1806 of yacc.c  */
-#line 472 "monitor/mon_parse.y"
+#line 471 "monitor/mon_parse.y"
     { mon_show_dir((yyvsp[(2) - (3)].str)); }
     break;
 
   case 122:
 
 /* Line 1806 of yacc.c  */
-#line 474 "monitor/mon_parse.y"
+#line 473 "monitor/mon_parse.y"
     { mon_show_pwd(); }
     break;
 
   case 123:
 
 /* Line 1806 of yacc.c  */
-#line 476 "monitor/mon_parse.y"
+#line 475 "monitor/mon_parse.y"
     { mon_screenshot_save((yyvsp[(2) - (3)].str),-1); }
     break;
 
   case 124:
 
 /* Line 1806 of yacc.c  */
-#line 478 "monitor/mon_parse.y"
+#line 477 "monitor/mon_parse.y"
     { mon_screenshot_save((yyvsp[(2) - (5)].str),(yyvsp[(4) - (5)].i)); }
     break;
 
   case 125:
 
 /* Line 1806 of yacc.c  */
-#line 480 "monitor/mon_parse.y"
+#line 479 "monitor/mon_parse.y"
     { mon_resource_get((yyvsp[(2) - (3)].str)); }
     break;
 
   case 126:
 
 /* Line 1806 of yacc.c  */
-#line 482 "monitor/mon_parse.y"
+#line 481 "monitor/mon_parse.y"
     { mon_resource_set((yyvsp[(2) - (4)].str),(yyvsp[(3) - (4)].str)); }
     break;
 
   case 127:
 
 /* Line 1806 of yacc.c  */
-#line 484 "monitor/mon_parse.y"
+#line 483 "monitor/mon_parse.y"
     { mon_reset_machine(-1); }
     break;
 
   case 128:
 
 /* Line 1806 of yacc.c  */
-#line 486 "monitor/mon_parse.y"
+#line 485 "monitor/mon_parse.y"
     { mon_reset_machine((yyvsp[(3) - (4)].i)); }
     break;
 
   case 129:
 
 /* Line 1806 of yacc.c  */
-#line 488 "monitor/mon_parse.y"
+#line 487 "monitor/mon_parse.y"
     { mon_tape_ctrl((yyvsp[(3) - (4)].i)); }
     break;
 
   case 130:
 
 /* Line 1806 of yacc.c  */
-#line 490 "monitor/mon_parse.y"
+#line 489 "monitor/mon_parse.y"
     { mon_cart_freeze(); }
     break;
 
   case 131:
 
 /* Line 1806 of yacc.c  */
-#line 492 "monitor/mon_parse.y"
+#line 491 "monitor/mon_parse.y"
     { }
     break;
 
   case 132:
 
 /* Line 1806 of yacc.c  */
-#line 496 "monitor/mon_parse.y"
+#line 495 "monitor/mon_parse.y"
     { mon_file_load((yyvsp[(2) - (5)].str), (yyvsp[(3) - (5)].i), (yyvsp[(4) - (5)].a), FALSE); }
     break;
 
   case 133:
 
 /* Line 1806 of yacc.c  */
-#line 498 "monitor/mon_parse.y"
+#line 497 "monitor/mon_parse.y"
     { mon_file_load((yyvsp[(2) - (5)].str), (yyvsp[(3) - (5)].i), (yyvsp[(4) - (5)].a), TRUE); }
     break;
 
   case 134:
 
 /* Line 1806 of yacc.c  */
-#line 500 "monitor/mon_parse.y"
+#line 499 "monitor/mon_parse.y"
     { mon_file_save((yyvsp[(2) - (5)].str), (yyvsp[(3) - (5)].i), (yyvsp[(4) - (5)].range)[0], (yyvsp[(4) - (5)].range)[1], FALSE); }
     break;
 
   case 135:
 
 /* Line 1806 of yacc.c  */
-#line 502 "monitor/mon_parse.y"
+#line 501 "monitor/mon_parse.y"
     { return ERR_EXPECT_DEVICE_NUM; }
     break;
 
   case 136:
 
 /* Line 1806 of yacc.c  */
-#line 504 "monitor/mon_parse.y"
+#line 503 "monitor/mon_parse.y"
     { return ERR_EXPECT_ADDRESS; }
     break;
 
   case 137:
 
 /* Line 1806 of yacc.c  */
-#line 506 "monitor/mon_parse.y"
+#line 505 "monitor/mon_parse.y"
     { mon_file_save((yyvsp[(2) - (5)].str), (yyvsp[(3) - (5)].i), (yyvsp[(4) - (5)].range)[0], (yyvsp[(4) - (5)].range)[1], TRUE); }
     break;
 
   case 138:
 
 /* Line 1806 of yacc.c  */
-#line 508 "monitor/mon_parse.y"
+#line 507 "monitor/mon_parse.y"
     { return ERR_EXPECT_ADDRESS; }
     break;
 
   case 139:
 
 /* Line 1806 of yacc.c  */
-#line 510 "monitor/mon_parse.y"
+#line 509 "monitor/mon_parse.y"
     { mon_file_verify((yyvsp[(2) - (5)].str),(yyvsp[(3) - (5)].i),(yyvsp[(4) - (5)].a)); }
     break;
 
   case 140:
 
 /* Line 1806 of yacc.c  */
-#line 512 "monitor/mon_parse.y"
+#line 511 "monitor/mon_parse.y"
     { return ERR_EXPECT_ADDRESS; }
     break;
 
   case 141:
 
 /* Line 1806 of yacc.c  */
-#line 514 "monitor/mon_parse.y"
+#line 513 "monitor/mon_parse.y"
     { mon_drive_block_cmd(0,(yyvsp[(2) - (5)].i),(yyvsp[(3) - (5)].i),(yyvsp[(4) - (5)].a)); }
     break;
 
   case 142:
 
 /* Line 1806 of yacc.c  */
-#line 516 "monitor/mon_parse.y"
+#line 515 "monitor/mon_parse.y"
     { mon_drive_block_cmd(1,(yyvsp[(2) - (5)].i),(yyvsp[(3) - (5)].i),(yyvsp[(4) - (5)].a)); }
     break;
 
   case 143:
 
 /* Line 1806 of yacc.c  */
-#line 518 "monitor/mon_parse.y"
+#line 517 "monitor/mon_parse.y"
     { mon_drive_list(-1); }
     break;
 
   case 144:
 
 /* Line 1806 of yacc.c  */
-#line 520 "monitor/mon_parse.y"
+#line 519 "monitor/mon_parse.y"
     { mon_drive_list((yyvsp[(2) - (3)].i)); }
     break;
 
   case 145:
 
 /* Line 1806 of yacc.c  */
-#line 522 "monitor/mon_parse.y"
+#line 521 "monitor/mon_parse.y"
     { mon_attach((yyvsp[(2) - (4)].str),(yyvsp[(3) - (4)].i)); }
     break;
 
   case 146:
 
 /* Line 1806 of yacc.c  */
-#line 524 "monitor/mon_parse.y"
+#line 523 "monitor/mon_parse.y"
     { mon_detach((yyvsp[(2) - (3)].i)); }
     break;
 
   case 147:
 
 /* Line 1806 of yacc.c  */
-#line 528 "monitor/mon_parse.y"
+#line 527 "monitor/mon_parse.y"
     { mon_record_commands((yyvsp[(2) - (3)].str)); }
     break;
 
   case 148:
 
 /* Line 1806 of yacc.c  */
-#line 530 "monitor/mon_parse.y"
+#line 529 "monitor/mon_parse.y"
     { mon_end_recording(); }
     break;
 
   case 149:
 
 /* Line 1806 of yacc.c  */
-#line 532 "monitor/mon_parse.y"
+#line 531 "monitor/mon_parse.y"
     { mon_playback_init((yyvsp[(2) - (3)].str)); }
     break;
 
   case 150:
 
 /* Line 1806 of yacc.c  */
-#line 536 "monitor/mon_parse.y"
+#line 535 "monitor/mon_parse.y"
     { mon_memory_fill((yyvsp[(2) - (4)].a), BAD_ADDR, (unsigned char *)(yyvsp[(3) - (4)].str)); }
     break;
 
   case 151:
 
 /* Line 1806 of yacc.c  */
-#line 538 "monitor/mon_parse.y"
+#line 537 "monitor/mon_parse.y"
     { printf("Not yet.\n"); }
     break;
 
   case 152:
 
 /* Line 1806 of yacc.c  */
-#line 542 "monitor/mon_parse.y"
+#line 541 "monitor/mon_parse.y"
     { yydebug = 1; }
     break;
 
   case 153:
 
 /* Line 1806 of yacc.c  */
-#line 545 "monitor/mon_parse.y"
+#line 544 "monitor/mon_parse.y"
     { (yyval.str) = (yyvsp[(1) - (1)].str); }
     break;
 
   case 154:
 
 /* Line 1806 of yacc.c  */
-#line 548 "monitor/mon_parse.y"
+#line 547 "monitor/mon_parse.y"
     { (yyval.str) = (yyvsp[(1) - (1)].str); }
     break;
 
   case 155:
 
 /* Line 1806 of yacc.c  */
-#line 549 "monitor/mon_parse.y"
+#line 548 "monitor/mon_parse.y"
     { (yyval.str) = NULL; }
     break;
 
   case 157:
 
 /* Line 1806 of yacc.c  */
-#line 553 "monitor/mon_parse.y"
+#line 552 "monitor/mon_parse.y"
     { return ERR_EXPECT_FILENAME; }
     break;
 
   case 159:
 
 /* Line 1806 of yacc.c  */
-#line 557 "monitor/mon_parse.y"
+#line 556 "monitor/mon_parse.y"
     { return ERR_EXPECT_DEVICE_NUM; }
     break;
 
   case 160:
 
 /* Line 1806 of yacc.c  */
-#line 560 "monitor/mon_parse.y"
+#line 559 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 161:
 
 /* Line 1806 of yacc.c  */
-#line 561 "monitor/mon_parse.y"
+#line 560 "monitor/mon_parse.y"
     { (yyval.i) = e_load_store; }
     break;
 
   case 162:
 
 /* Line 1806 of yacc.c  */
-#line 564 "monitor/mon_parse.y"
+#line 563 "monitor/mon_parse.y"
     { (yyval.i) = new_reg(default_memspace, (yyvsp[(1) - (1)].reg)); }
     break;
 
   case 163:
 
 /* Line 1806 of yacc.c  */
-#line 565 "monitor/mon_parse.y"
+#line 564 "monitor/mon_parse.y"
     { (yyval.i) = new_reg((yyvsp[(1) - (2)].i), (yyvsp[(2) - (2)].reg)); }
     break;
 
   case 166:
 
 /* Line 1806 of yacc.c  */
-#line 573 "monitor/mon_parse.y"
+#line 572 "monitor/mon_parse.y"
     { (monitor_cpu_for_memspace[reg_memspace((yyvsp[(1) - (3)].i))]->mon_register_set_val)(reg_memspace((yyvsp[(1) - (3)].i)), reg_regid((yyvsp[(1) - (3)].i)), (WORD) (yyvsp[(3) - (3)].i)); }
     break;
 
   case 167:
 
 /* Line 1806 of yacc.c  */
-#line 576 "monitor/mon_parse.y"
+#line 575 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 168:
 
 /* Line 1806 of yacc.c  */
-#line 577 "monitor/mon_parse.y"
+#line 576 "monitor/mon_parse.y"
     { return ERR_EXPECT_BRKNUM; }
     break;
 
   case 170:
 
 /* Line 1806 of yacc.c  */
-#line 581 "monitor/mon_parse.y"
+#line 580 "monitor/mon_parse.y"
     { (yyval.range)[0] = (yyvsp[(1) - (1)].a); (yyval.range)[1] = BAD_ADDR; }
     break;
 
   case 171:
 
 /* Line 1806 of yacc.c  */
-#line 584 "monitor/mon_parse.y"
+#line 583 "monitor/mon_parse.y"
     { (yyval.range)[0] = (yyvsp[(1) - (3)].a); (yyval.range)[1] = (yyvsp[(3) - (3)].a); }
     break;
 
   case 172:
 
 /* Line 1806 of yacc.c  */
-#line 586 "monitor/mon_parse.y"
+#line 585 "monitor/mon_parse.y"
     { if (resolve_range(e_default_space, (yyval.range), (yyvsp[(1) - (1)].str))) return ERR_ADDR_TOO_BIG; }
     break;
 
   case 173:
 
 /* Line 1806 of yacc.c  */
-#line 588 "monitor/mon_parse.y"
+#line 587 "monitor/mon_parse.y"
     { if (resolve_range((yyvsp[(1) - (3)].i), (yyval.range), (yyvsp[(3) - (3)].str))) return ERR_ADDR_TOO_BIG; }
     break;
 
   case 174:
 
 /* Line 1806 of yacc.c  */
-#line 591 "monitor/mon_parse.y"
+#line 590 "monitor/mon_parse.y"
     { (yyval.a) = (yyvsp[(2) - (2)].a); }
     break;
 
   case 175:
 
 /* Line 1806 of yacc.c  */
-#line 592 "monitor/mon_parse.y"
+#line 591 "monitor/mon_parse.y"
     { (yyval.a) = BAD_ADDR; }
     break;
 
   case 176:
 
 /* Line 1806 of yacc.c  */
-#line 596 "monitor/mon_parse.y"
+#line 595 "monitor/mon_parse.y"
     {
              (yyval.a) = new_addr(e_default_space,(yyvsp[(1) - (1)].i));
              if (opt_asm) new_cmd = asm_mode = 1; 
@@ -3639,7 +3638,7 @@ yyreduce:
   case 177:
 
 /* Line 1806 of yacc.c  */
-#line 601 "monitor/mon_parse.y"
+#line 600 "monitor/mon_parse.y"
     {
              (yyval.a) = new_addr((yyvsp[(1) - (3)].i), (yyvsp[(3) - (3)].i));
              if (opt_asm) new_cmd = asm_mode = 1; 
@@ -3649,7 +3648,7 @@ yyreduce:
   case 178:
 
 /* Line 1806 of yacc.c  */
-#line 606 "monitor/mon_parse.y"
+#line 605 "monitor/mon_parse.y"
     {
              temp = mon_symbol_table_lookup_addr(e_default_space, (yyvsp[(1) - (1)].str));
              if (temp >= 0)
@@ -3662,105 +3661,105 @@ yyreduce:
   case 181:
 
 /* Line 1806 of yacc.c  */
-#line 619 "monitor/mon_parse.y"
+#line 618 "monitor/mon_parse.y"
     { (yyval.i) = e_comp_space; }
     break;
 
   case 182:
 
 /* Line 1806 of yacc.c  */
-#line 620 "monitor/mon_parse.y"
+#line 619 "monitor/mon_parse.y"
     { (yyval.i) = e_disk8_space; }
     break;
 
   case 183:
 
 /* Line 1806 of yacc.c  */
-#line 621 "monitor/mon_parse.y"
+#line 620 "monitor/mon_parse.y"
     { (yyval.i) = e_disk9_space; }
     break;
 
   case 184:
 
 /* Line 1806 of yacc.c  */
-#line 622 "monitor/mon_parse.y"
+#line 621 "monitor/mon_parse.y"
     { (yyval.i) = e_disk10_space; }
     break;
 
   case 185:
 
 /* Line 1806 of yacc.c  */
-#line 623 "monitor/mon_parse.y"
+#line 622 "monitor/mon_parse.y"
     { (yyval.i) = e_disk11_space; }
     break;
 
   case 186:
 
 /* Line 1806 of yacc.c  */
-#line 626 "monitor/mon_parse.y"
+#line 625 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); if (!CHECK_ADDR((yyvsp[(1) - (1)].i))) return ERR_ADDR_TOO_BIG; }
     break;
 
   case 187:
 
 /* Line 1806 of yacc.c  */
-#line 628 "monitor/mon_parse.y"
+#line 627 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 188:
 
 /* Line 1806 of yacc.c  */
-#line 630 "monitor/mon_parse.y"
+#line 629 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (3)].i) + (yyvsp[(3) - (3)].i); }
     break;
 
   case 189:
 
 /* Line 1806 of yacc.c  */
-#line 631 "monitor/mon_parse.y"
+#line 630 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (3)].i) - (yyvsp[(3) - (3)].i); }
     break;
 
   case 190:
 
 /* Line 1806 of yacc.c  */
-#line 632 "monitor/mon_parse.y"
+#line 631 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (3)].i) * (yyvsp[(3) - (3)].i); }
     break;
 
   case 191:
 
 /* Line 1806 of yacc.c  */
-#line 633 "monitor/mon_parse.y"
+#line 632 "monitor/mon_parse.y"
     { (yyval.i) = ((yyvsp[(3) - (3)].i)) ? ((yyvsp[(1) - (3)].i) / (yyvsp[(3) - (3)].i)) : 1; }
     break;
 
   case 192:
 
 /* Line 1806 of yacc.c  */
-#line 634 "monitor/mon_parse.y"
+#line 633 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(2) - (3)].i); }
     break;
 
   case 193:
 
 /* Line 1806 of yacc.c  */
-#line 635 "monitor/mon_parse.y"
+#line 634 "monitor/mon_parse.y"
     { return ERR_MISSING_CLOSE_PAREN; }
     break;
 
   case 194:
 
 /* Line 1806 of yacc.c  */
-#line 636 "monitor/mon_parse.y"
+#line 635 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 195:
 
 /* Line 1806 of yacc.c  */
-#line 640 "monitor/mon_parse.y"
+#line 639 "monitor/mon_parse.y"
     {
                (yyval.cond_node) = new_cond; (yyval.cond_node)->is_parenthized = FALSE;
                (yyval.cond_node)->child1 = (yyvsp[(1) - (3)].cond_node); (yyval.cond_node)->child2 = (yyvsp[(3) - (3)].cond_node); (yyval.cond_node)->operation = (yyvsp[(2) - (3)].cond_op);
@@ -3770,35 +3769,35 @@ yyreduce:
   case 196:
 
 /* Line 1806 of yacc.c  */
-#line 645 "monitor/mon_parse.y"
+#line 644 "monitor/mon_parse.y"
     { return ERR_INCOMPLETE_COMPARE_OP; }
     break;
 
   case 197:
 
 /* Line 1806 of yacc.c  */
-#line 647 "monitor/mon_parse.y"
+#line 646 "monitor/mon_parse.y"
     { (yyval.cond_node) = (yyvsp[(2) - (3)].cond_node); (yyval.cond_node)->is_parenthized = TRUE; }
     break;
 
   case 198:
 
 /* Line 1806 of yacc.c  */
-#line 649 "monitor/mon_parse.y"
+#line 648 "monitor/mon_parse.y"
     { return ERR_MISSING_CLOSE_PAREN; }
     break;
 
   case 199:
 
 /* Line 1806 of yacc.c  */
-#line 651 "monitor/mon_parse.y"
+#line 650 "monitor/mon_parse.y"
     { (yyval.cond_node) = (yyvsp[(1) - (1)].cond_node); }
     break;
 
   case 200:
 
 /* Line 1806 of yacc.c  */
-#line 654 "monitor/mon_parse.y"
+#line 653 "monitor/mon_parse.y"
     { (yyval.cond_node) = new_cond;
                             (yyval.cond_node)->operation = e_INV;
                             (yyval.cond_node)->is_parenthized = FALSE;
@@ -3810,7 +3809,7 @@ yyreduce:
   case 201:
 
 /* Line 1806 of yacc.c  */
-#line 660 "monitor/mon_parse.y"
+#line 659 "monitor/mon_parse.y"
     { (yyval.cond_node) = new_cond;
                             (yyval.cond_node)->operation = e_INV;
                             (yyval.cond_node)->is_parenthized = FALSE;
@@ -3822,140 +3821,140 @@ yyreduce:
   case 204:
 
 /* Line 1806 of yacc.c  */
-#line 672 "monitor/mon_parse.y"
+#line 671 "monitor/mon_parse.y"
     { mon_add_number_to_buffer((yyvsp[(1) - (1)].i)); }
     break;
 
   case 205:
 
 /* Line 1806 of yacc.c  */
-#line 673 "monitor/mon_parse.y"
+#line 672 "monitor/mon_parse.y"
     { mon_add_string_to_buffer((yyvsp[(1) - (1)].str)); }
     break;
 
   case 208:
 
 /* Line 1806 of yacc.c  */
-#line 680 "monitor/mon_parse.y"
+#line 679 "monitor/mon_parse.y"
     { mon_add_number_to_buffer((yyvsp[(1) - (1)].i)); }
     break;
 
   case 209:
 
 /* Line 1806 of yacc.c  */
-#line 681 "monitor/mon_parse.y"
+#line 680 "monitor/mon_parse.y"
     { mon_add_number_masked_to_buffer((yyvsp[(1) - (1)].i), 0x00); }
     break;
 
   case 210:
 
 /* Line 1806 of yacc.c  */
-#line 682 "monitor/mon_parse.y"
+#line 681 "monitor/mon_parse.y"
     { mon_add_string_to_buffer((yyvsp[(1) - (1)].str)); }
     break;
 
   case 211:
 
 /* Line 1806 of yacc.c  */
-#line 685 "monitor/mon_parse.y"
+#line 684 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 212:
 
 /* Line 1806 of yacc.c  */
-#line 686 "monitor/mon_parse.y"
+#line 685 "monitor/mon_parse.y"
     { (yyval.i) = (monitor_cpu_for_memspace[reg_memspace((yyvsp[(1) - (1)].i))]->mon_register_get_val)(reg_memspace((yyvsp[(1) - (1)].i)), reg_regid((yyvsp[(1) - (1)].i))); }
     break;
 
   case 213:
 
 /* Line 1806 of yacc.c  */
-#line 689 "monitor/mon_parse.y"
+#line 688 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 214:
 
 /* Line 1806 of yacc.c  */
-#line 690 "monitor/mon_parse.y"
+#line 689 "monitor/mon_parse.y"
     { (yyval.i) = strtol((yyvsp[(1) - (1)].str), NULL, 10); }
     break;
 
   case 215:
 
 /* Line 1806 of yacc.c  */
-#line 691 "monitor/mon_parse.y"
+#line 690 "monitor/mon_parse.y"
     { (yyval.i) = strtol((yyvsp[(1) - (1)].str), NULL, 10); }
     break;
 
   case 216:
 
 /* Line 1806 of yacc.c  */
-#line 692 "monitor/mon_parse.y"
+#line 691 "monitor/mon_parse.y"
     { (yyval.i) = strtol((yyvsp[(1) - (1)].str), NULL, 10); }
     break;
 
   case 217:
 
 /* Line 1806 of yacc.c  */
-#line 695 "monitor/mon_parse.y"
+#line 694 "monitor/mon_parse.y"
     { (yyval.i) = resolve_datatype(B_NUMBER,(yyvsp[(1) - (1)].str)); }
     break;
 
   case 218:
 
 /* Line 1806 of yacc.c  */
-#line 696 "monitor/mon_parse.y"
+#line 695 "monitor/mon_parse.y"
     { (yyval.i) = resolve_datatype(O_NUMBER,(yyvsp[(1) - (1)].str)); }
     break;
 
   case 219:
 
 /* Line 1806 of yacc.c  */
-#line 697 "monitor/mon_parse.y"
+#line 696 "monitor/mon_parse.y"
     { (yyval.i) = resolve_datatype(D_NUMBER,(yyvsp[(1) - (1)].str)); }
     break;
 
   case 220:
 
 /* Line 1806 of yacc.c  */
-#line 700 "monitor/mon_parse.y"
+#line 699 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 221:
 
 /* Line 1806 of yacc.c  */
-#line 701 "monitor/mon_parse.y"
+#line 700 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 222:
 
 /* Line 1806 of yacc.c  */
-#line 702 "monitor/mon_parse.y"
+#line 701 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 223:
 
 /* Line 1806 of yacc.c  */
-#line 703 "monitor/mon_parse.y"
+#line 702 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 224:
 
 /* Line 1806 of yacc.c  */
-#line 704 "monitor/mon_parse.y"
+#line 703 "monitor/mon_parse.y"
     { (yyval.i) = (yyvsp[(1) - (1)].i); }
     break;
 
   case 228:
 
 /* Line 1806 of yacc.c  */
-#line 712 "monitor/mon_parse.y"
+#line 711 "monitor/mon_parse.y"
     { (yyval.i) = 0;
                                                 if ((yyvsp[(1) - (2)].str)) {
                                                     (monitor_cpu_for_memspace[default_memspace]->mon_assemble_instr)((yyvsp[(1) - (2)].str), (yyvsp[(2) - (2)].i));
@@ -3970,14 +3969,14 @@ yyreduce:
   case 230:
 
 /* Line 1806 of yacc.c  */
-#line 723 "monitor/mon_parse.y"
+#line 722 "monitor/mon_parse.y"
     { asm_mode = 0; }
     break;
 
   case 231:
 
 /* Line 1806 of yacc.c  */
-#line 726 "monitor/mon_parse.y"
+#line 725 "monitor/mon_parse.y"
     { if ((yyvsp[(2) - (2)].i) > 0xff)
                           (yyval.i) = join_ints(ASM_ADDR_MODE_IMMEDIATE_16,(yyvsp[(2) - (2)].i));
                         else
@@ -3987,7 +3986,7 @@ yyreduce:
   case 232:
 
 /* Line 1806 of yacc.c  */
-#line 730 "monitor/mon_parse.y"
+#line 729 "monitor/mon_parse.y"
     { if ((yyvsp[(1) - (1)].i) < 0x100)
                (yyval.i) = join_ints(ASM_ADDR_MODE_ZERO_PAGE,(yyvsp[(1) - (1)].i));
              else
@@ -3998,7 +3997,7 @@ yyreduce:
   case 233:
 
 /* Line 1806 of yacc.c  */
-#line 735 "monitor/mon_parse.y"
+#line 734 "monitor/mon_parse.y"
     { if ((yyvsp[(1) - (3)].i) < 0x100)
                             (yyval.i) = join_ints(ASM_ADDR_MODE_ZERO_PAGE_X,(yyvsp[(1) - (3)].i));
                           else
@@ -4009,7 +4008,7 @@ yyreduce:
   case 234:
 
 /* Line 1806 of yacc.c  */
-#line 740 "monitor/mon_parse.y"
+#line 739 "monitor/mon_parse.y"
     { if ((yyvsp[(1) - (3)].i) < 0x100)
                             (yyval.i) = join_ints(ASM_ADDR_MODE_ZERO_PAGE_Y,(yyvsp[(1) - (3)].i));
                           else
@@ -4020,231 +4019,231 @@ yyreduce:
   case 235:
 
 /* Line 1806 of yacc.c  */
-#line 746 "monitor/mon_parse.y"
+#line 745 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_ABS_INDIRECT,(yyvsp[(2) - (3)].i)); }
     break;
 
   case 236:
 
 /* Line 1806 of yacc.c  */
-#line 748 "monitor/mon_parse.y"
+#line 747 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_INDIRECT_X,(yyvsp[(2) - (5)].i)); }
     break;
 
   case 237:
 
 /* Line 1806 of yacc.c  */
-#line 750 "monitor/mon_parse.y"
+#line 749 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_INDIRECT_Y,(yyvsp[(2) - (5)].i)); }
     break;
 
   case 238:
 
 /* Line 1806 of yacc.c  */
-#line 751 "monitor/mon_parse.y"
+#line 750 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IND_BC,0); }
     break;
 
   case 239:
 
 /* Line 1806 of yacc.c  */
-#line 752 "monitor/mon_parse.y"
+#line 751 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IND_DE,0); }
     break;
 
   case 240:
 
 /* Line 1806 of yacc.c  */
-#line 753 "monitor/mon_parse.y"
+#line 752 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IND_HL,0); }
     break;
 
   case 241:
 
 /* Line 1806 of yacc.c  */
-#line 754 "monitor/mon_parse.y"
+#line 753 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IND_IX,0); }
     break;
 
   case 242:
 
 /* Line 1806 of yacc.c  */
-#line 755 "monitor/mon_parse.y"
+#line 754 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IND_IY,0); }
     break;
 
   case 243:
 
 /* Line 1806 of yacc.c  */
-#line 756 "monitor/mon_parse.y"
+#line 755 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IND_SP,0); }
     break;
 
   case 244:
 
 /* Line 1806 of yacc.c  */
-#line 758 "monitor/mon_parse.y"
+#line 757 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_ABSOLUTE_A,(yyvsp[(2) - (5)].i)); }
     break;
 
   case 245:
 
 /* Line 1806 of yacc.c  */
-#line 760 "monitor/mon_parse.y"
+#line 759 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_ABSOLUTE_HL,(yyvsp[(2) - (5)].i)); }
     break;
 
   case 246:
 
 /* Line 1806 of yacc.c  */
-#line 762 "monitor/mon_parse.y"
+#line 761 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_ABSOLUTE_IX,(yyvsp[(2) - (5)].i)); }
     break;
 
   case 247:
 
 /* Line 1806 of yacc.c  */
-#line 764 "monitor/mon_parse.y"
+#line 763 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_ABSOLUTE_IY,(yyvsp[(2) - (5)].i)); }
     break;
 
   case 248:
 
 /* Line 1806 of yacc.c  */
-#line 765 "monitor/mon_parse.y"
+#line 764 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_IMPLIED,0); }
     break;
 
   case 249:
 
 /* Line 1806 of yacc.c  */
-#line 766 "monitor/mon_parse.y"
+#line 765 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_ACCUMULATOR,0); }
     break;
 
   case 250:
 
 /* Line 1806 of yacc.c  */
-#line 767 "monitor/mon_parse.y"
+#line 766 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_B,0); }
     break;
 
   case 251:
 
 /* Line 1806 of yacc.c  */
-#line 768 "monitor/mon_parse.y"
+#line 767 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_C,0); }
     break;
 
   case 252:
 
 /* Line 1806 of yacc.c  */
-#line 769 "monitor/mon_parse.y"
+#line 768 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_D,0); }
     break;
 
   case 253:
 
 /* Line 1806 of yacc.c  */
-#line 770 "monitor/mon_parse.y"
+#line 769 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_E,0); }
     break;
 
   case 254:
 
 /* Line 1806 of yacc.c  */
-#line 771 "monitor/mon_parse.y"
+#line 770 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_H,0); }
     break;
 
   case 255:
 
 /* Line 1806 of yacc.c  */
-#line 772 "monitor/mon_parse.y"
+#line 771 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IXH,0); }
     break;
 
   case 256:
 
 /* Line 1806 of yacc.c  */
-#line 773 "monitor/mon_parse.y"
+#line 772 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IYH,0); }
     break;
 
   case 257:
 
 /* Line 1806 of yacc.c  */
-#line 774 "monitor/mon_parse.y"
+#line 773 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_L,0); }
     break;
 
   case 258:
 
 /* Line 1806 of yacc.c  */
-#line 775 "monitor/mon_parse.y"
+#line 774 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IXL,0); }
     break;
 
   case 259:
 
 /* Line 1806 of yacc.c  */
-#line 776 "monitor/mon_parse.y"
+#line 775 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IYL,0); }
     break;
 
   case 260:
 
 /* Line 1806 of yacc.c  */
-#line 777 "monitor/mon_parse.y"
+#line 776 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_AF,0); }
     break;
 
   case 261:
 
 /* Line 1806 of yacc.c  */
-#line 778 "monitor/mon_parse.y"
+#line 777 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_BC,0); }
     break;
 
   case 262:
 
 /* Line 1806 of yacc.c  */
-#line 779 "monitor/mon_parse.y"
+#line 778 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_DE,0); }
     break;
 
   case 263:
 
 /* Line 1806 of yacc.c  */
-#line 780 "monitor/mon_parse.y"
+#line 779 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_HL,0); }
     break;
 
   case 264:
 
 /* Line 1806 of yacc.c  */
-#line 781 "monitor/mon_parse.y"
+#line 780 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IX,0); }
     break;
 
   case 265:
 
 /* Line 1806 of yacc.c  */
-#line 782 "monitor/mon_parse.y"
+#line 781 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_IY,0); }
     break;
 
   case 266:
 
 /* Line 1806 of yacc.c  */
-#line 783 "monitor/mon_parse.y"
+#line 782 "monitor/mon_parse.y"
     { (yyval.i) = join_ints(ASM_ADDR_MODE_REG_SP,0); }
     break;
 
 
 
 /* Line 1806 of yacc.c  */
-#line 4248 "y.tab.c"
+#line 4247 "y.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -4475,7 +4474,7 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 787 "monitor/mon_parse.y"
+#line 786 "monitor/mon_parse.y"
 
 
 void parse_and_execute_line(char *input)

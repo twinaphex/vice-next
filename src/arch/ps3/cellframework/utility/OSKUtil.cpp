@@ -23,7 +23,6 @@
 
 #include "sysutil/sysutil_oskdialog.h"
 #include "sys/memory.h"
-#include <assert.h>
 
 //Just for testing purposes, can be removed later
 #define MESSAGE		L"OSK Dialog"

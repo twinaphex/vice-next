@@ -26,7 +26,6 @@
 
 #include "vice.h"
 
-#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,18 +80,17 @@ static void stringcopy_n(char *dest, const char *src, unsigned int len)
 
 static void mon_buffer_add(const char *buffer, unsigned int bufferlen)
 {
-    if (bigbufferwrite + bufferlen > bigbuffersize) {
-        /* the buffer does not fit into bigbuffer, thus, 
-           flush the buffer! */
-        mon_buffer_flush();
-    }
+	if (bigbufferwrite + bufferlen > bigbuffersize) {
+		/* the buffer does not fit into bigbuffer, thus, 
+		   flush the buffer! */
+		mon_buffer_flush();
+	}
 
-    if (bigbufferwrite + bufferlen <= bigbuffersize) {
-        stringcopy_n(&bigbuffer[bigbufferwrite], buffer, bufferlen);
-        bigbufferwrite += bufferlen;
+	if (bigbufferwrite + bufferlen <= bigbuffersize) {
+		stringcopy_n(&bigbuffer[bigbufferwrite], buffer, bufferlen);
+		bigbufferwrite += bufferlen;
 
-        assert(bigbufferwrite <= bigbuffersize);
-    }
+	}
 }
 
 static int mon_out_buffered(const char *buffer)

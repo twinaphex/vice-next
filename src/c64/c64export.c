@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "assert.h"
 #include "c64cart.h"
 #include "c64cartsystem.h"
 #include "c64export.h"
@@ -99,7 +98,6 @@ int c64export_add(const c64export_resource_t *export_res)
     export_list_t *current;
     export_list_t *newentry = lib_malloc(sizeof(export_list_t));
 
-    assert(export_res != NULL);
     DBG(("EXP: register name:%s\n", export_res->name));
 
     /* find last entry */
@@ -121,7 +119,6 @@ int c64export_remove(const c64export_resource_t *export_res)
     export_list_t *current;
     export_list_t *prev;
 
-    assert(export_res != NULL);
     DBG(("EXP: unregister name:%s\n", export_res->name));
 
     /* find entry */
