@@ -39,7 +39,7 @@ extern "C" {
 #define AUDIO_CHANNELS (2)
 
 static size_t stereo_pbuf_size=0; 
-static SWORD *stereo_pbuf=NULL; 
+static int16_t *stereo_pbuf=NULL; 
 
 static Audio::Stream<int16_t> *CellAudio = NULL;
 static int num_channels;
@@ -47,7 +47,7 @@ static int num_channels;
 /*
  * PS3 Audio
  *  1 Packet = 1 Frame 
- *  1 Frame  = 1 or 2 Samples (SWORD)  1:mono SID, 2:stereo SID
+ *  1 Frame  = 1 or 2 Samples (int16_t)  1:mono SID, 2:stereo SID
  *  1 Slice  = n Frames
  *
  * VICE Audio:
@@ -105,10 +105,10 @@ int ps3_audio_init(const char *param, int *speed, int *fragsize, int *fragnr, in
 	return 0;
 }
 
-int ps3_audio_write(SWORD *pbuf, size_t nr)
+int ps3_audio_write(int16_t *pbuf, size_t nr)
 {
-	SWORD *stereo_ptr; 
-	SWORD *mono_ptr; 
+	int16_t *stereo_ptr; 
+	int16_t *mono_ptr; 
 
 	if (nr == 0)
 		return 0;
@@ -123,16 +123,16 @@ int ps3_audio_write(SWORD *pbuf, size_t nr)
 			// fudge this.
 			if (stereo_pbuf)
 			{
-				if (stereo_pbuf_size != (sizeof(SWORD) * nr * 2))
+				if (stereo_pbuf_size != (sizeof(int16_t) * nr * 2))
 				{
-					stereo_pbuf_size = sizeof(SWORD) * nr * 2;
-					stereo_pbuf = (SWORD *) lib_realloc(stereo_pbuf, stereo_pbuf_size);
+					stereo_pbuf_size = sizeof(int16_t) * nr * 2;
+					stereo_pbuf = (int16_t *) lib_realloc(stereo_pbuf, stereo_pbuf_size);
 				}
 			}
 			else
 			{
-				stereo_pbuf_size = sizeof(SWORD) * nr * 2;
-				stereo_pbuf = (SWORD *) lib_malloc(stereo_pbuf_size);
+				stereo_pbuf_size = sizeof(int16_t) * nr * 2;
+				stereo_pbuf = (int16_t *) lib_malloc(stereo_pbuf_size);
 			}
 
 			stereo_ptr = stereo_pbuf;
