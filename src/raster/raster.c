@@ -58,20 +58,17 @@ int raster_calc_frame_buffer_width(raster_t *raster)
         + raster->geometry->extra_offscreen_border_right;
 }
 
-static int raster_draw_buffer_alloc(video_canvas_t *canvas,
-                                    unsigned int fb_width,
-                                    unsigned int fb_height,
-                                    unsigned int *fb_pitch)
+static int raster_draw_buffer_alloc(video_canvas_t *canvas, unsigned int fb_width, unsigned int fb_height, unsigned int *fb_pitch)
 {
-    if (canvas->video_draw_buffer_callback)
-        return canvas->video_draw_buffer_callback->draw_buffer_alloc(canvas,
-            &canvas->draw_buffer->draw_buffer, fb_width, fb_height, fb_pitch);
+	if (canvas->video_draw_buffer_callback)
+		return canvas->video_draw_buffer_callback->draw_buffer_alloc(canvas,
+				&canvas->draw_buffer->draw_buffer, fb_width, fb_height, fb_pitch);
 
-    /* FIXME: Allocate one more line to prevent access violations by the
-       scale2x render.  */
-    canvas->draw_buffer->draw_buffer = lib_malloc(fb_width * (fb_height + 1));
-    *fb_pitch = fb_width;
-    return 0;
+	/* FIXME: Allocate one more line to prevent access violations by the
+	   scale2x render.  */
+	canvas->draw_buffer->draw_buffer = lib_malloc(fb_width * (fb_height + 1));
+	*fb_pitch = fb_width;
+	return 0;
 }
 
 static void raster_draw_buffer_free(video_canvas_t *canvas)

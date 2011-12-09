@@ -49,7 +49,6 @@ int crtc_resources_init(void)
     video_chip_cap.dsize_limit_height = 350;
     video_chip_cap.dscan_allowed = ARCHDEP_CRTC_DSCAN;
     video_chip_cap.hwscale_allowed = ARCHDEP_CRTC_HWSCALE;
-    video_chip_cap.scale2x_allowed = ARCHDEP_CRTC_DSIZE;
     video_chip_cap.internal_palette_allowed = 1;
     video_chip_cap.external_palette_name = "green";
     video_chip_cap.palemulation_allowed = 1;

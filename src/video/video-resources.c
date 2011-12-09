@@ -221,29 +221,6 @@ static resource_int_t resources_chip_hwscale_possible[] =
     RESOURCE_INT_LIST_END
 };
 
-static int set_scale2x_enabled(int val, void *param)
-{
-    video_canvas_t *canvas = (video_canvas_t *)param;
-
-    canvas->videoconfig->scale2x = val;
-
-    if (canvas->initialized)
-        video_canvas_refresh_all(canvas);
-
-    video_resources_update_ui(canvas);
-
-    return 0;
-}
-
-static const char *vname_chip_scale2x[] = { "Scale2x", NULL };
-
-static resource_int_t resources_chip_scale2x[] =
-{
-    { NULL, 0, RES_EVENT_NO, NULL,
-      NULL, set_scale2x_enabled, NULL },
-    RESOURCE_INT_LIST_END
-};
-
 static int set_fullscreen_enabled(int val, void *param)
 {
     int r = 0;
@@ -462,18 +439,6 @@ int video_resources_chip_init(const char *chipname,
     if (resources_register_int(resources_chip_hwscale_possible) < 0)
         return -1;
 
-    if (video_chip_cap->scale2x_allowed != 0) {
-        resources_chip_scale2x[0].name
-            = util_concat(chipname, vname_chip_scale2x[0], NULL);
-        resources_chip_scale2x[0].value_ptr
-            = &((*canvas)->videoconfig->scale2x);
-        resources_chip_scale2x[0].param = (void *)*canvas;
-        if (resources_register_int(resources_chip_scale2x) < 0)
-            return -1;
-
-        lib_free((char *)(resources_chip_scale2x[0].name));
-    }
-
     if (video_chip_cap->dsize_allowed != 0) {
         resources_chip_size[0].name
             = util_concat(chipname, vname_chip_size[0], NULL);
@@ -588,37 +553,22 @@ int video_resources_chip_init(const char *chipname,
 
 void video_resources_chip_shutdown(struct video_canvas_s *canvas)
 {
-    lib_free(canvas->videoconfig->external_palette_name);
+	lib_free(canvas->videoconfig->external_palette_name);
 
-    if (canvas->videoconfig->cap->fullscreen.device_num > 0) {
-        lib_free(canvas->videoconfig->fullscreen_device);
-    }
+	if (canvas->videoconfig->cap->fullscreen.device_num > 0)
+		lib_free(canvas->videoconfig->fullscreen_device);
 }
 
 static void video_resources_update_ui(video_canvas_t *canvas)
 {
-    int pal_enabled = 0;
-    int ui_doublescan_enabled, ui_scale2x_enabled;
+	int pal_enabled = 0;
+	int ui_doublescan_enabled;
 
-    if (canvas->videoconfig->cap->palemulation_allowed)
-        resources_get_int("PALEmulation", &pal_enabled);
+	if (canvas->videoconfig->cap->palemulation_allowed)
+		resources_get_int("PALEmulation", &pal_enabled);
 
-    if (canvas->videoconfig->double_size_enabled != 0) {
-        if (pal_enabled) {
-            ui_doublescan_enabled = 1;
-            ui_scale2x_enabled = 0;
-        } else if (canvas->videoconfig->scale2x != 0) {
-            ui_doublescan_enabled = 0;
-            ui_scale2x_enabled = 1;
-        } else {
-            ui_doublescan_enabled = 1;
-            ui_scale2x_enabled = 1;
-        }
-    } else {
-        ui_doublescan_enabled = 0;
-        ui_scale2x_enabled = 0;
-    }
-/*
-    ui_enable_chip resources(ui_doublescan_enabled, ui_scale2x_enabled);
-*/
+	if (canvas->videoconfig->double_size_enabled != 0)
+		ui_doublescan_enabled = 1;
+	else
+		ui_doublescan_enabled = 0;
 }

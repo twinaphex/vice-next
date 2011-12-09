@@ -100,28 +100,6 @@ static cmdline_option_t cmdline_options_chip_hwscale[] =
     CMDLINE_LIST_END
 };
 
-static const char *cname_chip_scale2x[] =
-{
-    "-", "scale2x", "Scale2x",
-    "+", "scale2x", "Scale2x",
-    NULL
-};
-
-static cmdline_option_t cmdline_options_chip_scale2x[] =
-{
-    { NULL, SET_RESOURCE,
-      0, NULL, NULL, NULL, (void *)1,
-      USE_PARAM_STRING, USE_DESCRIPTION_ID,
-      IDCLS_UNUSED, IDCLS_ENABLE_SCALE2X,
-      NULL, NULL },
-    { NULL, SET_RESOURCE, 0,
-      NULL, NULL, NULL, (void *)0,
-      USE_PARAM_STRING, USE_DESCRIPTION_ID,
-      IDCLS_UNUSED, IDCLS_DISABLE_SCALE2X,
-      NULL, NULL },
-    CMDLINE_LIST_END
-};
-
 static const char *cname_chip_internal_palette[] =
 {
     "-", "intpal", "ExternalPalette",
@@ -264,24 +242,6 @@ int video_cmdline_options_chip_init(const char *chipname,
         for (i = 0; cname_chip_hwscale[i * 3] != NULL; i++) {
             lib_free((char *)cmdline_options_chip_hwscale[i].name);
             lib_free((char *)cmdline_options_chip_hwscale[i].resource_name);
-        }
-    }
-
-    if (video_chip_cap->scale2x_allowed) {
-        for (i = 0; cname_chip_scale2x[i * 3] != NULL; i++) {
-            cmdline_options_chip_scale2x[i].name
-                = util_concat(cname_chip_scale2x[i * 3], chipname,
-                cname_chip_scale2x[i * 3 + 1], NULL);
-            cmdline_options_chip_scale2x[i].resource_name
-                = util_concat(chipname, cname_chip_scale2x[i * 3 + 2], NULL);
-        }
-
-        if (cmdline_register_options(cmdline_options_chip_scale2x) < 0)
-            return -1;
-
-        for (i = 0; cname_chip_scale2x[i * 3] != NULL; i++) {
-            lib_free((char *)cmdline_options_chip_scale2x[i].name);
-            lib_free((char *)cmdline_options_chip_scale2x[i].resource_name);
         }
     }
 
