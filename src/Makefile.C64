@@ -10,9 +10,9 @@ PKG_FINALIZE		= package_finalize
 
 PPU_INCDIRS 	+= 	-I./c64  -I./c64/cart/
 
-MK_TARGET 	= 	sid/libsid.mk monitor/libmonitor.mk gfxoutputdrv/libgfxoutputdrv.mk printerdrv/libprinterdrv.mk rs232drv/librs232drv.mk diskimage/libdiskimage.mk fsdevice/libfsdevice.mk imagecontents/libimagecontents.mk fileio/libfileio.mk serial/libserial.mk tape/libtape.mk core/libcore.mk rtc/librtc.mk vicii/libvicii.mk raster/libraster.mk video/libvideo.mk arch/ps3/libarch.mk lib/zlib/libzlib.mk resid/libresid.mk resid-fp/libresid-fp.mk arch/ps3/unzip/libunzip.mk
+MK_TARGET 	= 	vicii/libvicii.mk resid/libresid.mk resid-fp/libresid-fp.mk
 
-PPU_LOADLIBS	+=	libsid.ppu.a libmonitor.ppu.a libgfxoutputdrv.ppu.a libprinterdrv.ppu.a librs232drv.ppu.a libdiskimage.ppu.a libfsdevice.ppu.a libimagecontents.ppu.a libfileio.ppu.a libserial.ppu.a libtape.ppu.a libcore.ppu.a librtc.ppu.a libvicii.ppu.a libraster.ppu.a libvideo.ppu.a libarch.ppu.a libzlib.ppu.a libresid.ppu.a libresid-fp.ppu.a libunzip.ppu.a
+PPU_LOADLIBS	+=	libvicii.ppu.a libresid.ppu.a libresid-fp.ppu.a
 
 
 # libiec
@@ -85,6 +85,73 @@ PPU_SRCS	+=	parallel/parallel-trap.c parallel/parallel.c
 # libvdrive
 
 PPU_SRCS	+=	vdrive/vdrive-bam.c vdrive/vdrive-command.c vdrive/vdrive-dir.c vdrive/vdrive-iec.c vdrive/vdrive-internal.c vdrive/vdrive-rel.c vdrive/vdrive-snapshot.c vdrive/vdrive.c
+
+# libsid.mk 
+PPU_SRCS	+=	sid/fastsid.c sid/sid-cmdline-options.c sid/sid-resources.c sid/sid-snapshot.c sid/sid.c sid/resid.cc sid/resid-fp.cc
+
+# libmonitor.mk
+
+PPU_SRCS	+=	monitor/asm6502.c monitor/asm6502dtv.c monitor/asmz80.c monitor/mon_assemble6502.c monitor/mon_assemblez80.c monitor/mon_breakpoint.c monitor/mon_command.c monitor/mon_disassemble.c monitor/mon_drive.c monitor/mon_file.c monitor/mon_memory.c monitor/mon_register6502.c monitor/mon_register6502dtv.c monitor/mon_registerz80.c monitor/mon_ui.c monitor/mon_util.c monitor/mon_lex.c monitor/mon_parse.c monitor/monitor.c monitor/monitor_network.c
+
+# libgfxoutputdrv.mk
+
+PPU_SRCS	+=	gfxoutputdrv/gfxoutput.c gfxoutputdrv/ppmdrv.c gfxoutputdrv/doodledrv.c
+
+# libprinterdrv.mk
+
+PPU_SRCS	+=	printerdrv/driver-select.c printerdrv/drv-ascii.c printerdrv/drv-mps803.c printerdrv/drv-nl10.c printerdrv/interface-serial.c printerdrv/interface-userport.c printerdrv/output-graphics.c printerdrv/output-select.c printerdrv/output-text.c printerdrv/printer-serial.c printerdrv/printer-userport.c printerdrv/printer.c printerdrv/drv-raw.c
+
+# librs232drv.mk
+
+PPU_SRCS	+=	rs232drv/rs232drv.c rs232drv/rsuser.c
+
+# libdiskimage.mk
+
+PPU_SRCS	+=	diskimage/diskimage.c diskimage/fsimage-check.c diskimage/fsimage-create.c diskimage/fsimage-gcr.c diskimage/fsimage-probe.c diskimage/fsimage.c
+
+# libfsdevice.mk
+
+PPU_SRCS	+=	fsdevice/fsdevice-close.c fsdevice/fsdevice-cmdline-options.c fsdevice/fsdevice-flush.c fsdevice/fsdevice-open.c fsdevice/fsdevice-read.c fsdevice/fsdevice-resources.c fsdevice/fsdevice-write.c fsdevice/fsdevice.c
+
+# libimagecontents.mk
+
+PPU_SRCS	+=	imagecontents/diskcontents-block.c imagecontents/diskcontents-iec.c imagecontents/diskcontents.c imagecontents/imagecontents.c imagecontents/tapecontents.c
+
+# libfileio.mk
+PPU_SRCS	+=	fileio/cbmfile.c fileio/fileio.c fileio/p00.c
+
+# libserial.mk
+PPU_SRCS	+=	serial/fsdrive.c serial/serial-device.c serial/serial-iec-bus.c serial/serial-iec-device.c serial/serial-iec-lib.c serial/serial-iec.c serial/serial-realdevice.c serial/serial-trap.c serial/serial.c
+
+# libtape.mk
+PPU_SRCS	+=	tape/t64.c tape/tap.c tape/tape-internal.c tape/tape-snapshot.c tape/tape.c tape/tapeimage.c
+
+# libcore.mk
+PPU_SRCS	+=	core/ciacore.c core/ciatimer.c core/flash040core.c core/riotcore.c core/t6721.c core/tpicore.c core/viacore.c
+
+# librtc.mk
+PPU_SRCS	+=	rtc/ds1302.c rtc/rtc.c 
+
+# libraster.mk
+PPU_SRCS	+= 	raster/raster-cache.c raster/raster-canvas.c raster/raster-changes.c raster/raster-cmdline-options.c raster/raster-line-changes-sprite.c raster/raster-line-changes.c raster/raster-line.c raster/raster-modes.c raster/raster-resources.c raster/raster-sprite.c raster/raster-sprite-status.c raster/raster-sprite-cache.c raster/raster.c
+
+# libvideo.mk
+PPU_SRCS	+=	video/render1x1.c video/render1x1pal.c video/render1x2.c video/render2x2.c video/render2x2pal.c video/renderyuv.c video/video-canvas.c video/video-cmdline-options.c video/video-color.c video/video-render-1x2.c video/video-render-2x2.c video/video-render-pal.c video/video-render.c video/video-resources-pal.c video/video-resources.c video/video-viewport.c video/video-render-crt.c video/render2x2ntsc.c video/render1x2crt.c video/render1x1ntsc.c  
+
+# libarch.mk (PS3)
+PPU_SRCS	+=	arch/ps3/archdep.c arch/ps3/joy.cpp arch/ps3/ui.c arch/ps3/vsyncarch.c  arch/ps3/kbd.c arch/ps3/mousedrv.c arch/ps3/video.cpp arch/ps3/console.c
+PPU_SRCS	+=	arch/ps3/cellframework/audio/buffer.c arch/ps3/cellframework/audio/librsound.c arch/ps3/cellframework/audio/quadratic_resampler.cpp arch/ps3/cellframework/audio/resampler.cpp 
+PPU_SRCS	+=	arch/ps3/cellframework/threads/thread.cpp arch/ps3/cellframework/threads/mutex.cpp arch/ps3/cellframework/threads/cond.cpp arch/ps3/cellframework/threads/scoped_lock.cpp 
+PPU_SRCS	+=	arch/ps3/cellframework/fileio/FileBrowser.cpp
+PPU_SRCS	+=	arch/ps3/cellframework/input/cellInput.cpp arch/ps3/cellframework/utility/OSKUtil.cpp
+PPU_SRCS	+=	arch/ps3/emu-ps3.cpp arch/ps3/menu.cpp arch/ps3/ps3video.cpp
+PPU_SRCS	+=	arch/ps3/in_game_menu.cpp arch/ps3/ui_snapshot.c
+
+# libzlib.mk
+PPU_SRCS	+=	lib/zlib/inflate.c lib/zlib/adler32.c lib/zlib/compress.c lib/zlib/crc32.c lib/zlib/crc32.h lib/zlib/deflate.c lib/zlib/deflate.h lib/zlib/gzio.c lib/zlib/infback.c lib/zlib/inffast.c lib/zlib/inffast.h lib/zlib/inffixed.h lib/zlib/inflate.h lib/zlib/inftrees.c lib/zlib/inftrees.h lib/zlib/trees.c lib/zlib/trees.h lib/zlib/uncompr.c lib/zlib/zconf.h lib/zlib/zlib.h lib/zlib/zutil.c lib/zlib/zutil.h
+
+# libunzip.mk
+PPU_SRCS	+=	arch/ps3/unzip/ioapi.c  arch/ps3/unzip/mztools.c  arch/ps3/unzip/unzip.c  arch/ps3/unzip/zip.c
 
 # common
 PPU_SRCS	+= 	alarm.c attach.c autostart.c autostart-prg.c charset.c clkguard.c clipboard.c cmdline.c cbmdos.c cbmimage.c color.c crc32.c datasette.c dma.c emuid.c event.c findpath.c fliplist.c gcr.c info.c init.c initcmdline.c interrupt.c ioutil.c joystick.c kbdbuf.c keyboard.c lib.c machine-bus.c machine.c main.c palette.c ram.c rawfile.c resources.c romset.c snapshot.c sound.c sounddrv/soundps3.cpp sysfile.c translate.c traps.c util.c vsync.c zfile.c zipcode.c maincpu.c midi.c mouse.c lightpen.c
