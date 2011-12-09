@@ -37,26 +37,17 @@ int vsid_ui_init(void)
 	return 0;
 }
 
-void vsid_ui_display_name(const char *name)
-{
-	#ifdef CELL_DEBUG
-	printf("Name: %s", name);
-	#endif
-}
+#ifdef CELL_DEBUG
+void vsid_ui_display_name(const char *name)	{ printf("Name: %s", name); }
+void vsid_ui_display_author(const char *author)	{ printf("Author: %s", author); }
+void vsid_ui_display_copyright(const char *copyright) { printf("Copyright by: %s", copyright); }
+#else
+void vsid_ui_display_name(const char *name) { }
+void vsid_ui_display_author(const char *author)	{ }
+void vsid_ui_display_copyright(const char *copyright) { }
+#endif
 
-void vsid_ui_display_author(const char *author)
-{
-	#ifdef CELL_DEBUG
-	printf("Author: %s", author);
-	#endif
-}
 
-void vsid_ui_display_copyright(const char *copyright)
-{
-	#ifdef CELL_DEBUG
-	printf("Copyright by: %s", copyright);
-	#endif
-}
 
 void vsid_ui_display_sync(int sync)
 {

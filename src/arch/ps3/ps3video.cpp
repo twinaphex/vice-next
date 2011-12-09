@@ -87,9 +87,7 @@ void PS3Graphics::ScreenDump (void)
 
 	unsigned char *buffer = (unsigned char *) glMapBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, GL_READ_ONLY);
 	if (buffer != NULL)
-	{
 		memcpy (pPixels, buffer, context_width * context_height * 2);
-	}
 	glUnmapBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE);
 }
 
@@ -688,18 +686,12 @@ void PS3Graphics::SetViewports()
 		real_height = (int)(2.0 * height * delta);
 	}
 	else
-	{
 		glViewport(0, 0, width, height);
-	}
 
 	if (m_overscan)
-	{
 		glOrthof(-m_overscan_amount/2, 1 + m_overscan_amount/2, -m_overscan_amount/2, 1 + m_overscan_amount/2, -1, 1);
-	}
 	else
-	{
 		glOrthof(0, 1, 0, 1, -1, 1);
-	}
 
 	_cgViewWidth = real_width;
 	_cgViewHeight = real_height;
@@ -736,12 +728,8 @@ void PS3Graphics::SetSmooth(bool smooth)
 void PS3Graphics::SetAspectRatio(bool keep_aspect)
 {
 	if (keep_aspect)
-	{
 		m_ratio = SCREEN_4_3_ASPECT_RATIO;
-	}
 	else
-	{
 		m_ratio = SCREEN_16_9_ASPECT_RATIO;
-	}
 	SetViewports();
 }

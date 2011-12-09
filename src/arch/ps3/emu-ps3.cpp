@@ -26,6 +26,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ********************************************************************************/
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,6 +63,9 @@ extern "C" {
 #include "main.h"
 #include "sid.h"
 #include "util.h"
+#include "keyboard.h"
+#include "cartridge.h"
+#include "resources.h"
 #include "lib.h"
 #include "autostart.h"
 #include "attach.h"
@@ -70,20 +74,27 @@ extern "C" {
 #include "resources.h"
 #include "mouse.h"
 #include "lib/zlib/zlib.h"
+#include "monitor.h"
+#include "uimon.h"
+#include "vice.h"
+#include "cmdline.h"
 }
 
 #include "menu.hpp"
+
+SYS_PROCESS_PARAM(1001, 0x10000);
+
 
 extern int ps3_audio_suspend(void);
 extern int ps3_audio_resume(void);
 
 CellInputFacade* CellInput;
 PS3Graphics* Graphics;
-SYS_PROCESS_PARAM(1001, 0x10000);
 
 bool emulator_loaded = false;			// is emulator loaded?
 char* current_rom = NULL;			// current rom being emulated
 uint32_t mode_switch = MODE_MENU;		// mode the main loop is in
+
 
 void emulator_shutdown(void)
 {
@@ -97,6 +108,38 @@ void emulator_shutdown(void)
 const char *get_current_rom(void)
 {
 	return current_rom;
+}
+
+// Stub functions
+extern "C" {
+	int isatty(int whatever) { return 0; }
+	void ui_cmdline_show_help(unsigned int num_options, cmdline_option_ram_t *options, void *userparam) {} int uimon_out(const char * buffer) { return 0; }
+	void c128ui_set_keyarr(int status) { keyboard_set_keyarr(1, 7, status); }
+	int c128ui_init(void) { return 0; }
+	void c128ui_shutdown(void) {}
+	int c128scui_init(void) { return 0;}
+	void c128scui_shutdown(void) {}
+	char *uimon_get_in(char **ppchCommandLine, const char *prompt) { return NULL; }
+	void uimon_notify_change(void) {}
+	struct console_s *uimon_window_open(void) {}
+	void uimon_window_close(void) {}
+	void uimon_window_suspend(void) {}
+	struct console_s *uimon_window_resume(void) {}
+	void uimon_set_interface(monitor_interface_t **monitor_interface_init, int count) {}
+	void fullscreen_resume(void) {}
+	int vic20ui_init(void) { return 0; }
+	void vic20ui_shutdown(void) {}
+	void signals_init(int do_core_dumps) {}
+	void signals_abort_set(void) {}
+	void signals_abort_unset(void) {}
+	void c64ui_attach_cart(char *imagefile, int carttype) { cartridge_attach_image(0, imagefile); }
+	void c64ui_set_keyarr(int status) { keyboard_set_keyarr(1, 7, status); }
+	int c64ui_init(void) { return 0; }
+	void c64ui_shutdown(void) {}
+	int c64scui_init(void) { return 0; }
+	void c64scui_shutdown(void) { }
+	int plus4ui_init(void) { return 0; }
+	void plus4ui_shutdown(void) { }
 }
 
 void Emulator_StartROMRunning()

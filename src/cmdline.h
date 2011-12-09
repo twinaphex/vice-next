@@ -125,12 +125,14 @@ extern int cmdline_init(void);
 extern int cmdline_register_options(const cmdline_option_t *c);
 extern void cmdline_shutdown(void);
 extern int cmdline_parse(int *argc, char **argv);
-extern void cmdline_show_help(void *userparam);
 extern char *cmdline_options_string(void);
 extern char *cmdline_options_get_param(int counter);
 extern char *cmdline_options_get_description(int counter);
 extern int cmdline_get_num_options(void);
 
 #define CMDLINE_LIST_END { NULL, 0, 0, NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL, NULL } 
+
+extern  void ui_cmdline_show_help(unsigned int num_options, cmdline_option_ram_t *options, void *userparam);
+int uimon_out(const char * buffer);
 
 #endif

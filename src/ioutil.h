@@ -70,4 +70,6 @@ extern ioutil_dir_t *ioutil_opendir(const char *path);
 extern char *ioutil_readdir(ioutil_dir_t *ioutil_dir);
 extern void ioutil_closedir(ioutil_dir_t *ioutil_dir);
 
+extern int isatty(int whatever);
+
 #endif

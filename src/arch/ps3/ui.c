@@ -199,19 +199,25 @@ void ui_error(const char *format,...)
 	va_end(args);
 }
 
-void ui_display_drive_current_image(unsigned int drive_number, const char *image)
-{
-}
-
-void ui_update_menus(void)
-{
-	/* needed */
-}
-
-void ui_display_tape_current_image(const char *image)
-{
-	/* needed */
-}
+void ui_display_drive_current_image(unsigned int drive_number, const char *image) {}
+void ui_update_menus(void) {}
+void ui_display_tape_current_image(const char *image) {}
+void ui_display_recording(int recording_status) {}
+void ui_display_playback(int playback_status, char *version) {}
+void archdep_ui_init(int argc, char *argv[]) { return; }
+int ui_init_finish(void) { return 0; }
+void ui_enable_drive_status(ui_drive_enable_t enable, int *drive_led_color) { drive_active_led = drive_led_color; }
+int ui_extend_image_dialog(void) {}
+int ui_cmdline_options_init(void) {}
+void ui_shutdown(void) {}
+void ui_resources_shutdown(void) {}
+void _ui_menu_radio_helper(void) {}
+void ui_check_mouse_cursor(void) {}
+void ui_dispatch_events(void) {}
+void ui_display_joyport(BYTE *joyport) {}
+void ui_display_event_time(unsigned int current, unsigned int total) {}
+void ui_display_volume(int vol) {}
+char* ui_get_file(const char *format,...) { return NULL;}
 
 void ui_display_tape_counter(int counter)
 {
@@ -237,15 +243,6 @@ void ui_set_tape_status(int tape_status)
     force_redraw();
 }
 
-void ui_display_recording(int recording_status)
-{
-    /* needed */
-}
-
-void ui_display_playback(int playback_status, char *version)
-{
-    /* needed */
-}
 
 int ui_init(int *argc, char **argv)
 {
@@ -255,26 +252,6 @@ int ui_init(int *argc, char **argv)
 	return 0;
 }
 
-void archdep_ui_init(int argc, char *argv[])
-{
-	return;
-}
-
-int ui_init_finish(void)
-{
-	return 0;
-}
-
-
-void ui_enable_drive_status(ui_drive_enable_t enable, int *drive_led_color)
-{
-    drive_active_led = drive_led_color;
-}
-
-int ui_extend_image_dialog(void)
-{
-    /* needed */
-}
 
 void ui_display_drive_led(int drive_number, unsigned int led_pwm1, unsigned int led_pwm2)
 {
@@ -339,10 +316,6 @@ int ui_resources_init(void)
 	return 0;
 }
 
-int ui_cmdline_options_init(void)
-{
-	/* needed */
-}
 
 int ui_init_finalize(void)
 {
@@ -378,30 +351,6 @@ ui_jam_action_t ui_jam_dialog(const char *format,...)
 	return UI_JAM_HARD_RESET;
 }
 
-void ui_shutdown(void)
-{
-    /* needed */
-}
-
-void ui_resources_shutdown(void)
-{
-    /* needed */
-}
-
-void _ui_menu_radio_helper(void)
-{
-	/* needed */
-}
-
-void ui_check_mouse_cursor(void)
-{
-	/* needed */
-}
-
-void ui_dispatch_events(void)
-{
-	/* needed */
-}
 
 void ui_display_speed(float speed, float frame_rate, int warp_enabled)
 {
@@ -413,25 +362,5 @@ void ui_display_speed(float speed, float frame_rate, int warp_enabled)
 	printf("speed = %f, frame_rate = %f, warp_enabled = %d\n", speed, frame_rate, warp_enabled);
 	#endif
 	force_redraw();
-}
-
-void ui_display_joyport(BYTE *joyport)
-{
-	/* needed */
-}
-
-void ui_display_event_time(unsigned int current, unsigned int total)
-{
-	/* needed */
-}
-
-void ui_display_volume(int vol)
-{
-}
-
-
-char* ui_get_file(const char *format,...)
-{
-	return NULL;
 }
 

@@ -68,5 +68,6 @@ typedef struct machine_context_s {
 } machine_context_t;
 
 extern machine_context_t machine_context;
+ extern int c64ui_init(void);
 
 #endif
