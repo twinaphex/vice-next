@@ -8,12 +8,85 @@ MKSELF_GEOHOT		= make_self_npdrm
 MKPKG_PSLIGHT		= old-buildtools/PS3Py/pkg.py
 PKG_FINALIZE		= package_finalize
 
+PPU_INCDIRS 	+= 	-I./c64  -I./c64/cart/
 
-MK_TARGET 	= 	drive/iec/libiec.mk c64/libc64.mk c64/cart/libc64cart.mk drive/iecieee/libiecieee.mk drive/iec/c64exp/libiecc64.mk drive/ieee/libieee.mk drive/libdrive.mk iecbus/libiecbus.mk parallel/libparallel.mk vdrive/libvdrive.mk sid/libsid.mk monitor/libmonitor.mk gfxoutputdrv/libgfxoutputdrv.mk printerdrv/libprinterdrv.mk rs232drv/librs232drv.mk diskimage/libdiskimage.mk fsdevice/libfsdevice.mk imagecontents/libimagecontents.mk fileio/libfileio.mk serial/libserial.mk tape/libtape.mk core/libcore.mk rtc/librtc.mk vicii/libvicii.mk raster/libraster.mk video/libvideo.mk arch/ps3/libarch.mk lib/zlib/libzlib.mk resid/libresid.mk resid-fp/libresid-fp.mk arch/ps3/unzip/libunzip.mk
+MK_TARGET 	= 	sid/libsid.mk monitor/libmonitor.mk gfxoutputdrv/libgfxoutputdrv.mk printerdrv/libprinterdrv.mk rs232drv/librs232drv.mk diskimage/libdiskimage.mk fsdevice/libfsdevice.mk imagecontents/libimagecontents.mk fileio/libfileio.mk serial/libserial.mk tape/libtape.mk core/libcore.mk rtc/librtc.mk vicii/libvicii.mk raster/libraster.mk video/libvideo.mk arch/ps3/libarch.mk lib/zlib/libzlib.mk resid/libresid.mk resid-fp/libresid-fp.mk arch/ps3/unzip/libunzip.mk
 
-PPU_LOADLIBS	+=	libc64.ppu.a libc64cart.ppu.a libiec.ppu.a libiecieee.ppu.a libiecc64.ppu.a libieee.ppu.a libdrive.ppu.a libiecbus.ppu.a libparallel.ppu.a libvdrive.ppu.a libsid.ppu.a libmonitor.ppu.a libgfxoutputdrv.ppu.a libprinterdrv.ppu.a librs232drv.ppu.a libdiskimage.ppu.a libfsdevice.ppu.a libimagecontents.ppu.a libfileio.ppu.a libserial.ppu.a libtape.ppu.a libcore.ppu.a librtc.ppu.a libvicii.ppu.a libraster.ppu.a libvideo.ppu.a libarch.ppu.a libzlib.ppu.a libresid.ppu.a libresid-fp.ppu.a libunzip.ppu.a
+PPU_LOADLIBS	+=	libsid.ppu.a libmonitor.ppu.a libgfxoutputdrv.ppu.a libprinterdrv.ppu.a librs232drv.ppu.a libdiskimage.ppu.a libfsdevice.ppu.a libimagecontents.ppu.a libfileio.ppu.a libserial.ppu.a libtape.ppu.a libcore.ppu.a librtc.ppu.a libvicii.ppu.a libraster.ppu.a libvideo.ppu.a libarch.ppu.a libzlib.ppu.a libresid.ppu.a libresid-fp.ppu.a libunzip.ppu.a
 
 
+# libiec
+PPU_SRCS	+=	drive/iec/cia1571d.c drive/iec/cia1581d.c drive/iec/glue1571.c drive/iec/iec-cmdline-options.c drive/iec/iec-resources.c drive/iec/iec.c drive/iec/iecrom.c drive/iec/memiec.c drive/iec/via1d1541.c drive/iec/wd1770.c
+
+# libiec-eee
+PPU_SRCS	+=	drive/iecieee/iecieee.c drive/iecieee/via2d.c
+
+# libc64
+PPU_SRCS	+= 	c64/c64-cmdline-options.c c64/c64-resources.c c64/c64-snapshot.c \
+			c64/c64.c \
+	c64/c64_256k.c \
+	c64/c64bus.c \
+	c64/c64cia1.c \
+	c64/c64cia2.c \
+	c64/c64datasette.c \
+	c64/c64drive.c \
+	c64/c64export.c \
+	c64/c64fastiec.c \
+	c64/c64gluelogic.c \
+	c64/c64iec.c \
+	c64/c64io.c \
+	c64/c64keyboard.c \
+	c64/c64mem.c \
+	c64/c64meminit.c \
+	c64/c64memlimit.c \
+	c64/c64memrom.c \
+	c64/c64memsnapshot.c \
+	c64/c64model.c \
+	c64/c64parallel.c \
+	c64/c64pla.c \
+	c64/c64printer.c \
+	c64/c64rom.c \
+	c64/c64romset.c \
+	c64/c64rsuser.c \
+	c64/c64sound.c \
+	c64/c64video.c \
+	c64/patchrom.c \
+	c64/plus256k.c \
+	c64/plus60k.c \
+	c64/psid.c \
+	c64/psiddrv.a65 \
+	c64/reloc65.c \
+	c64/c64embedded.c 
+
+# libc64cart
+
+PPU_SRCS	+=	c64/cart/actionreplay2.c c64/cart/c64-midi.c c64/cart/digimax.c c64/cart/finalplus.c c64/cart/ide64.c c64/cart/mmcreplay.c c64/cart/ser-eeprom.c c64/cart/supergames.c c64/cart/actionreplay3.c c64/cart/c64tpi.c c64/cart/dinamic.c c64/cart/fmopl.c c64/cart/isepic.c c64/cart/ocean.c c64/cart/sfx_soundexpander.c c64/cart/supersnapshot4.c c64/cart/actionreplay4.c c64/cart/capture.c c64/cart/dqbb.c c64/cart/freezeframe.c c64/cart/kcs.c c64/cart/prophet64.c c64/cart/sfx_soundsampler.c c64/cart/supersnapshot.c c64/cart/actionreplay.c c64/cart/comal80.c c64/cart/easyflash.c c64/cart/freezemachine.c c64/cart/mach5.c c64/cart/ramcart.c c64/cart/simonsbasic.c c64/cart/tfe.c c64/cart/atomicpower.c c64/cart/crt.c c64/cart/epyxfastload.c c64/cart/funplay.c c64/cart/magicdesk.c c64/cart/retroreplay.c c64/cart/snapshot64.c c64/cart/warpspeed.c c64/cart/c64acia1.c c64/cart/delaep256.c c64/cart/exos.c c64/cart/gamekiller.c c64/cart/magicformel.c c64/cart/reu.c c64/cart/spi-sdcard.c c64/cart/westermann.c c64/cart/c64cart.c c64/cart/delaep64.c c64/cart/expert.c c64/cart/generic.c c64/cart/magicvoice.c c64/cart/rexep256.c c64/cart/stardos.c c64/cart/zaxxon.c c64/cart/c64carthooks.c c64/cart/delaep7x8.c c64/cart/final3.c c64/cart/georam.c c64/cart/mikroass.c c64/cart/rexutility.c c64/cart/stb.c c64/cart/c64cartmem.c c64/cart/diashowmaker.c c64/cart/final.c c64/cart/gs.c c64/cart/mmc64.c c64/cart/ross.c c64/cart/superexplode5.c 
+
+#libiecc64.mk
+
+PPU_SRCS	+=	drive/iec/c64exp/c64exp-cmdline-options.c drive/iec/c64exp/c64exp-resources.c drive/iec/c64exp/iec-c64exp.c drive/iec/c64exp/mc6821.c drive/iec/c64exp/profdos.c
+
+#libieee.mk
+
+PPU_SRCS	+=	drive/ieee/fdc.c drive/ieee/ieee-cmdline-options.c drive/ieee/ieee-resources.c drive/ieee/ieee.c drive/ieee/ieeerom.c drive/ieee/memieee.c drive/ieee/riot1d.c drive/ieee/riot2d.c drive/ieee/via1d2031.c
+
+#libdrive.mk
+
+PPU_SRCS	+=	drive/drive-check.c drive/drive-cmdline-options.c drive/drive-overflow.c drive/drive-resources.c drive/drive-snapshot.c drive/drive-writeprotect.c drive/drive.c drive/drivecpu.c drive/drivemem.c drive/driveimage.c drive/driverom.c drive/drivesync.c drive/rotation.c
+
+#libiecbus.mk
+
+PPU_SRCS	+=	iecbus/iecbus.c
+
+# libparallel
+
+PPU_SRCS	+=	parallel/parallel-trap.c parallel/parallel.c
+
+# libvdrive
+
+PPU_SRCS	+=	vdrive/vdrive-bam.c vdrive/vdrive-command.c vdrive/vdrive-dir.c vdrive/vdrive-iec.c vdrive/vdrive-internal.c vdrive/vdrive-rel.c vdrive/vdrive-snapshot.c vdrive/vdrive.c
+
+# common
 PPU_SRCS	+= 	alarm.c attach.c autostart.c autostart-prg.c charset.c clkguard.c clipboard.c cmdline.c cbmdos.c cbmimage.c color.c crc32.c datasette.c dma.c emuid.c event.c findpath.c fliplist.c gcr.c info.c init.c initcmdline.c interrupt.c ioutil.c joystick.c kbdbuf.c keyboard.c lib.c machine-bus.c machine.c main.c palette.c ram.c rawfile.c resources.c romset.c snapshot.c sound.c sounddrv/soundps3.cpp sysfile.c translate.c traps.c util.c vsync.c zfile.c zipcode.c maincpu.c midi.c mouse.c lightpen.c
 
 PPU_LDLIBDIR += -L.
