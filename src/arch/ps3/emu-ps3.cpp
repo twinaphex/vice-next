@@ -140,6 +140,30 @@ extern "C" {
 	void c64scui_shutdown(void) { }
 	int plus4ui_init(void) { return 0; }
 	void plus4ui_shutdown(void) { }
+	int vsid_ui_init(void)						{ return 0; }
+#ifdef CELL_DEBUG
+	void vsid_ui_display_name(const char *name)			{ printf("Name: %s", name); }
+	void vsid_ui_display_author(const char *author)			{ printf("Author: %s", author); }
+	void vsid_ui_display_copyright(const char *copyright)		{ printf("Copyright by: %s", copyright); }
+	void vsid_ui_display_sync(int sync)				{ printf("Using %s sync", sync == MACHINE_SYNC_PAL ? "PAL" : "NTSC"); }
+	void vsid_ui_display_sid_model(int model)			{ printf("Using %s emulation", model == 0 ? "MOS6581" : "MOS8580"); }
+	void vsid_ui_set_default_tune(int nr)				{ printf("Default Tune: %i", nr); }
+	void vsid_ui_display_tune_nr(int nr)				{ printf("Playing Tune: %i", nr); }
+	void vsid_ui_display_nr_of_tunes(int count)			{ printf("Number of Tunes: %i", count); }
+#else
+	void vsid_ui_display_name(const char *name)			{ }
+	void vsid_ui_display_author(const char *author)			{ }
+	void vsid_ui_display_copyright(const char *copyright)		{ }
+	void vsid_ui_display_sync(int sync)				{ }
+	void vsid_ui_display_sid_model(int model)			{ }
+	void vsid_ui_set_default_tune(int nr)				{ }
+	void vsid_ui_display_tune_nr(int nr)				{ }
+	void vsid_ui_display_nr_of_tunes(int count)			{ }
+#endif
+	void vsid_ui_display_time(unsigned int sec)			{ }
+	void vsid_ui_display_irqtype(const char *irq)			{ }
+	void vsid_ui_close(void)					{ }
+	void vsid_ui_setdrv(char* driver_info_text)			{ }
 }
 
 void Emulator_StartROMRunning()

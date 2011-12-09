@@ -1,6 +1,6 @@
 include common.mk
 
-PPU_SRCS	=	arch/ps3/archdep.c arch/ps3/joy.cpp arch/ps3/ui.c arch/ps3/vsidui.c arch/ps3/vsyncarch.c  arch/ps3/kbd.c arch/ps3/mousedrv.c arch/ps3/video.cpp arch/ps3/console.c
+PPU_SRCS	=	arch/ps3/archdep.c arch/ps3/joy.cpp arch/ps3/ui.c arch/ps3/vsyncarch.c  arch/ps3/kbd.c arch/ps3/mousedrv.c arch/ps3/video.cpp arch/ps3/console.c
 
 
 PPU_SRCS	+=	arch/ps3/cellframework/audio/buffer.c arch/ps3/cellframework/audio/librsound.c arch/ps3/cellframework/audio/quadratic_resampler.cpp arch/ps3/cellframework/audio/resampler.cpp 

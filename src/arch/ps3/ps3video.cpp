@@ -374,7 +374,6 @@ void PS3Graphics::Draw(int width, int height, uint16_t* screen)
 	UpdateCgParams(width, height, width, height);
 	glDrawArrays(GL_QUADS, 0, 4); 
 	DrawHUD();
-	glFlush();
 	last_redraw = sys_time_get_system_time();
 }
 
@@ -481,7 +480,6 @@ void PS3Graphics::Refresh()
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDrawArrays(GL_QUADS, 0, 4); 
 	DrawHUD();
-	glFlush();
 	psglSwap();
 	last_redraw = sys_time_get_system_time();
 }
@@ -543,13 +541,9 @@ int32_t PS3Graphics::InitCg()
 
 	_cgContext = cgCreateContext();
 	if (_cgContext == NULL)
-	{
 		return 1;
-	}
 	if (strlen(_curFragmentShaderPath.c_str()) > 0)
-	{
 		return LoadFragmentShader(_curFragmentShaderPath.c_str());
-	}
 	else
 	{
 		_curFragmentShaderPath = DEFAULT_SHADER_FILE;

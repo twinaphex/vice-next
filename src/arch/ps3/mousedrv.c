@@ -39,15 +39,9 @@ int _mouse_x, _mouse_y;
  
 static CellMouseData data;
 
-int mousedrv_resources_init(void)
-{
-	return 0;
-}
-
-int mousedrv_cmdline_options_init(void)
-{
-	return 0;
-}
+int mousedrv_resources_init(void)	{ return 0; }
+int mousedrv_cmdline_options_init(void)	{ return 0; }
+void mousedrv_mouse_changed(void)	{ }
 
 void mousedrv_init(void)
 {
@@ -180,9 +174,6 @@ inline void update_mouse(void)
 }
 
 
-void mousedrv_mouse_changed(void)
-{
-}
 
 #define ACCEL 2
 
