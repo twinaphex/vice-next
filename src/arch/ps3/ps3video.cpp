@@ -45,7 +45,6 @@ extern "C" {
 #include "ui.h"
 }
 
-static unsigned char *pPixels;
 static const char* active_shader=NULL;
 //static int offset=0;
 static unsigned int last_redraw=0;
@@ -79,38 +78,6 @@ int32_t PS3Graphics::PSGLReInit(int width, int height, int depth)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
 	return CELL_OK;
-}
-
-void PS3Graphics::ScreenDump (void)
-{
-	pPixels = new unsigned char[context_width * context_height * 2];
-
-	unsigned char *buffer = (unsigned char *) glMapBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, GL_READ_ONLY);
-	if (buffer != NULL)
-		memcpy (pPixels, buffer, context_width * context_height * 2);
-	glUnmapBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE);
-}
-
-
-void PS3Graphics::DumpScreen (void)
-{
-	Draw (context_width, context_height, (std::uint16_t*) pPixels);
-}
-
-
-void PS3Graphics::DestroyDump (void)
-{
-	delete []pPixels;
-}
-
-unsigned char* PS3Graphics::RetrieveDump (void)
-{
-	return pPixels;
-}
-
-int PS3Graphics::RetrieveDumpSize (void)
-{
-	return context_width * context_height * 2;
 }
 
 /******************************************************************************* 

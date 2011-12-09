@@ -121,11 +121,6 @@ class PS3Graphics
 		/* uncategorized */
 		unsigned int TimeSinceLastDraw(void);
                 const char* GetCurrentShader(void);
-		void ScreenDump (void);
-		void DumpScreen (void);
-		void DestroyDump (void);
-		unsigned char* RetrieveDump (void);
-                int RetrieveDumpSize (void);
 		int32_t PSGLReInit(int width, int height, int depth);
 	private:
 		/* private variables */

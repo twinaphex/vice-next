@@ -305,7 +305,6 @@ extern "C" int menu(uint32_t mode)
 	// TODO : Maybe we should pause the emulator?
 
 	ps3_audio_suspend();
-	Graphics->ScreenDump();
 
 	mode_switch = mode;
 
@@ -319,7 +318,6 @@ extern "C" int menu(uint32_t mode)
 				break;
 			case MODE_EMULATION:
 				// Break out and return to Vice.
-				Graphics->DestroyDump();
 				ps3_audio_resume();
 
 				// The C64 only redraws if it needs to, so we force one here to clean up after the menu

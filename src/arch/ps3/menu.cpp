@@ -248,14 +248,6 @@ void do_shaderChoice()
 				Graphics->SetSmooth(false);
 				resources_set_int("PS3HardwareFilter", false);
 				menuStack.pop();
-
-				// Display the screen render for a moment, so we know we want this shader
-				// render was previously saved before the menu was launched.
-
-				// TODO  On initial launch, the screen dump will be blank. We need a default image here.
-				Graphics->DumpScreen();
-				psglSwap();
-				sys_timer_usleep (1000 * 1000 * 2);
 			}
 		}
 
